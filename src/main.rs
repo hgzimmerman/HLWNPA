@@ -34,8 +34,8 @@ fn main() {
     let _ = evaluate_ast(ast, &mut identifier_map);
 }
 
-#[derive(PartialEq, Debug)]
-enum Ast {
+#[derive(PartialEq, PartialOrd, Debug, Clone)]
+pub enum Ast {
     Expression { operator: BinaryOperator, expr1: Box<Ast>, expr2: Box<Ast>  },
     UnaryExpression{ operator: UnaryOperator, expr: Box<Ast>},
     VecExpression { expressions: Vec<Ast>}, // uesd for structuring execution of the AST.
@@ -45,8 +45,8 @@ enum Ast {
 }
 
 
-#[derive(PartialEq, Debug)]
-enum BinaryOperator {
+#[derive(PartialEq, PartialOrd, Debug, Clone)]
+pub enum BinaryOperator {
     Plus,
     Minus,
     Multiply,
@@ -58,12 +58,13 @@ enum BinaryOperator {
     Assignment,
 }
 
-#[derive(PartialEq, Debug)]
-enum UnaryOperator {
+#[derive(PartialEq, PartialOrd, Debug, Clone)]
+pub enum UnaryOperator {
     Print,
     Invert,
     Increment,
-    Decrement
+    Decrement,
+    ExecuteFn
 }
 
 
@@ -130,8 +131,34 @@ fn evaluate_ast(ast: Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
                       Datatype::Bool(bool) => Ok(Datatype::Bool(!bool)),
                       _ => Err(LangError::InvertNonBoolean)
                   }
+              },
+              UnaryOperator::Increment => {
+                  match evaluate_ast(*expr, map)? {
+                      Datatype::Number(number) => Ok(Datatype::Number( number + 1 )),
+                      _ => Err(LangError::IncrementNonNumber)
+                  }
+              },
+              UnaryOperator::Decrement => {
+                  match evaluate_ast(*expr, map)? {
+                      Datatype::Number(number) => Ok(Datatype::Number( number - 1 )),
+                      _ => Err(LangError::DecrementNonNumber)
+                  }
+              },
+              UnaryOperator::ExecuteFn => {
+                  match evaluate_ast(*expr, map)? {
+                      Datatype::Function {parameters, body, output_type} => {
+                          let mut cloned_map = map.clone(); // clone the map, to create a temporary new "stack" for the life of the function
+                          match *parameters {
+                              Ast::VecExpression{expressions} => {
+                                  let concrete_results: Vec<LangResult> = expressions.iter().map(|e| evaluate_ast(e.clone(), &mut cloned_map)).collect();
+                                  unimplemented!()
+                              },
+                              _ => unimplemented!()
+                          }
+                      }
+                      _ => Err(LangError::ExecuteNonFunction)
+                  }
               }
-              _ => Err(LangError::UnsupportedArithimaticOperation)
           }
         },
         //Evaluate multiple expressions and return the result of the last one.
@@ -152,14 +179,12 @@ fn evaluate_ast(ast: Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
                                 Some(e) =>  Ok(evaluate_ast(*e, map)?),
                                 _ => {Ok(Datatype::None )}
                             }
-
                         }
                     }
                 }
                 _ => Err(LangError::ConditionOnNonBoolean)
             }
-
-        }
+        },
         Ast::Literal {datatype} => { Ok(datatype) },
         Ast::ValueIdentifier {ident} => {
             match map.get(&ident) {

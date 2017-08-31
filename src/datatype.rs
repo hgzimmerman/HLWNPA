@@ -5,6 +5,7 @@ use std::ops::Div;
 use std::ops::Rem;
 
 use lang_result::*;
+use Ast;
 
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
@@ -14,6 +15,7 @@ pub enum Datatype {
     Array {value: Vec<Datatype>, type_: Box<Datatype>}, // I'm sort of losing type safety here.
     Bool (bool),
     None,
+    Function {parameters: Box<Ast>, body: Box<Ast>, output_type: Box<Datatype>},
     //Object { value: Vec<Datatype>, v_table: Vec<Ast>}
 }
 
@@ -32,7 +34,6 @@ impl Sub for Datatype {
             _ => Err(LangError::UnsupportedArithimaticOperation)
         }
     }
-
 }
 
 impl Add for Datatype {

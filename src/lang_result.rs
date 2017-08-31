@@ -10,5 +10,8 @@ pub enum LangError {
     ParserShouldHaveRejected,// should never happen
     UnsupportedArithimaticOperation,
     ConditionOnNonBoolean,
-    InvertNonBoolean
+    InvertNonBoolean,
+    DecrementNonNumber,
+    IncrementNonNumber,
+    ExecuteNonFunction
 }

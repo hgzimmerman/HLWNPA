@@ -400,7 +400,18 @@ fn conditional_test() {
     let ast = Ast::Conditional {
         condition: Box::new(Ast::Literal {datatype: Datatype::Bool(true)}),
         true_expr: Box::new(Ast::Literal {datatype: Datatype::Number(7)}),
-        false_expr: Some(Box::new(Ast::Literal {datatype: Datatype::Number(2)}))
+        false_expr: None
     };
     assert_eq!(Datatype::Number(7), evaluate_ast(ast, &mut map).unwrap())
+}
+
+#[test]
+fn conditional_with_else_test() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let ast = Ast::Conditional {
+        condition: Box::new(Ast::Literal {datatype: Datatype::Bool(false)}),
+        true_expr: Box::new(Ast::Literal {datatype: Datatype::Number(7)}),
+        false_expr: Some(Box::new(Ast::Literal {datatype: Datatype::Number(2)}))
+    };
+    assert_eq!(Datatype::Number(2), evaluate_ast(ast, &mut map).unwrap())
 }

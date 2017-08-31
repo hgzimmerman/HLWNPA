@@ -1,4 +1,4 @@
-use datatype::Datatype;
+use datatype::{Datatype, BOOL_TYPE, NUMBER_TYPE};
 use ast::{Ast, BinaryOperator, UnaryOperator};
 use nom::*;
 use nom::IResult;
@@ -130,6 +130,28 @@ named!(assignment<Ast>,
     )
 );
 
+named!(type_signature<Ast>,
+   ws!(alt!(number_ts | string_ts | bool_ts))
+);
+
+named!(number_ts<Ast>,
+    do_parse!(
+        tag!("Number") >>
+        (Ast::Type{datatype: NUMBER_TYPE})
+    )
+);
+named!(string_ts<Ast>,
+    do_parse!(
+        tag!("String") >>
+        (Ast::Type{datatype: Datatype::String("".to_string())})
+    )
+);
+named!(bool_ts<Ast>,
+    do_parse!(
+        tag!("Bool") >>
+        (Ast::Type{datatype: BOOL_TYPE})
+    )
+);
 
 /// I want the function definition syntax to look like: fn fn_name(id: datatype, ...) -> return_type { expressions }
 
@@ -139,7 +161,7 @@ named!(function_parameter_assignment<Ast>,
     do_parse!(
         id: identifier >>
         tag!(":") >>
-        value: literal >>
+        value: type_signature >>
         (Ast::Expression{ operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier{ident: id}), expr2: Box::new(value) })
     )
 );
@@ -262,11 +284,11 @@ fn parse_assignment_of_literal_test() {
 
 #[test]
 fn parse_function_parameter_assignment_of_literal_test() {
-    let input_string = "b : 8";
+    let input_string = "b : Number";
     let (_, value) = match function_parameter_assignment(input_string.as_bytes()) {
         IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier {ident: "b".to_string()}), expr2: Box::new(Ast::Literal {datatype: Datatype::Number(8)}) }, value)
+    assert_eq!(Ast::Expression {operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier {ident: "b".to_string()}), expr2: Box::new(Ast::Type {datatype: NUMBER_TYPE}) }, value)
 }

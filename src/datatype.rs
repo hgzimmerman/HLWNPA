@@ -119,3 +119,9 @@ impl Rem for Datatype {
         }
     }
 }
+
+
+// Todo consider creating another enum that is just the type info that implements From<Datatype>
+pub const NUMBER_TYPE: Datatype = Datatype::Number(0);
+//pub const STRING_TYPE: Datatype = Datatype::String("".to_string()); // to_string isn't a constant function, therefore this is invalid
+pub const BOOL_TYPE: Datatype = Datatype::Bool(false);

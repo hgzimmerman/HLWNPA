@@ -1,5 +1,8 @@
 #![feature(discriminant_value)]
+#![feature(trace_macros)]
 
+#![macro_use]
+extern crate nom;
 
 use std::boxed::Box;
 use std::collections::HashMap;
@@ -177,8 +180,6 @@ fn less_than_test() {
     };
     assert_eq!(Datatype::Bool(true), ast.evaluate_ast( &mut map).unwrap())
 }
-
-
 
 
 

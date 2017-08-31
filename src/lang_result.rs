@@ -13,5 +13,10 @@ pub enum LangError {
     InvertNonBoolean,
     DecrementNonNumber,
     IncrementNonNumber,
-    ExecuteNonFunction
+    ExecuteNonFunction,
+    ReturnTypeDoesNotMatchReturnValue,
+    FunctionParametersShouldBeVecExpression,
+    ParameterLengthMismatch,
+    InvalidFunctionPrototypeFormatting,
+
 }

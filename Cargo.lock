@@ -1,5 +1,5 @@
 [root]
-name = "ast-test"
+name = "rust-lisp-thing"
 version = "0.1.0"
 dependencies = [
  "either 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",

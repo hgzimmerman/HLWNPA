@@ -7,7 +7,7 @@ use std::ops::Rem;
 use lang_result::*;
 
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum Datatype {
     Number ( i32 ),
     String(String),

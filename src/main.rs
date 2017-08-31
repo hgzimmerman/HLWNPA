@@ -39,6 +39,7 @@ enum Ast {
     Expression { operator: BinaryOperator, expr1: Box<Ast>, expr2: Box<Ast>  },
     UnaryExpression{ operator: UnaryOperator, expr: Box<Ast>},
     VecExpression { expressions: Vec<Ast>}, // uesd for structuring execution of the AST.
+    Conditional {condition: Box<Ast>, true_expr: Box<Ast>, false_expr: Option<Box<Ast>>},
     Literal { datatype: Datatype }, // consider making the Literal another enum with supported default datatypes.
     ValueIdentifier { ident: String}, // gets the value mapped to a hashmap
 }
@@ -52,6 +53,9 @@ enum BinaryOperator {
     Divide,
     Modulo,
     Assignment,
+    Equals,
+    GreaterThan,
+    LessThan
 }
 
 #[derive(PartialEq, Debug)]
@@ -72,16 +76,38 @@ fn evaluate_ast(ast: Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
                 },
                 BinaryOperator::Minus => {
                     evaluate_ast(*expr1, map)? - evaluate_ast(*expr2, map)?
-                }
+                },
                 BinaryOperator::Multiply => {
                     evaluate_ast(*expr1, map)? * evaluate_ast(*expr2, map)?
-                }
+                },
                 BinaryOperator::Divide => {
                     evaluate_ast(*expr1, map)? / evaluate_ast(*expr2, map)?
-                }
+                },
                 BinaryOperator::Modulo => {
                     evaluate_ast(*expr1, map)? % evaluate_ast(*expr2, map)?
+                },
+                BinaryOperator::Equals => {
+                   if evaluate_ast(*expr1, map)? == evaluate_ast(*expr2, map)? {
+                       return Ok(Datatype::Bool(true))
+                   } else {
+                       return Ok(Datatype::Bool(false))
+                   }
+                },
+                BinaryOperator::GreaterThan => {
+                    if evaluate_ast(*expr1, map)? >= evaluate_ast(*expr2, map)? {
+                        return Ok(Datatype::Bool(true))
+                    } else {
+                        return Ok(Datatype::Bool(false))
+                    }
+                },
+                BinaryOperator::LessThan => {
+                    if evaluate_ast(*expr1, map)? <= evaluate_ast(*expr2, map)? {
+                        return Ok(Datatype::Bool(true))
+                    } else {
+                        return Ok(Datatype::Bool(false))
+                    }
                 }
+
                 BinaryOperator::Assignment => {
                     if let Ast::ValueIdentifier{ident} = *expr1 {
                         let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
@@ -103,6 +129,7 @@ fn evaluate_ast(ast: Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
               _ => Err(LangError::UnsupportedArithimaticOperation)
           }
         },
+        //Evaluate multiple expressions and return the result of the last one.
         Ast::VecExpression {expressions} => {
             let mut val: Datatype = Datatype::None;
             for e in expressions {
@@ -110,6 +137,24 @@ fn evaluate_ast(ast: Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
             };
             Ok(val) // return the last evaluated expression;
         },
+        Ast::Conditional {condition, true_expr, false_expr} => {
+            match evaluate_ast(*condition, map)? {
+                Datatype::Bool(bool) => {
+                    match bool {
+                        true => Ok(evaluate_ast(*true_expr, map)?),
+                        false => {
+                            match false_expr {
+                                Some(e) =>  Ok(evaluate_ast(*e, map)?),
+                                _ => {Ok(Datatype::None )}
+                            }
+
+                        }
+                    }
+                }
+                _ => Err(LangError::ConditionOnNonBoolean)
+            }
+
+        }
         Ast::Literal {datatype} => { Ok(datatype) },
         Ast::ValueIdentifier {ident} => {
             match map.get(&ident) {
@@ -226,12 +271,47 @@ fn modulo_test() {
     assert_eq!(Datatype::Number(2), evaluate_ast(ast, &mut map).unwrap())
 }
 
+#[test]
+fn equality_test() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let ast = Ast::Expression {
+        operator: BinaryOperator::Equals,
+        expr1: Box::new(Ast::Literal {datatype: Datatype::Number( 3)}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 3)})
+    };
+    assert_eq!(Datatype::Bool(true), evaluate_ast(ast, &mut map).unwrap())
+}
+
+#[test]
+fn greater_than_test() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let ast = Ast::Expression {
+        operator: BinaryOperator::GreaterThan,
+        expr1: Box::new(Ast::Literal {datatype: Datatype::Number( 4)}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 3)})
+    };
+    assert_eq!(Datatype::Bool(true), evaluate_ast(ast, &mut map).unwrap())
+}
+
+#[test]
+fn less_than_test() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let ast = Ast::Expression {
+        operator: BinaryOperator::LessThan,
+        expr1: Box::new(Ast::Literal {datatype: Datatype::Number( 2)}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 3)})
+    };
+    assert_eq!(Datatype::Bool(true), evaluate_ast(ast, &mut map).unwrap())
+}
+
+
+
 
 
 /// Assign the value 6 to the identifier "a"
 /// Recall that identifier and add it to 5
 #[test]
-fn assignment_test(){
+fn assignment_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let ast = Ast::VecExpression {
         expressions: vec!(

@@ -8,5 +8,6 @@ pub enum LangError {
     InvalidEvaluationOfNone, // should never happen
     IdentifierDoesntExist,
     ParserShouldHaveRejected,// should never happen
-    UnsupportedArithimaticOperation
+    UnsupportedArithimaticOperation,
+    ConditionOnNonBoolean
 }

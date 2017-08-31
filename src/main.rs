@@ -13,7 +13,7 @@ mod ast;
 mod parser;
 
 use lang_result::*;
-use datatype::Datatype;
+use datatype::{Datatype, TypeInfo};
 use ast::*;
 
 
@@ -308,7 +308,7 @@ fn basic_function_test() {
                     datatype: Datatype::Function {
                         parameters: Box::new(Ast::VecExpression { expressions: vec![] }), // empty parameters
                         body: (Box::new(Ast::Literal { datatype: Datatype::Number(32) })), // just return a number
-                        output_type: Box::new(Datatype::Number(0)), // expect a number
+                        return_type: Box::new(TypeInfo::Number), // expect a number
                     },
                 }),
             },
@@ -339,12 +339,12 @@ fn function_with_parameter_test() {
                                     expr1: Box::new(
                                         Ast::ValueIdentifier { ident: "b".to_string() }
                                     ), // the value's name is b
-                                    expr2: Box::new(Ast::Literal { datatype: Datatype::Number(0) }), // fn takes a number
+                                    expr2: Box::new(Ast::Type { datatype: TypeInfo::Number }), // fn takes a number
                                 },
                             ],
                         }),
                         body: (Box::new(Ast::ValueIdentifier { ident: "b".to_string() })), // just return the number passed in.
-                        output_type: Box::new(Datatype::Number(0)), // expect a number to be returned
+                        return_type: Box::new(TypeInfo::Number), // expect a number to be returned
                     },
                 }),
             },
@@ -381,14 +381,14 @@ fn function_with_two_parameters_addition_test() {
                                     expr1: Box::new(
                                         Ast::ValueIdentifier { ident: "b".to_string() }
                                     ), // the value's name is b
-                                    expr2: Box::new(Ast::Literal { datatype: Datatype::Number(0) }), // fn takes a number
+                                    expr2: Box::new(Ast::Type { datatype: TypeInfo::Number }), // fn takes a number
                                 },
                                 Ast::Expression {
                                     operator: BinaryOperator::FunctionParameterAssignment,
                                     expr1: Box::new(
                                         Ast::ValueIdentifier { ident: "c".to_string() }
                                     ), // the value's name is b
-                                    expr2: Box::new(Ast::Literal { datatype: Datatype::Number(0) }), // fn takes a number
+                                    expr2: Box::new(Ast::Type  { datatype: TypeInfo::Number }), // fn takes a number
                                 },
                             ],
                         }),
@@ -399,7 +399,7 @@ fn function_with_two_parameters_addition_test() {
                             expr2: Box::new(Ast::ValueIdentifier { ident: "c".to_string() }),
                         })),
 
-                        output_type: Box::new(Datatype::Number(0)), // expect a number to be returned
+                        return_type: Box::new(TypeInfo::Number), // expect a number to be returned
                     },
                 }),
             },

@@ -1,5 +1,5 @@
 
-use datatype::Datatype;
+use datatype::{Datatype, TypeInfo};
 pub type LangResult = Result<Datatype, LangError>;
 
 #[derive(PartialEq, Debug)]
@@ -17,5 +17,6 @@ pub enum LangError {
     FunctionParametersShouldBeVecExpression,
     ParameterLengthMismatch,
     InvalidFunctionPrototypeFormatting,
-    TypeError {expected: Datatype, found: Datatype}
+    TypeError {expected: TypeInfo, found: TypeInfo},
+    ExpectedDataTypeInfo
 }

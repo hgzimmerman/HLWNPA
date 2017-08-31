@@ -1,5 +1,5 @@
 use lang_result::*;
-use datatype::Datatype;
+use datatype::{Datatype, TypeInfo};
 use std::mem::discriminant;
 
 use std::boxed::Box;
@@ -23,7 +23,7 @@ pub enum Ast {
         false_expr: Option<Box<Ast>>,
     },
     Literal { datatype: Datatype }, // consider making the Literal another enum with supported default datatypes.
-    Type {datatype: Datatype }, // value in the datatype is useless, just use this to determine parameter type.
+    Type {datatype: TypeInfo }, // value in the datatype is useless, just use this to determine parameter type.
     ValueIdentifier { ident: String }, // gets the value mapped to a hashmap
 }
 
@@ -136,7 +136,7 @@ impl Ast {
                             Datatype::Function {
                                 parameters,
                                 body,
-                                output_type,
+                                return_type,
                             } => {
                                 match *parameters {
                                     // The parameters should be in the form: VecExpression(expression_with_fn_assignment, expression_with_fn_assignment, ...) This way, functions should be able to support arbitrary numbers of parameters.
@@ -150,11 +150,14 @@ impl Ast {
                                                     let operator = operator.clone();
                                                     let expr1 = expr1.clone();
 
-                                                    //do run-time type-checking
-                                                    let expected_type: Datatype = expr2.clone().evaluate_ast(&mut cloned_map)?; // TODO: possibly more rigorously ensure that this is only an Ast::Type, instead of evaluating a possibly long tree.
+                                                    //do run-time type-checking, the supplied value should be of the same type as the specified value
+                                                    let expected_type: &TypeInfo = match **expr2 {
+                                                        Ast::Type {ref datatype} => datatype,
+                                                        _ => return Err(LangError::ExpectedDataTypeInfo)
+                                                    }; // TODO: possibly more rigorously ensure that this is only an Ast::Type, instead of evaluating a possibly long tree.
                                                     // ^^ There is the odd possibility of implementing expressions that resolve to only a type, although I'm not sure of the utility of that.
-                                                    if discriminant(&expected_type) != discriminant(&d) {
-                                                        return Err(LangError::TypeError {expected: expected_type, found: d})
+                                                    if discriminant(expected_type) != discriminant(&TypeInfo::from(d.clone())) {
+                                                        return Err(LangError::TypeError {expected: expected_type.clone(), found: TypeInfo::from(d)})
                                                     }
 
                                                     if operator == BinaryOperator::FunctionParameterAssignment {
@@ -183,7 +186,7 @@ impl Ast {
 
                                         // Evaluate the body of the function
                                         let output = body.evaluate_ast(&mut cloned_map)?;
-                                        if discriminant(&output) == discriminant(&output_type) {
+                                        if TypeInfo::from(output.clone()) == *return_type {
                                             return Ok(output);
                                         } else {
                                             return Err(
@@ -254,7 +257,7 @@ impl Ast {
                 }
             }
             Ast::Literal { datatype } => Ok(datatype),
-            Ast::Type { datatype } => Ok(datatype),
+            Ast::Type { datatype } => Ok(Datatype::None), // you shouldn't try to evaluate the datatype, // todo consider making this an error
             Ast::ValueIdentifier { ident } => {
                 match map.get(&ident) {
                     Some(value) => Ok(value.clone()),

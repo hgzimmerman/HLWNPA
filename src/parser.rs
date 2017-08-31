@@ -1,4 +1,4 @@
-use datatype::{Datatype, BOOL_TYPE, NUMBER_TYPE};
+use datatype::{Datatype, TypeInfo, BOOL_TYPE, NUMBER_TYPE};
 use ast::{Ast, BinaryOperator, UnaryOperator};
 use nom::*;
 use nom::IResult;
@@ -156,19 +156,19 @@ named!(type_signature<Ast>,
 named!(number_ts<Ast>,
     do_parse!(
         tag!("Number") >>
-        (Ast::Type{datatype: NUMBER_TYPE})
+        (Ast::Type{datatype: TypeInfo::Number})
     )
 );
 named!(string_ts<Ast>,
     do_parse!(
         tag!("String") >>
-        (Ast::Type{datatype: Datatype::String("".to_string())})
+        (Ast::Type{datatype: TypeInfo::String})
     )
 );
 named!(bool_ts<Ast>,
     do_parse!(
         tag!("Bool") >>
-        (Ast::Type{datatype: BOOL_TYPE})
+        (Ast::Type{datatype: TypeInfo::Bool})
     )
 );
 
@@ -193,6 +193,45 @@ named!(function_body<Ast>,
             tag!("}")
         ) >>
         (Ast::VecExpression{expressions: statements})
+    )
+);
+
+named!(function_return_type<TypeInfo>,
+    do_parse!(
+        ws!(tag!("->")) >>
+        return_type: type_signature >>
+        // Extract the datatype from the Ast::Type provided by the type_signature function
+        (match return_type {
+            Ast::Type {datatype} => datatype,
+            _ => unreachable!() // this branch should never be encountered.
+        })
+    )
+);
+
+named!(function<Ast>,
+    do_parse!(
+        ws!(tag!("fn")) >>
+        function_name: identifier >>
+        arguments: delimited!(
+            tag!("("),
+            many0!(function_parameter_assignment),
+            tag!(")")
+        ) >>
+        return_type: function_return_type >>
+        body_expressions: delimited!(
+            tag!("{"),
+            many1!(binary_expr_parens), // todo: expand this to unary and assignments, others
+            tag!("}")
+        ) >>
+        (Ast::Expression{
+            operator: BinaryOperator::Assignment,
+            expr1: Box::new(Ast::ValueIdentifier{ident: function_name}),
+            expr2: Box::new(Ast::Literal {datatype: Datatype::Function {
+                parameters: Box::new(Ast::VecExpression{expressions: arguments}),
+                body: Box::new(Ast::VecExpression{expressions: body_expressions}),
+                return_type: Box::new(return_type)
+            } } )
+        })
     )
 );
 
@@ -319,5 +358,5 @@ fn parse_function_parameter_assignment_of_literal_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier {ident: "b".to_string()}), expr2: Box::new(Ast::Type {datatype: NUMBER_TYPE}) }, value)
+    assert_eq!(Ast::Expression {operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier {ident: "b".to_string()}), expr2: Box::new(Ast::Type {datatype: TypeInfo::Number}) }, value)
 }

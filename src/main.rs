@@ -52,10 +52,10 @@ enum BinaryOperator {
     Multiply,
     Divide,
     Modulo,
-    Assignment,
     Equals,
     GreaterThan,
-    LessThan
+    LessThan,
+    Assignment,
 }
 
 #[derive(PartialEq, Debug)]
@@ -106,8 +106,7 @@ fn evaluate_ast(ast: Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
                     } else {
                         return Ok(Datatype::Bool(false))
                     }
-                }
-
+                },
                 BinaryOperator::Assignment => {
                     if let Ast::ValueIdentifier{ident} = *expr1 {
                         let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
@@ -125,6 +124,12 @@ fn evaluate_ast(ast: Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
               UnaryOperator::Print => {
                   print!("{:?}", evaluate_ast(*expr, map)?); // todo use: std::fmt::Display::fmt instead
                   Ok(Datatype::None)
+              },
+              UnaryOperator::Invert => {
+                  match evaluate_ast(*expr, map)? {
+                      Datatype::Bool(bool) => Ok(Datatype::Bool(!bool)),
+                      _ => Err(LangError::InvertNonBoolean)
+                  }
               }
               _ => Err(LangError::UnsupportedArithimaticOperation)
           }
@@ -387,4 +392,15 @@ fn reassignment_test() {
         )
     };
     assert_eq!(Datatype::Number(8), evaluate_ast(ast, &mut map).unwrap())
+}
+
+#[test]
+fn conditional_test() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let ast = Ast::Conditional {
+        condition: Box::new(Ast::Literal {datatype: Datatype::Bool(true)}),
+        true_expr: Box::new(Ast::Literal {datatype: Datatype::Number(7)}),
+        false_expr: Some(Box::new(Ast::Literal {datatype: Datatype::Number(2)}))
+    };
+    assert_eq!(Datatype::Number(7), evaluate_ast(ast, &mut map).unwrap())
 }

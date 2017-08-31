@@ -9,5 +9,6 @@ pub enum LangError {
     IdentifierDoesntExist,
     ParserShouldHaveRejected,// should never happen
     UnsupportedArithimaticOperation,
-    ConditionOnNonBoolean
+    ConditionOnNonBoolean,
+    InvertNonBoolean
 }

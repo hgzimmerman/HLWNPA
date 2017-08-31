@@ -89,15 +89,18 @@ named!(string_literal<Ast>,
     )
 );
 
-
+/// put all literal types here
+named!(literal<Ast>,
+    alt!(number_literal | string_literal)
+);
 
 
 named!(binary_expr<Ast>,
     do_parse!(
        op: binary_operator >>
-       n1: number_literal >>
-       n2: number_literal >>
-       (Ast::Expression{ operator: BinaryOperator::Plus, expr1: Box::new(n1), expr2: Box::new(n2)})
+       l1: literal >>
+       l2: literal >>
+       (Ast::Expression{ operator: BinaryOperator::Plus, expr1: Box::new(l1), expr2: Box::new(l2)})
     )
 );
 named!(binary_expr_parens<Ast>,
@@ -186,4 +189,14 @@ fn parse_string_literal_test() {
         _ => {panic!()}
     };
     assert_eq!(Ast::Literal {datatype: Datatype::String("Hello World".to_string())}, value)
+}
+
+#[test]
+fn parse_string_and_number_addition_test() {
+    let (_, value) = match binary_expr_parens(b"(+ 3 \"Hi\")") {
+        IResult::Done(r,v) => (r,v),
+        IResult::Error(e) => panic!("{:?}", e),
+        _ => {panic!()}
+    };
+    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal {datatype: Datatype::Number(3)}), expr2:  Box::new(Ast::Literal {datatype: Datatype::String("Hi".to_string())}) }, value);
 }

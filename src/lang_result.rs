@@ -17,4 +17,5 @@ pub enum LangError {
     FunctionParametersShouldBeVecExpression,
     ParameterLengthMismatch,
     InvalidFunctionPrototypeFormatting,
+    TypeError {expected: Datatype, found: Datatype}
 }

@@ -23,6 +23,7 @@ pub enum Ast {
         false_expr: Option<Box<Ast>>,
     },
     Literal { datatype: Datatype }, // consider making the Literal another enum with supported default datatypes.
+    Type {datatype: Datatype }, // value in the datatype is useless, just use this to determine parameter type.
     ValueIdentifier { ident: String }, // gets the value mapped to a hashmap
 }
 
@@ -111,10 +112,10 @@ impl Ast {
                         }
                     }
                     BinaryOperator::ExecuteFn => {
-                        // evaluate the parameters
 
                         let mut cloned_map = map.clone(); // clone the map, to create a temporary new "stack" for the life of the function
 
+                        // evaluate the parameters
                         let evaluated_parameters: Vec<Datatype> = match *expr2 {
                             Ast::VecExpression { expressions } => {
                                 let mut evaluated_expressions: Vec<Datatype> = vec!();
@@ -130,6 +131,7 @@ impl Ast {
                         };
 
 
+                        // Take an existing function by (by grabbing the function using an identifier, which should resolve to a function)
                         match expr1.evaluate_ast(&mut cloned_map)? {
                             Datatype::Function {
                                 parameters,
@@ -137,16 +139,23 @@ impl Ast {
                                 output_type,
                             } => {
                                 match *parameters {
-                                    // The parameters should be in the form VecExpression(expression_with_fn_assignment, expression_with_fn_assignment, ...) This way, functions should be able to support arbitrary numbers of parameters.
+                                    // The parameters should be in the form: VecExpression(expression_with_fn_assignment, expression_with_fn_assignment, ...) This way, functions should be able to support arbitrary numbers of parameters.
                                     Ast::VecExpression { expressions } => {
                                         // zip the values of the evaluated parameters into the expected parameters for the function
                                         if evaluated_parameters.len() == expressions.len() {
-                                            // create an ast::VecExpression that
+                                            // Replace the right hand side of the expression (which should be an Ast::Type with a computed literal.
                                             let rhs_replaced_with_evaluated_parameters_results: Vec<Result<Ast, LangError>> = expressions.iter().zip(evaluated_parameters).map(|expressions_with_parameters: (&Ast, Datatype)| {
                                                 let (e, d) = expressions_with_parameters; // assign out of tuple.
-                                                if let Ast::Expression { ref operator, ref expr1, .. } = *e {
+                                                if let Ast::Expression { ref operator, ref expr1, ref expr2 } = *e {
                                                     let operator = operator.clone();
                                                     let expr1 = expr1.clone();
+
+                                                    //do run-time type-checking
+                                                    let expected_type: Datatype = expr2.clone().evaluate_ast(&mut cloned_map)?; // TODO: possibly more rigorously ensure that this is only an Ast::Type, instead of evaluating a possibly long tree.
+                                                    // ^^ There is the odd possibility of implementing expressions that resolve to only a type, although I'm not sure of the utility of that.
+                                                    if discriminant(&expected_type) != discriminant(&d) {
+                                                        return Err(LangError::TypeError {expected: expected_type, found: d})
+                                                    }
 
                                                     if operator == BinaryOperator::FunctionParameterAssignment {
                                                         return Ok(Ast::Expression { operator: operator, expr1: expr1, expr2: Box::new(Ast::Literal { datatype: d }) }); // return a new FunctionParameterAssignment Expression with a replaced expr2.
@@ -159,7 +168,9 @@ impl Ast {
                                             }
                                             ).collect();
 
-
+                                            // These functions _should_ all be assignments
+                                            // So after replacing the Types with Literals that have been derived from the expressions passed in,
+                                            // they can be associated with the identifiers, and the identifiers can be used in the function body later.
                                             for rhs in
                                                 rhs_replaced_with_evaluated_parameters_results
                                             {
@@ -170,7 +181,7 @@ impl Ast {
                                             return Err(LangError::ParameterLengthMismatch);
                                         }
 
-                                        // Evaluate the body of the
+                                        // Evaluate the body of the function
                                         let output = body.evaluate_ast(&mut cloned_map)?;
                                         if discriminant(&output) == discriminant(&output_type) {
                                             return Ok(output);
@@ -243,6 +254,7 @@ impl Ast {
                 }
             }
             Ast::Literal { datatype } => Ok(datatype),
+            Ast::Type { datatype } => Ok(datatype),
             Ast::ValueIdentifier { ident } => {
                 match map.get(&ident) {
                     Some(value) => Ok(value.clone()),

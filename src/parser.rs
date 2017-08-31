@@ -107,6 +107,54 @@ named!(binary_expr_parens<Ast>,
     delimited!(char!('('), binary_expr, char!(')'))
 );
 
+named!(identifier<String>,
+    do_parse!(
+        id: ws!(
+            map_res!(
+                alphanumeric, // todo: replace this with a combinator that accepts 0-9a-zA-Z as well as -,_
+                str::from_utf8
+            )
+        ) >>
+        (id.to_string())
+
+    )
+);
+
+
+named!(assignment<Ast>,
+    do_parse!(
+        ws!(tag!("let")) >>
+        id: ws!(identifier) >>
+        value: ws!(literal) >> // I don't just want a literal, I could also use a bin expr, or a fn.
+        (Ast::Expression{ operator: BinaryOperator::Assignment, expr1: Box::new(Ast::ValueIdentifier{ident: id}), expr2: Box::new(value) })
+    )
+);
+
+
+/// I want the function definition syntax to look like: fn fn_name(id: datatype, ...) -> return_type { expressions }
+
+/// matches the signature:  identifier : expression|literal
+/// Used for assigning identifiers to types
+named!(function_parameter_assignment<Ast>,
+    do_parse!(
+        id: identifier >>
+        tag!(":") >>
+        value: literal >>
+        (Ast::Expression{ operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier{ident: id}), expr2: Box::new(value) })
+    )
+);
+
+named!(function_body<Ast>,
+    do_parse!(
+        statements : delimited!(
+            tag!("{"),
+            many1!(ws!(binary_expr_parens)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those.
+            tag!("}")
+        ) >>
+        (Ast::VecExpression{expressions: statements})
+    )
+);
+
 
 #[test]
 fn parse_addition_test() {
@@ -198,5 +246,27 @@ fn parse_string_and_number_addition_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal {datatype: Datatype::Number(3)}), expr2:  Box::new(Ast::Literal {datatype: Datatype::String("Hi".to_string())}) }, value);
+    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal {datatype: Datatype::Number(3)}), expr2: Box::new(Ast::Literal {datatype: Datatype::String("Hi".to_string())}) }, value);
+}
+
+#[test]
+fn parse_assignment_of_literal_test() {
+    let input_string = "let b 8";
+    let (_, value) = match assignment(input_string.as_bytes()) {
+        IResult::Done(r, v) => (r, v),
+        IResult::Error(e) => panic!("{:?}", e),
+        _ => panic!(),
+    };
+    assert_eq!(Ast::Expression {operator: BinaryOperator::Assignment, expr1: Box::new(Ast::ValueIdentifier {ident: "b".to_string()}), expr2: Box::new(Ast::Literal {datatype: Datatype::Number(8)}) }, value)
+}
+
+#[test]
+fn parse_function_parameter_assignment_of_literal_test() {
+    let input_string = "b : 8";
+    let (_, value) = match function_parameter_assignment(input_string.as_bytes()) {
+        IResult::Done(r, v) => (r, v),
+        IResult::Error(e) => panic!("{:?}", e),
+        _ => panic!(),
+    };
+    assert_eq!(Ast::Expression {operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier {ident: "b".to_string()}), expr2: Box::new(Ast::Literal {datatype: Datatype::Number(8)}) }, value)
 }

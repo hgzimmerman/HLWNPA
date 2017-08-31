@@ -89,9 +89,28 @@ named!(string_literal<Ast>,
     )
 );
 
+named!(bool_false<bool>,
+    do_parse!(
+        tag!("false") >>
+        (false)
+    )
+);
+named!(bool_true<bool>,
+    do_parse!(
+        tag!("true") >>
+        (true)
+    )
+);
+named!(bool_literal<Ast>,
+    do_parse!(
+        boolean_value: alt!(bool_true | bool_false) >>
+        (Ast::Literal {datatype: Datatype::Bool(boolean_value)})
+    )
+);
+
 /// put all literal types here
 named!(literal<Ast>,
-    alt!(number_literal | string_literal)
+    alt!(number_literal | string_literal | bool_literal)
 );
 
 
@@ -161,8 +180,8 @@ named!(function_parameter_assignment<Ast>,
     do_parse!(
         id: identifier >>
         tag!(":") >>
-        value: type_signature >>
-        (Ast::Expression{ operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier{ident: id}), expr2: Box::new(value) })
+        type_info: type_signature >>
+        (Ast::Expression{ operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier{ident: id}), expr2: Box::new(type_info) })
     )
 );
 
@@ -236,6 +255,16 @@ fn parse_number_literal_test() {
         _ => panic!(),
     };
     assert_eq!(Ast::Literal {datatype: Datatype::Number(42)}, value)
+}
+
+#[test]
+fn parse_bool_literal_test() {
+    let (_, value) = match bool_literal(b"true") {
+        IResult::Done(r, v) => (r, v),
+        IResult::Error(e) => panic!("{:?}", e),
+        _ => panic!(),
+    };
+    assert_eq!(Ast::Literal {datatype: Datatype::Bool(true)}, value)
 }
 
 

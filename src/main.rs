@@ -24,12 +24,12 @@ fn main() {
                 Ast::Expression {
                     operator: Operator::Assignment,
                     expr1: Box::new(Ast::ValueIdentifier {ident: "a".to_string() }),
-                    expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 6}})
+                    expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 6 ) })
                 },
                 Ast::Expression {
                     operator: Operator::Plus,
                     expr1: Box::new(Ast::ValueIdentifier {ident: "a".to_string() }),
-                    expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 5}})
+                    expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 5 ) })
                 }
              )
         }),
@@ -51,10 +51,10 @@ enum Ast {
 
 #[derive(PartialEq, Debug, Clone)]
 enum Datatype {
-    Number { value: i32 },
-    String { value: String},
+    Number ( i32 ),
+    String(String),
     Array {value: Vec<Datatype>, type_: Box<Datatype>}, // I'm sort of losing type safety here.
-    Bool { value: bool},
+    Bool (bool),
     None,
     //Object { value: Vec<Datatype>, v_table: Vec<Ast>}
 }
@@ -63,10 +63,10 @@ impl Sub for Datatype {
     type Output = LangResult;
     fn sub(self, other: Datatype) -> LangResult {
         match self {
-            Datatype::Number {value: lhs} => {
+            Datatype::Number ( lhs) => {
                 match other {
-                    Datatype::Number {value: rhs} => {
-                        return Ok(Datatype::Number {value: lhs - rhs} )
+                    Datatype::Number(rhs) => {
+                        return Ok(Datatype::Number( lhs - rhs ) )
                     }
                     _ => Err(LangError::UnsupportedArithimaticOperation)
                 }
@@ -81,24 +81,24 @@ impl Add for Datatype {
     type Output = LangResult;
     fn add(self, other: Datatype) -> LangResult {
         match self {
-            Datatype::Number {value: lhs} => {
+            Datatype::Number ( lhs) => {
                 match other {
-                    Datatype::Number {value: rhs} => {
-                        return Ok(Datatype::Number {value: lhs + rhs})
+                    Datatype::Number(rhs) => {
+                        return Ok(Datatype::Number ( lhs + rhs ))
                     },
-                    Datatype::String {value: rhs} => {
-                        return Ok(Datatype::String {value: format!("{}{}",lhs,rhs)}) // add the string to the number.
+                    Datatype::String( rhs) => {
+                        return Ok(Datatype::String(format!("{}{}",lhs,rhs))) // add the string to the number.
                     },
                     _ => return Err(LangError::UnsupportedArithimaticOperation)
                 }
             },
-            Datatype::String {value: lhs} => {
+            Datatype::String(lhs) => {
                 match other {
-                    Datatype::Number { value: rhs} => {
-                        return Ok(Datatype::String {value: format!("{}{}",lhs,rhs)}) // add the number to the string
+                    Datatype::Number( rhs) => {
+                        return Ok(Datatype::String(format!("{}{}",lhs,rhs)) ) // add the number to the string
                     },
-                    Datatype::String { value: rhs} => {
-                        return Ok(Datatype::String {value: format!("{}{}",lhs,rhs)}) // add the string to the string
+                    Datatype::String( rhs ) => {
+                        return Ok(Datatype::String(format!("{}{}",lhs,rhs)) ) // add the string to the string
                     },
                     _ => return Err(LangError::UnsupportedArithimaticOperation)
                 }
@@ -114,10 +114,10 @@ impl Mul for Datatype {
     type Output = LangResult;
     fn mul(self, other: Datatype) -> LangResult {
         match self {
-            Datatype::Number {value: lhs} => {
+            Datatype::Number( lhs) => {
                 match other {
-                    Datatype::Number {value: rhs} => {
-                        return Ok(Datatype::Number {value: lhs * rhs})
+                    Datatype::Number( rhs) => {
+                        return Ok(Datatype::Number( lhs * rhs ))
                     }
                     _ => return Err(LangError::UnsupportedArithimaticOperation)
                 }
@@ -131,13 +131,13 @@ impl Div for Datatype {
     type Output = LangResult;
     fn div(self, other: Datatype) -> LangResult {
         match self {
-            Datatype::Number {value: lhs} => {
+            Datatype::Number( lhs) => {
                 match other {
-                    Datatype::Number {value: rhs} => {
+                    Datatype::Number( rhs) => {
                         if rhs == 0 {
                             return Err(LangError::DivideByZero)
                         }
-                        return Ok(Datatype::Number {value: lhs / rhs})
+                        return Ok(Datatype::Number( lhs / rhs ))
                     }
                     _ => return Err(LangError::UnsupportedArithimaticOperation)
                 }
@@ -151,10 +151,10 @@ impl Rem for Datatype {
     type Output = LangResult;
     fn rem(self, other: Datatype) -> LangResult {
         match self {
-            Datatype::Number {value: lhs} => {
+            Datatype::Number (lhs) => {
                 match other {
-                    Datatype::Number {value: rhs} => {
-                        return Ok(Datatype::Number {value: lhs % rhs})
+                    Datatype::Number( rhs) => {
+                        return Ok(Datatype::Number( lhs % rhs ) )
                     }
                     _ => return Err(LangError::UnsupportedArithimaticOperation)
                 }
@@ -256,11 +256,22 @@ enum LangError {
 fn plus_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let ast = Ast::Expression {
-                operator: Operator::Plus,
-                expr1: Box::new(Ast::Literal {datatype: Datatype::Number {value: 3}}),
-                expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 6}})
-            };
-    assert_eq!(Datatype::Number {value:9}, evaluate_ast(ast, &mut map).unwrap())
+        operator: Operator::Plus,
+        expr1: Box::new(Ast::Literal {datatype: Datatype::Number( 3)}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 6)})
+    };
+    assert_eq!(Datatype::Number(9), evaluate_ast(ast, &mut map).unwrap())
+}
+
+#[test]
+fn string_plus_test() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let ast = Ast::Expression {
+        operator: Operator::Plus,
+        expr1: Box::new(Ast::Literal {datatype: Datatype::String( "Hello".to_string())}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::String( " World!".to_string())})
+    };
+    assert_eq!(Datatype::String("Hello World!".to_string()), evaluate_ast(ast, &mut map).unwrap())
 }
 
 #[test]
@@ -268,10 +279,10 @@ fn minus_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let ast = Ast::Expression {
         operator: Operator::Minus,
-        expr1: Box::new(Ast::Literal {datatype: Datatype::Number {value: 6}}),
-        expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 3}})
+        expr1: Box::new(Ast::Literal {datatype: Datatype::Number( 6 )}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 3 )})
     };
-    assert_eq!(Datatype::Number {value:3}, evaluate_ast(ast, &mut map).unwrap())
+    assert_eq!(Datatype::Number(3), evaluate_ast(ast, &mut map).unwrap())
 }
 
 #[test]
@@ -279,10 +290,10 @@ fn minus_negative_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let ast = Ast::Expression {
         operator: Operator::Minus,
-        expr1: Box::new(Ast::Literal {datatype: Datatype::Number {value: 3}}),
-        expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 6}})
+        expr1: Box::new(Ast::Literal {datatype: Datatype::Number(3)}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number(6)})
     };
-    assert_eq!(Datatype::Number {value:-3}, evaluate_ast(ast, &mut map).unwrap())
+    assert_eq!(Datatype::Number(-3), evaluate_ast(ast, &mut map).unwrap())
 }
 
 #[test]
@@ -290,10 +301,10 @@ fn multiplication_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let ast = Ast::Expression {
         operator: Operator::Multiply,
-        expr1: Box::new(Ast::Literal {datatype: Datatype::Number {value: 6}}),
-        expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 3}})
+        expr1: Box::new(Ast::Literal {datatype: Datatype::Number( 6)}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 3)})
     };
-    assert_eq!(Datatype::Number {value:18}, evaluate_ast(ast, &mut map).unwrap())
+    assert_eq!(Datatype::Number(18), evaluate_ast(ast, &mut map).unwrap())
 }
 
 #[test]
@@ -301,10 +312,10 @@ fn division_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let ast = Ast::Expression {
         operator: Operator::Divide,
-        expr1: Box::new(Ast::Literal {datatype: Datatype::Number {value: 6}}),
-        expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 3}})
+        expr1: Box::new(Ast::Literal {datatype: Datatype::Number( 6)}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 3)})
     };
-    assert_eq!(Datatype::Number {value:2}, evaluate_ast(ast, &mut map).unwrap())
+    assert_eq!(Datatype::Number(2), evaluate_ast(ast, &mut map).unwrap())
 }
 
 #[test]
@@ -312,10 +323,10 @@ fn integer_division_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let ast = Ast::Expression {
         operator: Operator::Divide,
-        expr1: Box::new(Ast::Literal {datatype: Datatype::Number {value: 5}}),
-        expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 3}})
+        expr1: Box::new(Ast::Literal {datatype: Datatype::Number(5)}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number(3)})
     };
-    assert_eq!(Datatype::Number {value:1}, evaluate_ast(ast, &mut map).unwrap())
+    assert_eq!(Datatype::Number(1), evaluate_ast(ast, &mut map).unwrap())
 }
 
 #[test]
@@ -323,8 +334,8 @@ fn division_by_zero_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let ast = Ast::Expression {
         operator: Operator::Divide,
-        expr1: Box::new(Ast::Literal {datatype: Datatype::Number {value: 5}}),
-        expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 0}})
+        expr1: Box::new(Ast::Literal {datatype: Datatype::Number( 5)}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 0)})
     };
     assert_eq!(LangError::DivideByZero, evaluate_ast(ast, &mut map).err().unwrap())
 }
@@ -334,10 +345,10 @@ fn modulo_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let ast = Ast::Expression {
         operator: Operator::Modulo,
-        expr1: Box::new(Ast::Literal {datatype: Datatype::Number {value: 8}}),
-        expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 3}})
+        expr1: Box::new(Ast::Literal {datatype: Datatype::Number( 8)}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 3)})
     };
-    assert_eq!(Datatype::Number {value:2}, evaluate_ast(ast, &mut map).unwrap())
+    assert_eq!(Datatype::Number(2), evaluate_ast(ast, &mut map).unwrap())
 }
 
 
@@ -352,16 +363,16 @@ fn assignment_test(){
             Ast::Expression {
                 operator: Operator::Assignment,
                 expr1: Box::new(Ast::ValueIdentifier {ident: "a".to_string() }),
-                expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 6}})
+                expr2: Box::new(Ast::Literal {datatype: Datatype::Number(6)})
             },
             Ast::Expression {
                 operator: Operator::Plus,
                 expr1: Box::new(Ast::ValueIdentifier {ident: "a".to_string() }),
-                expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 5}})
+                expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 5)})
             }
          )
     };
-    assert_eq!(Datatype::Number {value:11}, evaluate_ast(ast, &mut map).unwrap())
+    assert_eq!(Datatype::Number( 11), evaluate_ast(ast, &mut map).unwrap())
 }
 
 
@@ -378,7 +389,7 @@ fn variable_copy_test() {
             Ast::Expression {
                 operator: Operator::Assignment,
                 expr1: Box::new(Ast::ValueIdentifier {ident: "a".to_string() }),
-                expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 6}})
+                expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 6)})
             },
             Ast::Expression {
                 operator: Operator::Assignment,
@@ -388,11 +399,11 @@ fn variable_copy_test() {
             Ast::Expression {
                 operator: Operator::Plus,
                 expr1: Box::new(Ast::ValueIdentifier {ident: "b".to_string() }),
-                expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 5}})
+                expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 5)})
             }
         )
     };
-    assert_eq!(Datatype::Number {value:11}, evaluate_ast(ast, &mut map).unwrap())
+    assert_eq!(Datatype::Number(11), evaluate_ast(ast, &mut map).unwrap())
 }
 
 /// Assign the value 6 to a.
@@ -406,19 +417,19 @@ fn reassignment_test() {
             Ast::Expression {
                 operator: Operator::Assignment,
                 expr1: Box::new(Ast::ValueIdentifier {ident: "a".to_string() }),
-                expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 6}})
+                expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 6)})
             },
             Ast::Expression {
                 operator: Operator::Assignment,
                 expr1: Box::new(Ast::ValueIdentifier {ident: "a".to_string() }),
-                expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 3}} )
+                expr2: Box::new(Ast::Literal {datatype: Datatype::Number( 3)} )
             },
             Ast::Expression {
                 operator: Operator::Plus,
                 expr1: Box::new(Ast::ValueIdentifier {ident: "a".to_string() }),
-                expr2: Box::new(Ast::Literal {datatype: Datatype::Number {value: 5}})
+                expr2: Box::new(Ast::Literal {datatype: Datatype::Number(5)})
             }
         )
     };
-    assert_eq!(Datatype::Number {value:8}, evaluate_ast(ast, &mut map).unwrap())
+    assert_eq!(Datatype::Number(8), evaluate_ast(ast, &mut map).unwrap())
 }

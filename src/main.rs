@@ -162,7 +162,7 @@ fn evaluate_ast(ast: Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
                                         // create an ast::VecExpression that
                                         let rhs_replaced_with_evaluated_parameters_results: Vec<Result<Ast, LangError>> = expressions.iter().zip(evaluated_parameters).map(|expressions_with_parameters: (&Ast, Datatype)| {
                                             let (e, d) = expressions_with_parameters; // assign out of tuple.
-                                            if let Ast::Expression {ref operator, ref expr1, ref expr2} = *e {
+                                            if let Ast::Expression {ref operator, ref expr1, ..} = *e {
                                                 let operator = operator.clone();
                                                 let expr1 = expr1.clone();
 

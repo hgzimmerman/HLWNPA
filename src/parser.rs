@@ -111,9 +111,9 @@ named!(binary_expr_parens<Ast>,
 #[test]
 fn parse_addition_test() {
     let (_, value) = match binary_expr(b"+ 3 4") {
-        IResult::Done(r,v) => (r,v),
+        IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
-        _ => {panic!()}
+        _ => panic!(),
     };
     assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal {datatype: Datatype::Number(3)}), expr2:  Box::new(Ast::Literal {datatype: Datatype::Number(4)}) }, value);
 }
@@ -121,9 +121,9 @@ fn parse_addition_test() {
 #[test]
 fn parse_addition_parens_test() {
     let (_, value) = match binary_expr_parens(b"(+ 3 4)") {
-        IResult::Done(r,v) => (r,v),
+        IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
-        _ => {panic!()}
+        _ => panic!(),
     };
     assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal {datatype: Datatype::Number(3)}), expr2:  Box::new(Ast::Literal {datatype: Datatype::Number(4)}) }, value);
 }
@@ -131,9 +131,9 @@ fn parse_addition_parens_test() {
 #[test]
 fn parse_plus_test() {
     let (_, value) = match plus(b"+") {
-        IResult::Done(r,v) => (r,v),
+        IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
-        _ => {panic!()}
+        _ => panic!(),
     };
     assert_eq!(BinaryOperator::Plus, value)
 }
@@ -141,9 +141,9 @@ fn parse_plus_test() {
 #[test]
 fn parse_operator_test() {
     let (_, value) = match binary_operator(b"%") {
-        IResult::Done(r,v) => (r,v),
+        IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
-        _ => {panic!()}
+        _ => panic!(),
     };
     assert_eq!(BinaryOperator::Modulo, value)
 }
@@ -151,9 +151,9 @@ fn parse_operator_test() {
 #[test]
 fn parse_number_test() {
     let (_, value) = match number(b"42") {
-        IResult::Done(r,v) => (r,v),
+        IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
-        _ => {panic!()}
+        _ => panic!(),
     };
     assert_eq!(42, value)
 }
@@ -161,9 +161,9 @@ fn parse_number_test() {
 #[test]
 fn parse_number_literal_test() {
     let (_, value) = match number_literal(b"42") {
-        IResult::Done(r,v) => (r,v),
+        IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
-        _ => {panic!()}
+        _ => panic!(),
     };
     assert_eq!(Ast::Literal {datatype: Datatype::Number(42)}, value)
 }
@@ -173,9 +173,9 @@ fn parse_number_literal_test() {
 fn parse_string_test() {
     let input_string = "\"Hello World\"";
     let (_, value) = match string(input_string.as_bytes()) {
-        IResult::Done(r,v) => (r,v),
+        IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
-        _ => {panic!()}
+        _ => panic!(),
     };
     assert_eq!("Hello World".to_string(), value)
 }
@@ -184,9 +184,9 @@ fn parse_string_test() {
 fn parse_string_literal_test() {
     let input_string = " \"Hello World\"  ";
     let (_, value) = match string_literal(input_string.as_bytes()) {
-        IResult::Done(r,v) => (r,v),
+        IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
-        _ => {panic!()}
+        _ => panic!(),
     };
     assert_eq!(Ast::Literal {datatype: Datatype::String("Hello World".to_string())}, value)
 }
@@ -194,9 +194,9 @@ fn parse_string_literal_test() {
 #[test]
 fn parse_string_and_number_addition_test() {
     let (_, value) = match binary_expr_parens(b"(+ 3 \"Hi\")") {
-        IResult::Done(r,v) => (r,v),
+        IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
-        _ => {panic!()}
+        _ => panic!(),
     };
     assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal {datatype: Datatype::Number(3)}), expr2:  Box::new(Ast::Literal {datatype: Datatype::String("Hi".to_string())}) }, value);
 }

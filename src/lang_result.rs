@@ -6,7 +6,7 @@ pub type LangResult = Result<Datatype, LangError>;
 pub enum LangError {
     DivideByZero,
     IdentifierDoesntExist,
-    ParserShouldHaveRejected,// should never happen
+    ParserShouldHaveRejected, // should never happen
     UnsupportedArithimaticOperation,
     ConditionOnNonBoolean,
     InvertNonBoolean,
@@ -17,5 +17,4 @@ pub enum LangError {
     FunctionParametersShouldBeVecExpression,
     ParameterLengthMismatch,
     InvalidFunctionPrototypeFormatting,
-
 }

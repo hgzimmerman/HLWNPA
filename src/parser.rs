@@ -143,6 +143,7 @@ named!(identifier<Ast>,
     )
 );
 
+// TODO Why use this when "any" will (read: might) do
 /// Custom extension to alphanumeric that allows identifier characters to be alphanumeric or _ or - as well
 pub fn valid_identifier_characters<T>(input: T) -> IResult<T, T>
 where
@@ -281,6 +282,17 @@ named!(pub function<Ast>,
         })
     )
 );
+
+named!(pub program<Ast>,
+    do_parse!(
+        e: many1!(ws!(alt!(function | binary_expr_parens | assignment))) >>
+        (Ast::VecExpression{expressions: e})
+    )
+
+
+);
+
+
 
 // I want the function calling syntax to look like: fn_name(id: expression|literal, ...)
 // If I can avoid specifying the id because positional data can inform the evaluator which id it should be assigned to, then I should do that. (I think that is the way it works now)
@@ -464,17 +476,31 @@ fn parse_whole_function_number_input_returns_number_test() {
                 }],
                 }),
                 body: Box::new(Ast::VecExpression {
-                    expressions: vec!(
+                    expressions: vec![
                     Ast::Expression {
                         operator: BinaryOperator::Plus,
                         expr1: Box::new(Ast::ValueIdentifier { ident: "a".to_string() }),
                         expr2: Box::new(Ast::Literal {datatype: Datatype::Number(8)}),
-                    }
-                ),
+                    }],
                 }),
                 return_type: Box::new(TypeInfo::Number),
             },
         }),
     };
     assert_eq!(expected_fn, value)
+}
+
+#[test]
+fn just_parse_program_test() {
+    let input_string = "( + 3 2)\
+     let x 7
+     fn test_function ( a : Number ) -> Number { ( + a 8 ) }";
+    let (_, value) = match program(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
+
+
+
 }

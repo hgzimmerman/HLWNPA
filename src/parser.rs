@@ -192,9 +192,10 @@ named!(assignment<Ast>,
     )
 );
 
+// TODO: Consider having this return a TypeInfo and let a higher up parser assign this into the proper AST form.
 /// _ts indicates that the parser combinator is a getting a type signature
 named!(type_signature<Ast>,
-   ws!(alt!(number_ts | string_ts | bool_ts))
+   ws!(alt!(number_ts | string_ts | bool_ts | none_ts))
 );
 
 named!(number_ts<Ast>,
@@ -213,6 +214,12 @@ named!(bool_ts<Ast>,
     do_parse!(
         tag!("Bool") >>
         (Ast::Type{datatype: TypeInfo::Bool})
+    )
+);
+named!(none_ts<Ast>, // Todo, is an externally provided None/Null type needed if everything is pass by value? Consider removing
+    do_parse!(
+        tag!("None") >>
+        (Ast::Type{datatype: TypeInfo::None})
     )
 );
 
@@ -414,7 +421,7 @@ fn parse_assignment_of_literal_test() {
 }
 
 #[test]
-fn parse_function_parameter_assignment_of_literal_test() {
+fn parse_function_parameter_assignment_of_type_number_test() {
     let input_string = "b : Number";
     let (_, value) = match function_parameter_assignment(input_string.as_bytes()) {
         IResult::Done(r, v) => (r, v),
@@ -436,7 +443,7 @@ fn parse_function_body_nocheck_test() {
 
 
 #[test]
-fn parse_whole_function() {
+fn parse_whole_function_number_input_returns_number_test() {
     let input_string = "fn test_function ( a : Number ) -> Number { ( + a 8 ) }";
     let (_, value) = match function(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),

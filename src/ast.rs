@@ -14,6 +14,7 @@ use std::collections::HashMap;
 //Foo(FooData),
 //Bar(BarData)
 //}
+// Good candidates for a first pass are Type and Literal
 
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]

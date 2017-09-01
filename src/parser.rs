@@ -283,15 +283,37 @@ named!(pub function<Ast>,
     )
 );
 
-named!(pub program<Ast>,
-    do_parse!(
-        e: many1!(ws!(alt!(function | binary_expr_parens | assignment))) >>
-        (Ast::VecExpression{expressions: e})
-    )
-
-
+named!(any_ast<Ast>,
+    alt!(function | function_execution | binary_expr_parens | assignment)
 );
 
+named!(expression_or_literal_or_identifier<Ast>,
+    alt!(binary_expr_parens | literal | identifier)
+);
+
+named!(pub program<Ast>,
+    do_parse!(
+        e: many1!(ws!(any_ast)) >>
+        (Ast::VecExpression{expressions: e})
+    )
+);
+
+named!(function_execution<Ast>,
+    do_parse!(
+        function_name: identifier >>
+        arguments: delimited!(
+            ws!(char!('(')),
+            many0!(ws!(expression_or_literal_or_identifier)),
+            ws!(char!(')'))
+        )
+        >>
+        (Ast::Expression {
+            operator: BinaryOperator::ExecuteFn,
+            expr1: Box::new(function_name), // and identifier
+            expr2: Box::new(Ast::VecExpression{expressions: arguments})
+        })
+    )
+);
 
 
 // I want the function calling syntax to look like: fn_name(id: expression|literal, ...)
@@ -492,15 +514,81 @@ fn parse_whole_function_number_input_returns_number_test() {
 
 #[test]
 fn just_parse_program_test() {
-    let input_string = "( + 3 2)\
+    let input_string = "( + 3 2)
      let x 7
-     fn test_function ( a : Number ) -> Number { ( + a 8 ) }";
+     fn test_function ( a : Number ) -> Number { ( + a 8 ) }
+     test_function(8)";
+    let (_, value) = match program(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
+}
+
+
+/// assign the value 7 to x
+/// create a function that takes a number
+/// call the function with x
+#[test]
+fn parse_program_and_validate_ast_test() {
+    let input_string = "
+     let x 7
+     fn test_function ( a : Number ) -> Number { ( + a 8 ) }
+     test_function(x)";
     let (_, value) = match program(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
         _ => panic!(),
     };
 
+    let expected_assignment: Ast = Ast::Expression {
+        operator: BinaryOperator::Assignment,
+        expr1: Box::new(Ast::ValueIdentifier {ident: "x".to_string()}),
+        expr2: Box::new(Ast::Literal {datatype: Datatype::Number(7)})
+    };
 
+    let expected_fn: Ast = Ast::Expression {
+        operator: BinaryOperator::Assignment,
+        expr1: Box::new(Ast::ValueIdentifier { ident: "test_function".to_string() }),
+        expr2: Box::new(Ast::Literal {
+            datatype: Datatype::Function {
+                parameters: Box::new(Ast::VecExpression {
+                    expressions: vec![Ast::Expression {
+                        operator: BinaryOperator::FunctionParameterAssignment,
+                        expr1: Box::new(Ast::ValueIdentifier { ident: "a".to_string() }),
+                        expr2: Box::new(Ast::Type { datatype: TypeInfo::Number })
+                    }],
+                }),
+                body: Box::new(Ast::VecExpression {
+                    expressions: vec![
+                        Ast::Expression {
+                            operator: BinaryOperator::Plus,
+                            expr1: Box::new(Ast::ValueIdentifier { ident: "a".to_string() }),
+                            expr2: Box::new(Ast::Literal {datatype: Datatype::Number(8)}),
+                        }],
+                }),
+                return_type: Box::new(TypeInfo::Number),
+            },
+        }),
+    };
+    let expected_fn_call: Ast = Ast::Expression {
+        operator: BinaryOperator::ExecuteFn,
+        expr1: Box::new(Ast::ValueIdentifier {ident: "test_function".to_string()}),
+        expr2: Box::new(Ast::VecExpression {
+            expressions: vec![Ast::ValueIdentifier {
+                ident: "x".to_string()
+            }]
+        })
+    };
+
+    let expected_program_ast: Ast = Ast::VecExpression {
+        expressions: vec![
+            expected_assignment,
+            expected_fn,
+            expected_fn_call
+        ]
+    };
+
+    assert_eq!(expected_program_ast, value)
 
 }

@@ -93,7 +93,7 @@ fn program_parse_and_execute_integration_test_1() {
     assert_eq!(
     Datatype::Number(15),
     ast.evaluate(&mut map).unwrap()
-    ); // find the test function and pass the value 7 into it
+    );
 }
 
 
@@ -113,7 +113,7 @@ fn program_parse_and_execute_integration_test_2() {
     assert_eq!(
     Datatype::Number(16),
     ast.evaluate(&mut map).unwrap()
-    ); // find the test function and pass the value 7 into it
+    );
 }
 
 #[test]
@@ -134,7 +134,7 @@ fn program_parse_and_execute_integration_test_3() {
     assert_eq!(
     Datatype::Number(16),
     ast.evaluate(&mut map).unwrap()
-    ); // find the test function and pass the value 7 into it
+    );
 }
 
 /// Test multiple line functions
@@ -156,9 +156,8 @@ fn program_parse_and_execute_integration_test_4() {
     assert_eq!(
     Datatype::Number(16),
     ast.evaluate(&mut map).unwrap()
-    ); // find the test function and pass the value 7 into it
+    );
 }
-
 
 
 /// Test the assignment of a string, then passing it into a function that takes a string.
@@ -180,5 +179,5 @@ fn program_string_coercion_integration_test() {
     assert_eq!(
     Datatype::String("Hi 5".to_string()),
     ast.evaluate(&mut map).unwrap()
-    ); // find the test function and pass the value 7 into it
+    );
 }

@@ -47,11 +47,8 @@ fn main() {
 
 
 
-
-
-
 #[test]
-fn simple_function_parse_and_execute_integration_test() {
+fn function_parse_and_execute_separately_integration_test() {
     use nom::IResult;
     let mut map: HashMap<String, Datatype> = HashMap::new();
 
@@ -113,8 +110,6 @@ fn program_parse_and_execute_integration_test_2() {
         _ => panic!(),
     };
 
-
-
     assert_eq!(
     Datatype::Number(16),
     ast.evaluate(&mut map).unwrap()
@@ -138,6 +133,52 @@ fn program_parse_and_execute_integration_test_3() {
 
     assert_eq!(
     Datatype::Number(16),
+    ast.evaluate(&mut map).unwrap()
+    ); // find the test function and pass the value 7 into it
+}
+
+/// Test multiple line functions
+#[test]
+fn program_parse_and_execute_integration_test_4() {
+    use nom::IResult;
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let input_string = "
+     fn test_function ( a : Number ) -> Number {
+        ( + a 8 )
+     }
+     test_function(8)";
+    let (_, ast) = match program(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
+
+    assert_eq!(
+    Datatype::Number(16),
+    ast.evaluate(&mut map).unwrap()
+    ); // find the test function and pass the value 7 into it
+}
+
+
+
+/// Test the assignment of a string, then passing it into a function that takes a string.
+/// The function should then add a number to the string, creating a new string.
+#[test]
+fn program_string_coercion_integration_test() {
+    use nom::IResult;
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let input_string = r##"
+     let x "Hi "
+     fn test_function ( a : String ) -> String { ( + a 5 ) }
+     test_function(x)"##;
+    let (_, ast) = match program(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
+
+    assert_eq!(
+    Datatype::String("Hi 5".to_string()),
     ast.evaluate(&mut map).unwrap()
     ); // find the test function and pass the value 7 into it
 }

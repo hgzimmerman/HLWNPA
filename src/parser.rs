@@ -1,4 +1,4 @@
-use datatype::{Datatype, TypeInfo };
+use datatype::{Datatype, TypeInfo};
 use ast::{Ast, BinaryOperator, UnaryOperator};
 use nom::*;
 use nom::IResult;
@@ -144,10 +144,12 @@ named!(identifier<Ast>,
 );
 
 /// Custom extension to alphanumeric that allows identifier characters to be alphanumeric or _ or - as well
-pub fn valid_identifier_characters<T>(input:T) -> IResult<T,T> where
-    T: Slice<Range<usize>>+Slice<RangeFrom<usize>>+Slice<RangeTo<usize>>,
-    T: InputIter+InputLength,
-    <T as InputIter>::Item: AsChar {
+pub fn valid_identifier_characters<T>(input: T) -> IResult<T, T>
+where
+    T: Slice<Range<usize>> + Slice<RangeFrom<usize>> + Slice<RangeTo<usize>>,
+    T: InputIter + InputLength,
+    <T as InputIter>::Item: AsChar,
+{
     use nom::IResult;
 
     let input_length = input.input_len();
@@ -157,11 +159,11 @@ pub fn valid_identifier_characters<T>(input:T) -> IResult<T,T> where
 
     for (idx, item) in input.iter_indices() {
         let chr: u8 = item.as_char() as u8;
-        if ! is_valid(chr) {
+        if !is_valid(chr) {
             if idx == 0 {
-                return IResult::Error(error_position!(ErrorKind::AlphaNumeric, input))
+                return IResult::Error(error_position!(ErrorKind::AlphaNumeric, input));
             } else {
-                return IResult::Done(input.slice(idx..), input.slice(0..idx))
+                return IResult::Done(input.slice(idx..), input.slice(0..idx));
             }
         }
     }
@@ -440,26 +442,28 @@ fn parse_whole_function() {
 
     let expected_fn: Ast = Ast::Expression {
         operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier {ident: "test_function".to_string()}),
-        expr2: Box::new(Ast::Literal {datatype: Datatype::Function {
-            parameters: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::Expression {
+        expr1: Box::new(Ast::ValueIdentifier { ident: "test_function".to_string() }),
+        expr2: Box::new(Ast::Literal {
+            datatype: Datatype::Function {
+                parameters: Box::new(Ast::VecExpression {
+                    expressions: vec![Ast::Expression {
                     operator: BinaryOperator::FunctionParameterAssignment,
                     expr1: Box::new(Ast::ValueIdentifier { ident: "a".to_string() }),
                     expr2: Box::new(Ast::Type { datatype: TypeInfo::Number })
-                }]
-            }),
-            body: Box::new(Ast::VecExpression {
-                expressions: vec!(
+                }],
+                }),
+                body: Box::new(Ast::VecExpression {
+                    expressions: vec!(
                     Ast::Expression {
                         operator: BinaryOperator::Plus,
                         expr1: Box::new(Ast::ValueIdentifier { ident: "a".to_string() }),
                         expr2: Box::new(Ast::Literal {datatype: Datatype::Number(8)}),
                     }
-                )
-            }),
-            return_type: Box::new(TypeInfo::Number),
-        }})
+                ),
+                }),
+                return_type: Box::new(TypeInfo::Number),
+            },
+        }),
     };
     assert_eq!(expected_fn, value)
 }

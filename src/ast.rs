@@ -23,7 +23,7 @@ pub enum Ast {
         false_expr: Option<Box<Ast>>,
     },
     Literal { datatype: Datatype }, // consider making the Literal another enum with supported default datatypes.
-    Type {datatype: TypeInfo }, // value in the datatype is useless, just use this to determine parameter type.
+    Type { datatype: TypeInfo }, // value in the datatype is useless, just use this to determine parameter type.
     ValueIdentifier { ident: String }, // gets the value mapped to a hashmap
 }
 
@@ -118,7 +118,7 @@ impl Ast {
                         // evaluate the parameters
                         let evaluated_parameters: Vec<Datatype> = match *expr2 {
                             Ast::VecExpression { expressions } => {
-                                let mut evaluated_expressions: Vec<Datatype> = vec!();
+                                let mut evaluated_expressions: Vec<Datatype> = vec![];
                                 for e in expressions {
                                     match e.evaluate(&mut cloned_map) {
                                         Ok(dt) => evaluated_expressions.push(dt),
@@ -144,38 +144,51 @@ impl Ast {
                                         // zip the values of the evaluated parameters into the expected parameters for the function
                                         if evaluated_parameters.len() == expressions.len() {
                                             // Replace the right hand side of the expression (which should be an Ast::Type with a computed literal.
-                                            let rhs_replaced_with_evaluated_parameters_results: Vec<Result<Ast, LangError>> = expressions.iter().zip(evaluated_parameters).map(|expressions_with_parameters: (&Ast, Datatype)| {
-                                                let (e, d) = expressions_with_parameters; // assign out of tuple.
-                                                if let Ast::Expression { ref operator, ref expr1, ref expr2 } = *e {
-                                                    let operator = operator.clone();
-                                                    let expr1 = expr1.clone();
+                                            let rhs_replaced_with_evaluated_parameters_results: Vec<Result<Ast, LangError>> = expressions
+                                                .iter()
+                                                .zip(evaluated_parameters)
+                                                .map(|expressions_with_parameters: (&Ast, Datatype)| {
+                                                    let (e, d) = expressions_with_parameters; // assign out of tuple.
+                                                    if let Ast::Expression {
+                                                        ref operator,
+                                                        ref expr1,
+                                                        ref expr2,
+                                                    } = *e
+                                                    {
+                                                        let operator = operator.clone();
+                                                        let expr1 = expr1.clone();
 
-                                                    //do run-time type-checking, the supplied value should be of the same type as the specified value
-                                                    let expected_type: &TypeInfo = match **expr2 {
-                                                        Ast::Type {ref datatype} => datatype,
-                                                        _ => return Err(LangError::ExpectedDataTypeInfo)
-                                                    };
-                                                    if expected_type != &TypeInfo::from(d.clone()) {
-                                                        return Err(LangError::TypeError {expected: expected_type.clone(), found: TypeInfo::from(d)})
-                                                    }
+                                                        //do run-time type-checking, the supplied value should be of the same type as the specified value
+                                                        let expected_type: &TypeInfo = match **expr2 {
+                                                            Ast::Type { ref datatype } => datatype,
+                                                            _ => return Err(LangError::ExpectedDataTypeInfo),
+                                                        };
+                                                        if expected_type != &TypeInfo::from(d.clone()) {
+                                                            return Err(LangError::TypeError {
+                                                                expected: expected_type.clone(),
+                                                                found: TypeInfo::from(d),
+                                                            });
+                                                        }
 
-                                                    if operator == BinaryOperator::FunctionParameterAssignment {
-                                                        return Ok(Ast::Expression { operator: operator, expr1: expr1, expr2: Box::new(Ast::Literal { datatype: d }) }); // return a new FunctionParameterAssignment Expression with a replaced expr2.
+                                                        if operator == BinaryOperator::FunctionParameterAssignment {
+                                                            return Ok(Ast::Expression {
+                                                                operator: operator,
+                                                                expr1: expr1,
+                                                                expr2: Box::new(Ast::Literal { datatype: d }),
+                                                            }); // return a new FunctionParameterAssignment Expression with a replaced expr2.
+                                                        } else {
+                                                            return Err(LangError::InvalidFunctionPrototypeFormatting);
+                                                        }
                                                     } else {
-                                                        return Err(LangError::InvalidFunctionPrototypeFormatting)
+                                                        return Err(LangError::InvalidFunctionPrototypeFormatting);
                                                     }
-                                                } else {
-                                                    return Err(LangError::InvalidFunctionPrototypeFormatting)
-                                                }
-                                            }
-                                            ).collect();
+                                                })
+                                                .collect();
 
                                             // These functions _should_ all be assignments
                                             // So after replacing the Types with Literals that have been derived from the expressions passed in,
                                             // they can be associated with the identifiers, and the identifiers can be used in the function body later.
-                                            for rhs in
-                                                rhs_replaced_with_evaluated_parameters_results
-                                            {
+                                            for rhs in rhs_replaced_with_evaluated_parameters_results {
                                                 let rhs = rhs?; // return the error if present
                                                 rhs.evaluate(&mut cloned_map)?; // create the assignment
                                             }
@@ -188,9 +201,7 @@ impl Ast {
                                         if TypeInfo::from(output.clone()) == *return_type {
                                             return Ok(output);
                                         } else {
-                                            return Err(
-                                                LangError::ReturnTypeDoesNotMatchReturnValue,
-                                            );
+                                            return Err(LangError::ReturnTypeDoesNotMatchReturnValue);
                                         }
                                     }
                                     _ => return Err(LangError::ParserShouldHaveRejected), // The parser should have put the parameters in the form VecExpression(expression_with_assignment, expression_with_assignment, ...)
@@ -557,9 +568,7 @@ fn function_with_parameter_test() {
                             expressions: vec![
                                 Ast::Expression {
                                     operator: BinaryOperator::FunctionParameterAssignment,
-                                    expr1: Box::new(
-                                        Ast::ValueIdentifier { ident: "b".to_string() }
-                                    ), // the value's name is b
+                                    expr1: Box::new(Ast::ValueIdentifier { ident: "b".to_string() }), // the value's name is b
                                     expr2: Box::new(Ast::Type { datatype: TypeInfo::Number }), // fn takes a number
                                 },
                             ],
@@ -599,17 +608,13 @@ fn function_with_two_parameters_addition_test() {
                             expressions: vec![
                                 Ast::Expression {
                                     operator: BinaryOperator::FunctionParameterAssignment,
-                                    expr1: Box::new(
-                                        Ast::ValueIdentifier { ident: "b".to_string() }
-                                    ), // the value's name is b
+                                    expr1: Box::new(Ast::ValueIdentifier { ident: "b".to_string() }), // the value's name is b
                                     expr2: Box::new(Ast::Type { datatype: TypeInfo::Number }), // fn takes a number
                                 },
                                 Ast::Expression {
                                     operator: BinaryOperator::FunctionParameterAssignment,
-                                    expr1: Box::new(
-                                        Ast::ValueIdentifier { ident: "c".to_string() }
-                                    ), // the value's name is b
-                                    expr2: Box::new(Ast::Type  { datatype: TypeInfo::Number }), // fn takes a number
+                                    expr1: Box::new(Ast::ValueIdentifier { ident: "c".to_string() }), // the value's name is b
+                                    expr2: Box::new(Ast::Type { datatype: TypeInfo::Number }), // fn takes a number
                                 },
                             ],
                         }),

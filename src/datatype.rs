@@ -127,7 +127,7 @@ pub enum TypeInfo {
     Array,
     Bool,
     None,
-    Function
+    Function,
 }
 
 
@@ -136,10 +136,10 @@ impl From<Datatype> for TypeInfo {
         match datatype {
             Datatype::Number(_) => TypeInfo::Number,
             Datatype::String(_) => TypeInfo::String,
-            Datatype::Array{..} => TypeInfo::Array,
+            Datatype::Array { .. } => TypeInfo::Array,
             Datatype::Bool(_) => TypeInfo::Bool,
             Datatype::None => TypeInfo::None,
-            Datatype::Function{..} => TypeInfo::Function
+            Datatype::Function { .. } => TypeInfo::Function,
         }
     }
 }

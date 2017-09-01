@@ -66,12 +66,15 @@ fn simple_function_parse_and_execute_integration_test() {
 
     let executor_ast: Ast = Ast::Expression {
         operator: BinaryOperator::ExecuteFn,
-        expr1: Box::new(Ast::ValueIdentifier {ident: "add8ToValue".to_string()}),
-        expr2: Box::new(Ast::VecExpression {expressions: vec![
-            Ast::Literal {datatype: Datatype::Number(7)}
-        ]})
+        expr1: Box::new(Ast::ValueIdentifier { ident: "add8ToValue".to_string() }),
+        expr2: Box::new(Ast::VecExpression {
+            expressions: vec![Ast::Literal { datatype: Datatype::Number(7) }],
+        }),
     };
 
-    assert_eq!(Datatype::Number(15), executor_ast.evaluate(&mut map).unwrap()); // find the test function and pass the value 7 into it
+    assert_eq!(
+        Datatype::Number(15),
+        executor_ast.evaluate(&mut map).unwrap()
+    ); // find the test function and pass the value 7 into it
 
 }

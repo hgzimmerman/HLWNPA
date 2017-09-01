@@ -374,10 +374,6 @@ named!(function_execution<Ast>,
 );
 
 
-// I want the function calling syntax to look like: fn_name(id: expression|literal, ...)
-// If I can avoid specifying the id because positional data can inform the evaluator which id it should be assigned to, then I should do that. (I think that is the way it works now)
-
-
 #[test]
 fn parse_addition_test() {
     let (_, value) = match binary_expr(b"+ 3 4") {

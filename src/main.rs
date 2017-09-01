@@ -163,6 +163,52 @@ fn program_parse_and_execute_integration_test_4() {
     );
 }
 
+#[test]
+fn program_multiple_parameter_function_integration_test() {
+    use nom::IResult;
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let input_string = "
+     fn add_two_numbers ( a : Number b : Number) -> Number {
+        ( + a b )
+     }
+     add_two_numbers(8 3)";
+    let (_, ast) = match program(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
+
+    assert_eq!(
+    Datatype::Number(11),
+    ast.evaluate(&mut map).unwrap()
+    );
+}
+
+
+#[test]
+fn program_function_internals_does_not_clobber_outer_stack_integration_test() {
+    use nom::IResult;
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let input_string = "
+     let a 2
+     fn add_two_numbers ( a : Number b : Number) -> Number {
+        ( + a b )
+     }
+     add_two_numbers(8 3)
+     (+ a 0)
+     ";
+    let (_, ast) = match program(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
+
+    assert_eq!(
+    Datatype::Number(2),
+    ast.evaluate(&mut map).unwrap()
+    );
+}
+
 
 /// Test the assignment of a string, then passing it into a function that takes a string.
 /// The function should then add a number to the string, creating a new string.

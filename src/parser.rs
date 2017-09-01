@@ -8,6 +8,12 @@ use std::boxed::Box;
 
 use std::ops::{RangeFrom, RangeTo, Range}; // Used for custom "extension" to alphanumeric matcher.
 
+// ____  _                           ___                       _
+//| __ )(_)_ __   __ _ _ __ _   _   / _ \ _ __   ___ _ __ __ _| |_ ___  _ __ ___
+//|  _ \| | '_ \ / _` | '__| | | | | | | | '_ \ / _ \ '__/ _` | __/ _ \| '__/ __|
+//| |_) | | | | | (_| | |  | |_| | | |_| | |_) |  __/ | | (_| | || (_) | |  \__ \
+//|____/|_|_| |_|\__,_|_|   \__, |  \___/| .__/ \___|_|  \__,_|\__\___/|_|  |___/
+//                          |___/        |_|
 
 named!(plus<BinaryOperator>,
     do_parse!(
@@ -47,6 +53,40 @@ named!(binary_operator<BinaryOperator>,
         (bin_op)
     )
 );
+
+// _   _                           ___                       _
+//| | | |_ __   __ _ _ __ _   _   / _ \ _ __   ___ _ __ __ _| |_ ___  _ __ ___
+//| | | | '_ \ / _` | '__| | | | | | | | '_ \ / _ \ '__/ _` | __/ _ \| '__/ __|
+//| |_| | | | | (_| | |  | |_| | | |_| | |_) |  __/ | | (_| | || (_) | |  \__ \
+// \___/|_| |_|\__,_|_|   \__, |  \___/| .__/ \___|_|  \__,_|\__\___/|_|  |___/
+//                        |___/        |_|
+
+named!(invert<UnaryOperator>,
+    do_parse!(
+        tag!("!") >>
+        (UnaryOperator::Invert)
+    )
+);
+named!(increment<UnaryOperator>,
+    do_parse!(
+        tag!("++") >>
+        (UnaryOperator::Increment)
+    )
+);
+named!(decrement<UnaryOperator>,
+    do_parse!(
+        tag!("--") >>
+        (UnaryOperator::Decrement)
+    )
+);
+
+named!(unary_operator<UnaryOperator>,
+    do_parse!(
+        u_op: ws!(alt!(invert | increment | decrement)) >>
+        (u_op)
+    )
+);
+
 
 named!(number<i32>,
     do_parse!(
@@ -123,12 +163,29 @@ named!(binary_expr<Ast>,
        op: binary_operator >>
        l1: literal_or_identifier >>
        l2: literal_or_identifier >>
-       (Ast::Expression{ operator: BinaryOperator::Plus, expr1: Box::new(l1), expr2: Box::new(l2)})
+       (Ast::Expression{ operator: op, expr1: Box::new(l1), expr2: Box::new(l2)})
     )
 );
 named!(binary_expr_parens<Ast>,
     delimited!(char!('('), binary_expr, char!(')'))
 );
+
+
+named!(unary_expr<Ast>,
+    do_parse!(
+        op: unary_operator >>
+        l: expression_or_literal_or_identifier >>
+         (Ast::UnaryExpression{ operator: op, expr: Box::new(l)})
+    )
+);
+named!(unary_expr_parens<Ast>,
+    delimited!(char!('('), unary_expr, char!(')') )
+);
+
+named!(any_expression_parens<Ast>,
+    alt!(binary_expr_parens | unary_expr_parens)
+);
+
 
 named!(identifier<Ast>,
     do_parse!(
@@ -139,12 +196,13 @@ named!(identifier<Ast>,
             )
         ) >>
         (Ast::ValueIdentifier{ident: id.to_string()})
-
     )
 );
 
 // TODO Why use this when "any" will (read: might) do
-/// Custom extension to alphanumeric that allows identifier characters to be alphanumeric or _ or - as well
+// TODO any won't work, but selecting anything that _isn't_ some reserved character should work
+/// Custom "extension" to alphanumeric that allows identifier characters to be alphanumeric or _ or - as well
+/// This code was copied out of the nom source and modified to accept underscores and dashes.
 pub fn valid_identifier_characters<T>(input: T) -> IResult<T, T>
 where
     T: Slice<Range<usize>> + Slice<RangeFrom<usize>> + Slice<RangeTo<usize>>,
@@ -239,7 +297,7 @@ named!(function_body<Ast>,
     do_parse!(
         statements : delimited!(
             ws!(char!('{')),
-            many0!(ws!(binary_expr_parens)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
+            many0!(ws!(any_expression_parens)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
             ws!(tag!("}"))
         ) >>
         (Ast::VecExpression{expressions: statements})
@@ -284,11 +342,11 @@ named!(pub function<Ast>,
 );
 
 named!(any_ast<Ast>,
-    alt!(function | function_execution | binary_expr_parens | assignment)
+    alt!(function | function_execution | any_expression_parens | assignment)
 );
 
 named!(expression_or_literal_or_identifier<Ast>,
-    alt!(binary_expr_parens | literal | identifier)
+    alt!(any_expression_parens | literal | identifier)
 );
 
 named!(pub program<Ast>,

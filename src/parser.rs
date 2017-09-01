@@ -192,6 +192,7 @@ named!(assignment<Ast>,
     )
 );
 
+/// _ts indicates that the parser combinator is a getting a type signature
 named!(type_signature<Ast>,
    ws!(alt!(number_ts | string_ts | bool_ts))
 );
@@ -215,9 +216,7 @@ named!(bool_ts<Ast>,
     )
 );
 
-/// I want the function definition syntax to look like: fn fn_name(id: datatype, ...) -> return_type { expressions }
 
-/// matches the signature:  identifier : expression|literal
 /// Used for assigning identifiers to types
 named!(function_parameter_assignment<Ast>,
     do_parse!(
@@ -251,6 +250,8 @@ named!(function_return_type<TypeInfo>,
     )
 );
 
+/// The function definition syntax should look like: fn fn_name(id: datatype, ...) -> return_type { expressions ...}
+/// Where the id: datatype is optional
 named!(pub function<Ast>,
     do_parse!(
         ws!(tag!("fn")) >>
@@ -273,6 +274,9 @@ named!(pub function<Ast>,
         })
     )
 );
+
+// I want the function calling syntax to look like: fn_name(id: expression|literal, ...)
+// If I can avoid specifying the id because positional data can inform the evaluator which id it should be assigned to, then I should do that. (I think that is the way it works now)
 
 
 #[test]

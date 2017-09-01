@@ -5,6 +5,17 @@ use std::mem::discriminant;
 use std::boxed::Box;
 use std::collections::HashMap;
 
+
+// Consider allowing inner type safety by switching the Ast to this style:
+//
+//struct FooData { ... }
+//struct BarData { ... }
+//enum Baz {
+//Foo(FooData),
+//Bar(BarData)
+//}
+
+
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum Ast {
     Expression {

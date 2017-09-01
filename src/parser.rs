@@ -6,6 +6,7 @@ use std::str::FromStr;
 use std::str;
 use std::boxed::Box;
 
+use std::ops::{RangeFrom, RangeTo, Range}; // Used for custom "extension" to alphanumeric matcher.
 
 
 named!(plus<BinaryOperator>,
@@ -133,7 +134,7 @@ named!(identifier<Ast>,
     do_parse!(
         id: ws!(
             map_res!(
-                alphanumeric, // todo: replace this with a combinator that accepts 0-9a-zA-Z as well as -,_
+                valid_identifier_characters,
                 str::from_utf8
             )
         ) >>
@@ -141,6 +142,42 @@ named!(identifier<Ast>,
 
     )
 );
+
+/// Custom extension to alphanumeric that allows identifier characters to be alphanumeric or _ or - as well
+pub fn valid_identifier_characters<T>(input:T) -> IResult<T,T> where
+    T: Slice<Range<usize>>+Slice<RangeFrom<usize>>+Slice<RangeTo<usize>>,
+    T: InputIter+InputLength,
+    <T as InputIter>::Item: AsChar {
+    use nom::IResult;
+
+    let input_length = input.input_len();
+    if input_length == 0 {
+        return IResult::Incomplete(Needed::Unknown);
+    }
+
+    for (idx, item) in input.iter_indices() {
+        let chr: u8 = item.as_char() as u8;
+        if ! is_valid(chr) {
+            if idx == 0 {
+                return IResult::Error(error_position!(ErrorKind::AlphaNumeric, input))
+            } else {
+                return IResult::Done(input.slice(idx..), input.slice(0..idx))
+            }
+        }
+    }
+    IResult::Done(input.slice(input_length..), input)
+}
+
+fn is_valid(chr: u8) -> bool {
+    is_alphabetic(chr) || is_digit(chr) || is_underscore_or_dash(chr)
+}
+
+fn is_underscore_or_dash(chr: u8) -> bool {
+    if chr == '_' as u8 || chr == '-' as u8 {
+        return true;
+    }
+    false
+}
 
 
 
@@ -374,7 +411,7 @@ fn parse_function_body_test() {
 
 #[test]
 fn parse_whole_function() {
-    let input_string = "fn testFunction ( a : Number ) -> Number { ( + a 8 ) }";
+    let input_string = "fn test_function ( a : Number ) -> Number { ( + a 8 ) }";
     let (_, value) = match function(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
@@ -383,7 +420,7 @@ fn parse_whole_function() {
 
     let expected_fn: Ast = Ast::Expression {
         operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier {ident: "testFunction".to_string()}),
+        expr1: Box::new(Ast::ValueIdentifier {ident: "test_function".to_string()}),
         expr2: Box::new(Ast::Literal {datatype: Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
                 expressions: vec![Ast::Expression {

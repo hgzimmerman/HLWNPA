@@ -16,6 +16,8 @@ use lang_result::*;
 use datatype::{Datatype, TypeInfo};
 use ast::*;
 
+use parser::function;
+
 
 fn main() {
 
@@ -418,4 +420,31 @@ fn function_with_two_parameters_addition_test() {
         ],
     };
     assert_eq!(Datatype::Number(12), ast.evaluate_ast(&mut map).unwrap())
+}
+
+
+#[test]
+fn simple_function_parse_and_execute_integration_test() {
+    use nom::IResult;
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+
+    let input_string = "fn add8ToValue ( a : Number ) -> Number { ( + a 8 ) }";
+    let (_, ast_with_function) = match function(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
+
+    ast_with_function.evaluate_ast(&mut map); // insert the function into the hashmap
+
+    let executor_ast: Ast = Ast::Expression {
+        operator: BinaryOperator::ExecuteFn,
+        expr1: Box::new(Ast::ValueIdentifier {ident: "add8ToValue".to_string()}),
+        expr2: Box::new(Ast::VecExpression {expressions: vec![
+            Ast::Literal {datatype: Datatype::Number(7)}
+        ]})
+    };
+
+    assert_eq!(Datatype::Number(15), executor_ast.evaluate_ast(&mut map).unwrap()); // find the test function and pass the value 7 into it
+
 }

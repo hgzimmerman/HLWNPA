@@ -212,8 +212,7 @@ named!(function_return_type<TypeInfo>,
     )
 );
 
-trace_macros!(true);
-named!(function<Ast>,
+named!(pub function<Ast>,
     do_parse!(
         ws!(tag!("fn")) >>
         function_name: identifier >>
@@ -224,7 +223,6 @@ named!(function<Ast>,
         ) >>
         return_type: function_return_type >>
         body_expressions: function_body >>
-//        (Ast::Type {datatype: TypeInfo::Number})
         (Ast::Expression{
             operator: BinaryOperator::Assignment,
             expr1: Box::new(function_name),
@@ -236,7 +234,6 @@ named!(function<Ast>,
         })
     )
 );
-trace_macros!(false);
 
 
 #[test]

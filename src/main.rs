@@ -42,7 +42,7 @@ fn main() {
     };
 
 
-    let _ = ast.evaluate_ast(&mut identifier_map);
+    let _ = ast.evaluate(&mut identifier_map);
 }
 
 
@@ -62,7 +62,7 @@ fn simple_function_parse_and_execute_integration_test() {
         _ => panic!(),
     };
 
-    let _ = ast_with_function.evaluate_ast(&mut map); // insert the function into the hashmap
+    let _ = ast_with_function.evaluate(&mut map); // insert the function into the hashmap
 
     let executor_ast: Ast = Ast::Expression {
         operator: BinaryOperator::ExecuteFn,
@@ -72,6 +72,6 @@ fn simple_function_parse_and_execute_integration_test() {
         ]})
     };
 
-    assert_eq!(Datatype::Number(15), executor_ast.evaluate_ast(&mut map).unwrap()); // find the test function and pass the value 7 into it
+    assert_eq!(Datatype::Number(15), executor_ast.evaluate(&mut map).unwrap()); // find the test function and pass the value 7 into it
 
 }

@@ -54,7 +54,7 @@ pub enum UnaryOperator {
 
 
 impl Ast {
-    pub fn evaluate_ast(self, map: &mut HashMap<String, Datatype>) -> LangResult {
+    pub fn evaluate(self, map: &mut HashMap<String, Datatype>) -> LangResult {
         match self {
             Ast::Expression {
                 operator,
@@ -62,27 +62,27 @@ impl Ast {
                 expr2,
             } => {
                 match operator {
-                    BinaryOperator::Plus => expr1.evaluate_ast(map)? + expr2.evaluate_ast(map)?,
-                    BinaryOperator::Minus => expr1.evaluate_ast(map)? - expr2.evaluate_ast(map)?,
-                    BinaryOperator::Multiply => expr1.evaluate_ast(map)? * expr2.evaluate_ast(map)?,
-                    BinaryOperator::Divide => expr1.evaluate_ast(map)? / expr2.evaluate_ast(map)?,
-                    BinaryOperator::Modulo => expr1.evaluate_ast(map)? % expr2.evaluate_ast(map)?,
+                    BinaryOperator::Plus => expr1.evaluate(map)? + expr2.evaluate(map)?,
+                    BinaryOperator::Minus => expr1.evaluate(map)? - expr2.evaluate(map)?,
+                    BinaryOperator::Multiply => expr1.evaluate(map)? * expr2.evaluate(map)?,
+                    BinaryOperator::Divide => expr1.evaluate(map)? / expr2.evaluate(map)?,
+                    BinaryOperator::Modulo => expr1.evaluate(map)? % expr2.evaluate(map)?,
                     BinaryOperator::Equals => {
-                        if expr1.evaluate_ast(map)? == expr2.evaluate_ast(map)? {
+                        if expr1.evaluate(map)? == expr2.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));
                         }
                     }
                     BinaryOperator::GreaterThan => {
-                        if expr1.evaluate_ast(map)? >= expr2.evaluate_ast(map)? {
+                        if expr1.evaluate(map)? >= expr2.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));
                         }
                     }
                     BinaryOperator::LessThan => {
-                        if expr1.evaluate_ast(map)? <= expr2.evaluate_ast(map)? {
+                        if expr1.evaluate(map)? <= expr2.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));
@@ -91,7 +91,7 @@ impl Ast {
                     BinaryOperator::Assignment => {
                         if let Ast::ValueIdentifier { ident } = *expr1 {
                             let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
-                            let evaluated_right_hand_side = expr2.evaluate_ast(&mut cloned_map)?;
+                            let evaluated_right_hand_side = expr2.evaluate(&mut cloned_map)?;
                             let cloned_evaluated_rhs = evaluated_right_hand_side.clone();
                             map.insert(ident, evaluated_right_hand_side);
                             return Ok(cloned_evaluated_rhs);
@@ -103,7 +103,7 @@ impl Ast {
                         // does the same thing as assignment, but I want a separate type for this.
                         if let Ast::ValueIdentifier { ident } = *expr1 {
                             let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
-                            let evaluated_right_hand_side = expr2.evaluate_ast(&mut cloned_map)?;
+                            let evaluated_right_hand_side = expr2.evaluate(&mut cloned_map)?;
                             let cloned_evaluated_rhs = evaluated_right_hand_side.clone();
                             map.insert(ident, evaluated_right_hand_side);
                             return Ok(cloned_evaluated_rhs);
@@ -120,7 +120,7 @@ impl Ast {
                             Ast::VecExpression { expressions } => {
                                 let mut evaluated_expressions: Vec<Datatype> = vec!();
                                 for e in expressions {
-                                    match e.evaluate_ast(&mut cloned_map) {
+                                    match e.evaluate(&mut cloned_map) {
                                         Ok(dt) => evaluated_expressions.push(dt),
                                         Err(err) => return Err(err),
                                     }
@@ -132,7 +132,7 @@ impl Ast {
 
 
                         // Take an existing function by (by grabbing the function using an identifier, which should resolve to a function)
-                        match expr1.evaluate_ast(&mut cloned_map)? {
+                        match expr1.evaluate(&mut cloned_map)? {
                             Datatype::Function {
                                 parameters,
                                 body,
@@ -177,14 +177,14 @@ impl Ast {
                                                 rhs_replaced_with_evaluated_parameters_results
                                             {
                                                 let rhs = rhs?; // return the error if present
-                                                rhs.evaluate_ast(&mut cloned_map)?; // create the assignment
+                                                rhs.evaluate(&mut cloned_map)?; // create the assignment
                                             }
                                         } else {
                                             return Err(LangError::ParameterLengthMismatch);
                                         }
 
                                         // Evaluate the body of the function
-                                        let output = body.evaluate_ast(&mut cloned_map)?;
+                                        let output = body.evaluate(&mut cloned_map)?;
                                         if TypeInfo::from(output.clone()) == *return_type {
                                             return Ok(output);
                                         } else {
@@ -204,23 +204,23 @@ impl Ast {
             Ast::UnaryExpression { operator, expr } => {
                 match operator {
                     UnaryOperator::Print => {
-                        print!("{:?}", expr.evaluate_ast(map)?); // todo use: std::fmt::Display::fmt instead
+                        print!("{:?}", expr.evaluate(map)?); // todo use: std::fmt::Display::fmt instead
                         Ok(Datatype::None)
                     }
                     UnaryOperator::Invert => {
-                        match expr.evaluate_ast(map)? {
+                        match expr.evaluate(map)? {
                             Datatype::Bool(bool) => Ok(Datatype::Bool(!bool)),
                             _ => Err(LangError::InvertNonBoolean),
                         }
                     }
                     UnaryOperator::Increment => {
-                        match expr.evaluate_ast(map)? {
+                        match expr.evaluate(map)? {
                             Datatype::Number(number) => Ok(Datatype::Number(number + 1)),
                             _ => Err(LangError::IncrementNonNumber),
                         }
                     }
                     UnaryOperator::Decrement => {
-                        match expr.evaluate_ast(map)? {
+                        match expr.evaluate(map)? {
                             Datatype::Number(number) => Ok(Datatype::Number(number - 1)),
                             _ => Err(LangError::DecrementNonNumber),
                         }
@@ -231,7 +231,7 @@ impl Ast {
             Ast::VecExpression { expressions } => {
                 let mut val: Datatype = Datatype::None;
                 for e in expressions {
-                    val = e.evaluate_ast(map)?;
+                    val = e.evaluate(map)?;
                 }
                 Ok(val) // return the last evaluated expression;
             }
@@ -240,13 +240,13 @@ impl Ast {
                 true_expr,
                 false_expr,
             } => {
-                match condition.evaluate_ast(map)? {
+                match condition.evaluate(map)? {
                     Datatype::Bool(bool) => {
                         match bool {
-                            true => Ok(true_expr.evaluate_ast(map)?),
+                            true => Ok(true_expr.evaluate(map)?),
                             false => {
                                 match false_expr {
-                                    Some(e) => Ok(e.evaluate_ast(map)?),
+                                    Some(e) => Ok(e.evaluate(map)?),
                                     _ => Ok(Datatype::None),
                                 }
                             }
@@ -278,7 +278,7 @@ fn plus_test() {
         expr1: Box::new(Ast::Literal { datatype: Datatype::Number(3) }),
         expr2: Box::new(Ast::Literal { datatype: Datatype::Number(6) }),
     };
-    assert_eq!(Datatype::Number(9), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(9), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -295,7 +295,7 @@ fn string_plus_test() {
     };
     assert_eq!(
         Datatype::String("Hello World!".to_string()),
-        ast.evaluate_ast(&mut map).unwrap()
+        ast.evaluate(&mut map).unwrap()
     )
 }
 
@@ -307,7 +307,7 @@ fn minus_test() {
         expr1: Box::new(Ast::Literal { datatype: Datatype::Number(6) }),
         expr2: Box::new(Ast::Literal { datatype: Datatype::Number(3) }),
     };
-    assert_eq!(Datatype::Number(3), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(3), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -318,7 +318,7 @@ fn minus_negative_test() {
         expr1: Box::new(Ast::Literal { datatype: Datatype::Number(3) }),
         expr2: Box::new(Ast::Literal { datatype: Datatype::Number(6) }),
     };
-    assert_eq!(Datatype::Number(-3), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(-3), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -329,7 +329,7 @@ fn multiplication_test() {
         expr1: Box::new(Ast::Literal { datatype: Datatype::Number(6) }),
         expr2: Box::new(Ast::Literal { datatype: Datatype::Number(3) }),
     };
-    assert_eq!(Datatype::Number(18), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(18), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -340,7 +340,7 @@ fn division_test() {
         expr1: Box::new(Ast::Literal { datatype: Datatype::Number(6) }),
         expr2: Box::new(Ast::Literal { datatype: Datatype::Number(3) }),
     };
-    assert_eq!(Datatype::Number(2), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -351,7 +351,7 @@ fn integer_division_test() {
         expr1: Box::new(Ast::Literal { datatype: Datatype::Number(5) }),
         expr2: Box::new(Ast::Literal { datatype: Datatype::Number(3) }),
     };
-    assert_eq!(Datatype::Number(1), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(1), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -364,7 +364,7 @@ fn division_by_zero_test() {
     };
     assert_eq!(
         LangError::DivideByZero,
-        ast.evaluate_ast(&mut map).err().unwrap()
+        ast.evaluate(&mut map).err().unwrap()
     )
 }
 
@@ -376,7 +376,7 @@ fn modulo_test() {
         expr1: Box::new(Ast::Literal { datatype: Datatype::Number(8) }),
         expr2: Box::new(Ast::Literal { datatype: Datatype::Number(3) }),
     };
-    assert_eq!(Datatype::Number(2), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -387,7 +387,7 @@ fn equality_test() {
         expr1: Box::new(Ast::Literal { datatype: Datatype::Number(3) }),
         expr2: Box::new(Ast::Literal { datatype: Datatype::Number(3) }),
     };
-    assert_eq!(Datatype::Bool(true), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -398,7 +398,7 @@ fn greater_than_test() {
         expr1: Box::new(Ast::Literal { datatype: Datatype::Number(4) }),
         expr2: Box::new(Ast::Literal { datatype: Datatype::Number(3) }),
     };
-    assert_eq!(Datatype::Bool(true), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -409,7 +409,7 @@ fn less_than_test() {
         expr1: Box::new(Ast::Literal { datatype: Datatype::Number(2) }),
         expr2: Box::new(Ast::Literal { datatype: Datatype::Number(3) }),
     };
-    assert_eq!(Datatype::Bool(true), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
 }
 
 
@@ -433,7 +433,7 @@ fn assignment_test() {
             },
         ],
     };
-    assert_eq!(Datatype::Number(11), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
 }
 
 
@@ -464,7 +464,7 @@ fn variable_copy_test() {
             },
         ],
     };
-    assert_eq!(Datatype::Number(11), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
 }
 
 /// Assign the value 6 to a.
@@ -492,7 +492,7 @@ fn reassignment_test() {
             },
         ],
     };
-    assert_eq!(Datatype::Number(8), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(8), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -503,7 +503,7 @@ fn conditional_test() {
         true_expr: Box::new(Ast::Literal { datatype: Datatype::Number(7) }),
         false_expr: None,
     };
-    assert_eq!(Datatype::Number(7), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -514,7 +514,7 @@ fn conditional_with_else_test() {
         true_expr: Box::new(Ast::Literal { datatype: Datatype::Number(7) }),
         false_expr: Some(Box::new(Ast::Literal { datatype: Datatype::Number(2) })),
     };
-    assert_eq!(Datatype::Number(2), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -540,7 +540,7 @@ fn basic_function_test() {
             },
         ],
     };
-    assert_eq!(Datatype::Number(32), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(32), ast.evaluate(&mut map).unwrap())
 }
 
 #[test]
@@ -578,7 +578,7 @@ fn function_with_parameter_test() {
             },
         ],
     };
-    assert_eq!(Datatype::Number(7), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
 }
 
 
@@ -638,5 +638,5 @@ fn function_with_two_parameters_addition_test() {
             },
         ],
     };
-    assert_eq!(Datatype::Number(12), ast.evaluate_ast(&mut map).unwrap())
+    assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
 }

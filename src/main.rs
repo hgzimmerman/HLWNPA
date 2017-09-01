@@ -1,8 +1,12 @@
 #![feature(discriminant_value)]
 #![feature(trace_macros)]
+#![feature(test)]
 
 #![macro_use]
 extern crate nom;
+extern crate test;
+
+use test::Bencher;
 
 use std::boxed::Box;
 use std::collections::HashMap;
@@ -180,4 +184,10 @@ fn program_string_coercion_integration_test() {
     Datatype::String("Hi 5".to_string()),
     ast.evaluate(&mut map).unwrap()
     );
+}
+
+
+#[bench]
+fn simple_program_bench(b: &mut Bencher) {
+    b.iter(|| program_string_coercion_integration_test())
 }

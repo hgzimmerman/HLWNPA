@@ -124,7 +124,6 @@ impl Ast {
                         }
                     }
                     BinaryOperator::ExecuteFn => {
-                        println!("executing function");
                         let mut cloned_map = map.clone(); // clone the map, to create a temporary new "stack" for the life of the function
 
                         // evaluate the parameters
@@ -142,7 +141,6 @@ impl Ast {
                             _ => return Err(LangError::FunctionParametersShouldBeVecExpression),
                         };
 
-                        println!("evaluated the input expressions: {:?}", evaluated_parameters);
 
                         // Take an existing function by (by grabbing the function using an identifier, which should resolve to a function)
                         match expr1.evaluate(&mut cloned_map)? {

@@ -154,9 +154,8 @@ impl Ast {
                                                     let expected_type: &TypeInfo = match **expr2 {
                                                         Ast::Type {ref datatype} => datatype,
                                                         _ => return Err(LangError::ExpectedDataTypeInfo)
-                                                    }; // TODO: possibly more rigorously ensure that this is only an Ast::Type, instead of evaluating a possibly long tree.
-                                                    // ^^ There is the odd possibility of implementing expressions that resolve to only a type, although I'm not sure of the utility of that.
-                                                    if discriminant(expected_type) != discriminant(&TypeInfo::from(d.clone())) {
+                                                    };
+                                                    if expected_type != &TypeInfo::from(d.clone()) {
                                                         return Err(LangError::TypeError {expected: expected_type.clone(), found: TypeInfo::from(d)})
                                                     }
 

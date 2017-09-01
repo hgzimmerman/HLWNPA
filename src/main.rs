@@ -62,7 +62,7 @@ fn simple_function_parse_and_execute_integration_test() {
         _ => panic!(),
     };
 
-    ast_with_function.evaluate_ast(&mut map); // insert the function into the hashmap
+    let _ = ast_with_function.evaluate_ast(&mut map); // insert the function into the hashmap
 
     let executor_ast: Ast = Ast::Expression {
         operator: BinaryOperator::ExecuteFn,

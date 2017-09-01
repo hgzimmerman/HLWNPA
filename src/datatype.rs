@@ -132,21 +132,14 @@ pub enum TypeInfo {
 
 
 impl From<Datatype> for TypeInfo {
-    fn from(dt: Datatype) -> TypeInfo {
-        use Datatype;
-        match dt {
-            Number => TypeInfo::Number,
-            String => TypeInfo::String,
-            Array => TypeInfo::Array,
-            Bool => TypeInfo::Bool,
+    fn from(datatype: Datatype) -> TypeInfo {
+        match datatype {
+            Datatype::Number(_) => TypeInfo::Number,
+            Datatype::String(_) => TypeInfo::String,
+            Datatype::Array{..} => TypeInfo::Array,
+            Datatype::Bool(_) => TypeInfo::Bool,
             Datatype::None => TypeInfo::None,
-            Function => TypeInfo::Function
+            Datatype::Function{..} => TypeInfo::Function
         }
     }
 }
-
-
-// Todo consider creating another enum that is just the type info that implements From<Datatype>
-pub const NUMBER_TYPE: Datatype = Datatype::Number(0);
-//pub const STRING_TYPE: Datatype = Datatype::String("".to_string()); // to_string isn't a constant function, therefore this is invalid
-pub const BOOL_TYPE: Datatype = Datatype::Bool(false);

@@ -1,4 +1,4 @@
-use datatype::{Datatype, TypeInfo, BOOL_TYPE, NUMBER_TYPE};
+use datatype::{Datatype, TypeInfo };
 use ast::{Ast, BinaryOperator, UnaryOperator};
 use nom::*;
 use nom::IResult;
@@ -314,6 +314,26 @@ fn parse_operator_test() {
 }
 
 #[test]
+fn parse_identifier_alphanumeric_test() {
+    let (_, value) = match identifier(b"variableName") {
+        IResult::Done(r, v) => (r, v),
+        IResult::Error(e) => panic!("{:?}", e),
+        _ => panic!(),
+    };
+    assert_eq!(Ast::ValueIdentifier {ident: "variableName".to_string()}, value)
+}
+
+#[test]
+fn parse_identifier_underscore_test() {
+    let (_, value) = match identifier(b"variable_name") {
+        IResult::Done(r, v) => (r, v),
+        IResult::Error(e) => panic!("{:?}", e),
+        _ => panic!(),
+    };
+    assert_eq!(Ast::ValueIdentifier {ident: "variable_name".to_string()}, value)
+}
+
+#[test]
 fn parse_number_test() {
     let (_, value) = match number(b"42") {
         IResult::Done(r, v) => (r, v),
@@ -399,9 +419,9 @@ fn parse_function_parameter_assignment_of_literal_test() {
 }
 
 #[test]
-fn parse_function_body_test() {
+fn parse_function_body_nocheck_test() {
     let input_string = "{ ( + a 8 ) }";
-    let (_, value) = match function_body(input_string.as_bytes()) {
+    let (_, _) = match function_body(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
         _ => panic!(),

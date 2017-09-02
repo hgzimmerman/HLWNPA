@@ -18,7 +18,7 @@ fn read<'a>(a: &'a str) -> IResult<&'a [u8], Ast> {
 fn evaluate(possibly_parsed_ast: IResult<&[u8], Ast>,map: &mut HashMap<String, Datatype>) -> LangResult {
 
     match possibly_parsed_ast {
-        IResult::Done(rest, ast) => ast.evaluate(map),
+        IResult::Done(_, ast) => ast.evaluate(map),
         IResult::Error(e) => {
             print!("Invalid syntax: {}\nuser>", e);
             Err(LangError::InvalidSyntax)

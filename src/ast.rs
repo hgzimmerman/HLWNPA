@@ -278,7 +278,7 @@ impl Ast {
                 }
             }
             Ast::Literal { datatype } => Ok(datatype),
-            Ast::Type { datatype } => Ok(Datatype::None), // you shouldn't try to evaluate the datatype, // todo consider making this an error
+            Ast::Type { datatype } => Err(LangError::TriedToEvaluateTypeInfo(datatype)), // you shouldn't try to evaluate the datatype, // todo consider making this an error
             Ast::ValueIdentifier { ident } => {
                 match map.get(&ident) {
                     Some(value) => Ok(value.clone()),

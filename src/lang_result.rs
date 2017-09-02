@@ -21,5 +21,6 @@ pub enum LangError {
     ExpectedDataTypeInfo,
     InvalidSyntax,
     InvalidSyntaxFailedToParse,
-    VariableDoesntExist(String)
+    VariableDoesntExist(String),
+    TriedToEvaluateTypeInfo(TypeInfo)
 }

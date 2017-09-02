@@ -6,7 +6,6 @@ use std::str::FromStr;
 use std::str;
 use std::boxed::Box;
 
-use std::ops::{RangeFrom, RangeTo, Range}; // Used for custom "extension" to alphanumeric matcher.
 
 // ____  _                           ___                       _
 //| __ )(_)_ __   __ _ _ __ _   _   / _ \ _ __   ___ _ __ __ _| |_ ___  _ __ ___
@@ -46,9 +45,15 @@ named!(modulo<BinaryOperator>,
         tag!("%")
     )
 );
+named!(equals<BinaryOperator>,
+    value!(
+        BinaryOperator::Equals,
+        tag!("==")
+    )
+);
 
 named!(binary_operator<BinaryOperator>,
-    ws!(alt!(plus | minus | multiply | divide | modulo))
+    ws!(alt!(plus | minus | multiply | divide | modulo | equals))
 );
 
 // _   _                           ___                       _
@@ -200,6 +205,7 @@ named!(accepted_identifier_characters<&str>,
 );
 
 // TODO consider changing the syntax to: identifier := expr
+// TODO leave the let binding, possibly as a way to declare a const vs mutable structure
 named!(assignment<Ast>,
     do_parse!(
         ws!(tag!("let")) >>
@@ -210,6 +216,7 @@ named!(assignment<Ast>,
 );
 
 // TODO: Consider having this return a TypeInfo and let a higher up parser assign this into the proper AST form.
+// ^^ eeeh, probably not.
 /// _ts indicates that the parser combinator is a getting a type signature
 named!(type_signature<Ast>,
    ws!(alt!(number_ts | string_ts | bool_ts ))

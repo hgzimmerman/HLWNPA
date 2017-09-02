@@ -13,8 +13,10 @@ I did this just to see what I could acomplish with no prior experience with lang
 * No meaningful parser error messages. If your syntax isn't 100% accurate, there is very little to indicate what you did wrong.
 * A few runtime error messages.
 * No control flow. Conditional evaluation exists in the AST, but nothing parses it yet. (Coming soon?)
-* Uses reverse polish notation for expressions: `let value (* 4 6)`
+* Uses reverse polish notation for expressions: `let value (* 4 6)` (less obtuse syntax incoming)
 * No early return from functions. This is ok because there are no control flow systems, but only the last expression in a function is returned.
+* No conditionals means no loops.
+* Type System. Its not implemented super well, nor would there be much of a use, given the lack of parser errors. Types only check at runtime.
 
 # Actual Features
 * Uuuuh, it has a REPL.

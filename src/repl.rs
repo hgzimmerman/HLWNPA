@@ -1,7 +1,7 @@
 
 use nom::IResult;
 use parser::program;
-use lang_result::LangResult;
+use lang_result::{LangResult, LangError};
 use ast::Ast;
 use datatype::Datatype;
 use std::collections::HashMap;
@@ -17,12 +17,17 @@ fn read<'a>(a: &'a str) -> IResult<&'a [u8], Ast> {
 // Evaluates the AST
 fn evaluate(possibly_parsed_ast: IResult<&[u8], Ast>,map: &mut HashMap<String, Datatype>) -> LangResult {
 
-    let (_, ast) = match possibly_parsed_ast {
-        IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("{}", e),
-        _ => panic!(),
-    };
-    ast.evaluate(map)
+    match possibly_parsed_ast {
+        IResult::Done(rest, ast) => ast.evaluate(map),
+        IResult::Error(e) => {
+            print!("Invalid syntax: {}\nuser>", e);
+            Err(LangError::InvalidSyntax)
+        },
+        IResult::Incomplete(i) => {
+            print!("Invalid syntax. Parser returned incomplete: {:?}\nuser>", i);
+            Err(LangError::InvalidSyntaxFailedToParse)
+        },
+    }
 }
 
 // Prints the result of the AST

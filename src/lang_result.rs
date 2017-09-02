@@ -19,4 +19,7 @@ pub enum LangError {
     InvalidFunctionPrototypeFormatting,
     TypeError { expected: TypeInfo, found: TypeInfo },
     ExpectedDataTypeInfo,
+    InvalidSyntax,
+    InvalidSyntaxFailedToParse,
+    VariableDoesntExist(String)
 }

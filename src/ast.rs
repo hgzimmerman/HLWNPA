@@ -282,7 +282,7 @@ impl Ast {
             Ast::ValueIdentifier { ident } => {
                 match map.get(&ident) {
                     Some(value) => Ok(value.clone()),
-                    None => panic!("Variable {} hasn't been assigned yet", ident), // identifier hasn't been assigned yet.
+                    None => Err(LangError::VariableDoesntExist( format!("Variable {} hasn't been assigned yet", ident)) ), // identifier hasn't been assigned yet.
                 }
             }
         }

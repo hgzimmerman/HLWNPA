@@ -192,12 +192,12 @@ named!(identifier<Ast>,
 );
 
 named!(accepted_identifier_characters<&str>,
-        dbg!(
-            map_res!(
-                is_not!(" \n\t\r.(){},:"),
-                str::from_utf8
-            )
-        )
+//    dbg!(
+    map_res!(
+        is_not!(" \n\t\r.(){},:"),
+        str::from_utf8
+    )
+//    )
 );
 
 named!(assignment<Ast>,

@@ -184,6 +184,7 @@ named!(any_expression_parens<Ast>,
 
 named!(identifier<Ast>,
     do_parse!(
+        not!(alt!(tag!("let") | ws!(tag!("fn")) )) >> // reserved words
         id: ws!(
             accepted_identifier_characters
         ) >>
@@ -194,7 +195,7 @@ named!(identifier<Ast>,
 named!(accepted_identifier_characters<&str>,
 //    dbg!(
     map_res!(
-        is_not!(" \n\t\r.(){},:"),
+        is_not!(" \n\t\r.(){}<>[],:;+-*/%!=\""),
         str::from_utf8
     )
 //    )
@@ -233,12 +234,6 @@ named!(bool_ts<Ast>,
         tag!("Bool")
     )
 );
-//named!(none_ts<Ast>, // Todo, is an externally provided None/Null type needed if everything is pass by value? Consider removing
-//    do_parse!(
-//        tag!("None") >>
-//        (Ast::Type{datatype: TypeInfo::None})
-//    )
-//);
 
 
 /// Used for assigning identifiers to types
@@ -300,7 +295,7 @@ named!(pub function<Ast>,
 );
 
 named!(any_ast<Ast>,
-    alt!(function | function_execution | any_expression_parens | assignment)
+    alt!( function_execution | identifier | function |  any_expression_parens | assignment) // Order is very important here
 );
 
 named!(expression_or_literal_or_identifier<Ast>,
@@ -613,4 +608,14 @@ fn parse_program_and_validate_ast_test() {
 
     assert_eq!(expected_program_ast, value)
 
+}
+
+#[test]
+fn parse_program_with_only_identifier_test() {
+    let input_string = "x";
+    let (_, value) = match program(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
 }

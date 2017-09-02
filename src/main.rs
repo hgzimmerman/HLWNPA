@@ -15,38 +15,18 @@ mod datatype;
 mod lang_result;
 mod ast;
 mod parser;
+mod repl;
 
 use lang_result::*;
 use datatype::{Datatype, TypeInfo};
 use ast::*;
+use repl::repl;
 
 use parser::{function, program};
 
 
 fn main() {
-
-    let mut identifier_map: HashMap<String, Datatype> = HashMap::new();
-
-    let ast = Ast::UnaryExpression {
-        operator: UnaryOperator::Print,
-        expr: Box::new(Ast::VecExpression {
-            expressions: vec![
-                Ast::Expression {
-                    operator: BinaryOperator::Assignment,
-                    expr1: Box::new(Ast::ValueIdentifier { ident: "a".to_string() }),
-                    expr2: Box::new(Ast::Literal { datatype: Datatype::Number(6) }),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::Plus,
-                    expr1: Box::new(Ast::ValueIdentifier { ident: "a".to_string() }),
-                    expr2: Box::new(Ast::Literal { datatype: Datatype::Number(5) }),
-                },
-            ],
-        }),
-    };
-
-
-    let _ = ast.evaluate(&mut identifier_map);
+    repl()
 }
 
 

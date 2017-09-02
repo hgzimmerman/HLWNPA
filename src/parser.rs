@@ -16,34 +16,34 @@ use std::ops::{RangeFrom, RangeTo, Range}; // Used for custom "extension" to alp
 //                          |___/        |_|
 
 named!(plus<BinaryOperator>,
-    do_parse!(
-        tag!("+") >>
-        (BinaryOperator::Plus)
+    value!(
+        BinaryOperator::Plus,
+        tag!("+")
     )
 );
 named!(minus<BinaryOperator>,
-    do_parse!(
-        tag!("-") >>
-        (BinaryOperator::Minus)
+    value!(
+        BinaryOperator::Minus,
+        tag!("-")
     )
 );
 
 named!(multiply<BinaryOperator>,
-     do_parse!(
-        tag!("*") >>
-        (BinaryOperator::Multiply)
+     value!(
+        BinaryOperator::Multiply,
+        tag!("*")
     )
 );
 named!(divide<BinaryOperator>,
-    do_parse!(
-        tag!("/") >>
-        (BinaryOperator::Divide)
+    value!(
+        BinaryOperator::Divide,
+        tag!("/")
     )
 );
 named!(modulo<BinaryOperator>,
-    do_parse!(
-        tag!("%") >>
-        (BinaryOperator::Modulo)
+    value!(
+        BinaryOperator::Modulo,
+        tag!("%")
     )
 );
 
@@ -62,21 +62,22 @@ named!(binary_operator<BinaryOperator>,
 //                        |___/        |_|
 
 named!(invert<UnaryOperator>,
-    do_parse!(
-        tag!("!") >>
-        (UnaryOperator::Invert)
+    value!(
+        UnaryOperator::Invert,
+        tag!("!")
     )
 );
 named!(increment<UnaryOperator>,
-    do_parse!(
-        tag!("++") >>
-        (UnaryOperator::Increment)
+    value!(
+        UnaryOperator::Increment,
+        tag!("++")
+
     )
 );
 named!(decrement<UnaryOperator>,
-    do_parse!(
-        tag!("--") >>
-        (UnaryOperator::Decrement)
+    value!(
+        UnaryOperator::Decrement,
+        tag!("--")
     )
 );
 
@@ -221,21 +222,21 @@ named!(type_signature<Ast>,
 );
 
 named!(number_ts<Ast>,
-    do_parse!(
-        tag!("Number") >>
-        (Ast::Type{datatype: TypeInfo::Number})
+    value!(
+       Ast::Type{datatype: TypeInfo::Number},
+       tag!("Number")
     )
 );
 named!(string_ts<Ast>,
-    do_parse!(
-        tag!("String") >>
-        (Ast::Type{datatype: TypeInfo::String})
+    value!(
+        Ast::Type{datatype: TypeInfo::String},
+        tag!("String")
     )
 );
 named!(bool_ts<Ast>,
-    do_parse!(
-        tag!("Bool") >>
-        (Ast::Type{datatype: TypeInfo::Bool})
+    value!(
+        Ast::Type{datatype: TypeInfo::Bool},
+        tag!("Bool")
     )
 );
 named!(none_ts<Ast>, // Todo, is an externally provided None/Null type needed if everything is pass by value? Consider removing

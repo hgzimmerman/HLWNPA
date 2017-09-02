@@ -183,7 +183,6 @@ named!(any_expression_parens<Ast>,
 
 
 named!(identifier<Ast>,
-//    dbg!(
     do_parse!(
         not!(alt!(tag!("let") | ws!(tag!("fn")) | ws!(tag!("true")) | ws!(tag!("false"))  )) >> // reserved words
         id: ws!(
@@ -191,16 +190,13 @@ named!(identifier<Ast>,
         ) >>
         (Ast::ValueIdentifier{ident: id.to_string()})
     )
-//    )
 );
 
 named!(accepted_identifier_characters<&str>,
-//    dbg!(
     map_res!(
         is_not!(" \n\t\r.(){}<>[],:;+-*/%!=\""),
         str::from_utf8
     )
-//    )
 );
 
 // TODO consider changing the syntax to: identifier := expr
@@ -298,14 +294,13 @@ named!(pub function<Ast>,
 );
 
 named!(any_ast<Ast>,
-    dbg!(
     alt!(
         complete!(function_execution) | // the complete! is necessary, as it causes the function execution parser to return an error instead of an incomplete, allowing the next values to evaluate.
         complete!(assignment) |
         identifier |
         function |
-        any_expression_parens ) // Order is very important here
-    )
+        any_expression_parens
+    ) // Order is very important here
 );
 
 named!(expression_or_literal_or_identifier<Ast>,
@@ -320,7 +315,6 @@ named!(pub program<Ast>,
 );
 
 named!(function_execution<Ast>,
-    dbg!(
     do_parse!(
         function_name: identifier >>
         arguments: delimited!(
@@ -334,7 +328,6 @@ named!(function_execution<Ast>,
             expr1: Box::new(function_name), // and identifier
             expr2: Box::new(Ast::VecExpression{expressions: arguments})
         })
-    )
     )
 );
 

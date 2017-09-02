@@ -190,57 +190,20 @@ named!(any_expression_parens<Ast>,
 named!(identifier<Ast>,
     do_parse!(
         id: ws!(
-            map_res!(
-                valid_identifier_characters,
-                str::from_utf8
-            )
+            accepted_identifier_characters
         ) >>
         (Ast::ValueIdentifier{ident: id.to_string()})
     )
 );
 
-// TODO Why use this when "any" will (read: might) do
-// TODO any won't work, but selecting anything that _isn't_ some reserved character should work
-/// Custom "extension" to alphanumeric that allows identifier characters to be alphanumeric or _ or - as well
-/// This code was copied out of the nom source and modified to accept underscores and dashes.
-pub fn valid_identifier_characters<T>(input: T) -> IResult<T, T>
-where
-    T: Slice<Range<usize>> + Slice<RangeFrom<usize>> + Slice<RangeTo<usize>>,
-    T: InputIter + InputLength,
-    <T as InputIter>::Item: AsChar,
-{
-    use nom::IResult;
-
-    let input_length = input.input_len();
-    if input_length == 0 {
-        return IResult::Incomplete(Needed::Unknown);
-    }
-
-    for (idx, item) in input.iter_indices() {
-        let chr: u8 = item.as_char() as u8;
-        if !is_valid(chr) {
-            if idx == 0 {
-                return IResult::Error(error_position!(ErrorKind::AlphaNumeric, input));
-            } else {
-                return IResult::Done(input.slice(idx..), input.slice(0..idx));
-            }
-        }
-    }
-    IResult::Done(input.slice(input_length..), input)
-}
-
-fn is_valid(chr: u8) -> bool {
-    is_alphabetic(chr) || is_digit(chr) || is_underscore_or_dash(chr)
-}
-
-fn is_underscore_or_dash(chr: u8) -> bool {
-    if chr == '_' as u8 || chr == '-' as u8 {
-        return true;
-    }
-    false
-}
-
-
+named!(accepted_identifier_characters<&str>,
+        dbg!(
+            map_res!(
+                is_not!(" \n\t\r.(){},:"),
+                str::from_utf8
+            )
+        )
+);
 
 named!(assignment<Ast>,
     do_parse!(
@@ -426,7 +389,7 @@ fn parse_identifier_alphanumeric_test() {
 
 #[test]
 fn parse_identifier_underscore_test() {
-    let (_, value) = match identifier(b"variable_name") {
+    let (_, value) = match identifier(b"variable_name ") {
         IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
@@ -523,6 +486,16 @@ fn parse_function_parameter_assignment_of_type_number_test() {
 fn parse_function_body_nocheck_test() {
     let input_string = "{ ( + a 8 ) }";
     let (_, _) = match function_body(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
+}
+
+#[test]
+fn parse_identifier_characters_test() {
+    let input_string = "name ";
+    let (_, _) = match accepted_identifier_characters(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
         _ => panic!(),

@@ -183,8 +183,9 @@ named!(any_expression_parens<Ast>,
 
 
 named!(identifier<Ast>,
+
     do_parse!(
-        not!(alt!(tag!("let") | ws!(tag!("fn")) )) >> // reserved words
+        not!(alt!(tag!("let") | ws!(tag!("fn")) | ws!(tag!("true")) | ws!(tag!("false"))  )) >> // reserved words
         id: ws!(
             accepted_identifier_characters
         ) >>
@@ -295,7 +296,9 @@ named!(pub function<Ast>,
 );
 
 named!(any_ast<Ast>,
-    alt!( function_execution | identifier | function |  any_expression_parens | assignment) // Order is very important here
+    dbg!(
+    alt!( function_execution | assignment | identifier | function |  any_expression_parens ) // Order is very important here
+    )
 );
 
 named!(expression_or_literal_or_identifier<Ast>,
@@ -615,7 +618,9 @@ fn parse_program_with_only_identifier_test() {
     let input_string = "x";
     let (_, value) = match program(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("{}", e),
-        _ => panic!(),
+        IResult::Error(e) => panic!("Error in parsing: {}", e),
+        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
     };
+
+    assert_eq!(Ast::VecExpression {expressions: vec![Ast::ValueIdentifier {ident: "x".to_string()}]}, value)
 }

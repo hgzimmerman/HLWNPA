@@ -48,10 +48,7 @@ named!(modulo<BinaryOperator>,
 );
 
 named!(binary_operator<BinaryOperator>,
-    do_parse!(
-        bin_op: ws!(alt!(plus | minus | multiply | divide | modulo)) >>
-        (bin_op)
-    )
+    ws!(alt!(plus | minus | multiply | divide | modulo))
 );
 
 // _   _                           ___                       _
@@ -82,10 +79,7 @@ named!(decrement<UnaryOperator>,
 );
 
 named!(unary_operator<UnaryOperator>,
-    do_parse!(
-        u_op: ws!(alt!(invert | increment | decrement)) >>
-        (u_op)
-    )
+    ws!(alt!(invert | increment | decrement))
 );
 
 

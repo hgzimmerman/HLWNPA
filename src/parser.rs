@@ -183,13 +183,14 @@ named!(any_expression_parens<Ast>,
 
 
 named!(identifier<Ast>,
-
+    dbg!(
     do_parse!(
         not!(alt!(tag!("let") | ws!(tag!("fn")) | ws!(tag!("true")) | ws!(tag!("false"))  )) >> // reserved words
         id: ws!(
             accepted_identifier_characters
         ) >>
         (Ast::ValueIdentifier{ident: id.to_string()})
+    )
     )
 );
 
@@ -202,11 +203,12 @@ named!(accepted_identifier_characters<&str>,
 //    )
 );
 
+// TODO consider changing the syntax to identifier := expr
 named!(assignment<Ast>,
     do_parse!(
         ws!(tag!("let")) >>
         id: ws!(identifier) >>
-        value: ws!(literal) >> // I don't just want a literal, I could also use a bin expr, or a fn.
+        value: ws!(expression_or_literal_or_identifier) >>
         (Ast::Expression{ operator: BinaryOperator::Assignment, expr1: Box::new(id), expr2: Box::new(value) })
     )
 );

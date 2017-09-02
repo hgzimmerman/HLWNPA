@@ -126,15 +126,15 @@ named!(string_literal<Ast>,
 );
 
 named!(bool_false<bool>,
-    do_parse!(
-        tag!("false") >>
-        (false)
+    value!(
+        false,
+        tag!("false")
     )
 );
 named!(bool_true<bool>,
-    do_parse!(
-        tag!("true") >>
-        (true)
+    value!(
+        true,
+        tag!("true")
     )
 );
 named!(bool_literal<Ast>,
@@ -212,7 +212,7 @@ named!(assignment<Ast>,
 // TODO: Consider having this return a TypeInfo and let a higher up parser assign this into the proper AST form.
 /// _ts indicates that the parser combinator is a getting a type signature
 named!(type_signature<Ast>,
-   ws!(alt!(number_ts | string_ts | bool_ts | none_ts))
+   ws!(alt!(number_ts | string_ts | bool_ts ))
 );
 
 named!(number_ts<Ast>,
@@ -233,12 +233,12 @@ named!(bool_ts<Ast>,
         tag!("Bool")
     )
 );
-named!(none_ts<Ast>, // Todo, is an externally provided None/Null type needed if everything is pass by value? Consider removing
-    do_parse!(
-        tag!("None") >>
-        (Ast::Type{datatype: TypeInfo::None})
-    )
-);
+//named!(none_ts<Ast>, // Todo, is an externally provided None/Null type needed if everything is pass by value? Consider removing
+//    do_parse!(
+//        tag!("None") >>
+//        (Ast::Type{datatype: TypeInfo::None})
+//    )
+//);
 
 
 /// Used for assigning identifiers to types

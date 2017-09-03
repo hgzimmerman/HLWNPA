@@ -268,7 +268,7 @@ fn program_if_test() {
 fn program_while_loop_test() {
     use nom::IResult;
     let mut map: HashMap<String, Datatype> = HashMap::new();
-    // the while loop should increment the x once
+    // the while loop should reassign x to be something else;
     let input_string = r##"
      let x := 3
      while (x == 3) {
@@ -291,7 +291,7 @@ fn program_while_loop_test() {
 fn program_while_loop_false_test() {
     use nom::IResult;
     let mut map: HashMap<String, Datatype> = HashMap::new();
-    // the while loop should increment the x once
+    // the while body should not execute
     let input_string = r##"
      let x := 42
      while (x == 3) {

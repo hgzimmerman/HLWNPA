@@ -670,7 +670,7 @@ fn parse_program_with_only_identifier_test() {
 #[test]
 fn parse_simple_body_test() {
     let input_string = "{ true }";
-    let (_, value) = match function_body(input_string.as_bytes()) {
+    let (_, _) = match function_body(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("Error in parsing: {}", e),
         IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
@@ -678,13 +678,23 @@ fn parse_simple_body_test() {
 }
 
 #[test]
-fn parse_if_statement() {
-    let input_string = "if (+ 1 1) { true }";
-    let (_, value) = match if_expression(input_string.as_bytes()) {
+fn parse_if_statement_test() {
+    let input_string = "if true { true }";
+    let (_, _) = match if_expression(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("Error in parsing: {}", e),
         IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
     };
 
-    //assert_eq!(Ast::VecExpression {expressions: vec![Ast::ValueIdentifier {ident: "x".to_string()}]}, value)
+}
+
+#[test]
+fn parse_if_else_statement_test() {
+    let input_string = "if true { true } else { true }";
+    let (_, _) = match if_expression(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("Error in parsing: {}", e),
+        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+    };
+
 }

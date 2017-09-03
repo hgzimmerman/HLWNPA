@@ -158,8 +158,6 @@ fn program_parse_and_execute_integration_test_3() {
         _ => panic!(),
     };
 
-
-
     assert_eq!(
     Datatype::Number(16),
     ast.evaluate(&mut map).unwrap()
@@ -217,10 +215,10 @@ fn program_function_internals_does_not_clobber_outer_stack_integration_test() {
     let input_string = "
      let a 2
      fn add_two_numbers ( a : Number b : Number) -> Number {
-        ( + a b )
+        ( a +  b )
      }
      add_two_numbers(8 3)
-     (+ a 0)
+     a
      ";
     let (_, ast) = match program(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),

@@ -302,7 +302,6 @@ named!(pub function<Ast>,
 
 
 named!(if_expression<Ast>,
-    dbg!(
     do_parse!(
         ws!(tag!("if")) >>
         if_conditional: ws!(expression_or_literal_or_identifier) >>
@@ -327,7 +326,6 @@ named!(if_expression<Ast>,
             true_expr: Box::new(if_body),
             false_expr: else_body
         })
-    )
     )
 );
 

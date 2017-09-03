@@ -53,6 +53,7 @@ pub enum BinaryOperator {
     Assignment,
     ExecuteFn,
     FunctionParameterAssignment,
+    Loop
 }
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
@@ -66,8 +67,9 @@ pub enum UnaryOperator {
 
 
 impl Ast {
-    pub fn evaluate(self, map: &mut HashMap<String, Datatype>) -> LangResult {
-        match self {
+    pub fn evaluate(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
+        // TODO this clone will be expensive, try to make due with just using refs of the self, for a small program this is already adds a 50% overhead, and that is with a shallow ast.
+        match self.clone() {
             Ast::Expression {
                 operator,
                 expr1,
@@ -123,6 +125,27 @@ impl Ast {
                             Err(LangError::IdentifierDoesntExist)
                         }
                     }
+                    BinaryOperator::Loop => {
+                        let mut should_loop: bool = true;
+                        let cloned_expr1 = *expr1.clone();
+                        while should_loop {
+                            let condition : Datatype = cloned_expr1.evaluate(map)?;
+                            match condition {
+                                Datatype::Bool(b) => {
+                                    if b {
+                                        expr1.evaluate(map)?; // This doesn't clone the map, so it can mutate the "stack" of its context
+                                    } else {
+                                        return Ok(Datatype::None)
+                                    }
+                                }
+                                _ => {
+                                    return Err( LangError::ConditionalNotBoolean(TypeInfo::from(condition)) )
+                                }
+                            }
+                        }
+                        return Ok(Datatype::None) // leave block, // Todo maybe returning the last evaluated datatype or None?
+                    }
+
                     BinaryOperator::ExecuteFn => {
                         let mut cloned_map = map.clone(); // clone the map, to create a temporary new "stack" for the life of the function
 

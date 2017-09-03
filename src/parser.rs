@@ -307,18 +307,25 @@ named!(if_expression<Ast>,
         ws!(tag!("if")) >>
         if_conditional: ws!(expression_or_literal_or_identifier) >>
         if_body: ws!(function_body) >> //Todo rename to just body. "bodies" should map to vecExpressions and be delimited by {}
-        // todo: To fix below: move the map inside the opt!
-//        else_body: map!(
-//            opt!(
-//                ws!(function_body)
-//            ),
-//            convert_optional_ast_to_optional_boxed_ast
-//        ) >>
+        else_body: opt!(
+            complete!(
+                // nest another do_parse to get the else keyword and its associated block
+                do_parse!(
+                    ws!(tag!("else")) >>
+                    e: map!(
+                        ws!(function_body),
+                        Box::new
+                    ) >>
+                    (e)
+                )
+
+            )
+        ) >>
         (
         Ast::Conditional {
             condition: Box::new(if_conditional),
             true_expr: Box::new(if_body),
-            false_expr: None //else_body
+            false_expr: else_body
         })
     )
     )
@@ -335,6 +342,8 @@ fn convert_optional_ast_to_optional_boxed_ast(opt_ast: Option<Ast>) -> Option<Bo
         }
     }
 }
+
+
 
 ///Anything that generates an AST node.
 named!(any_ast<Ast>,

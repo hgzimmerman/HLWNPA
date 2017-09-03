@@ -217,7 +217,7 @@ impl Ast {
                                                 })
                                                 .collect();
 
-                                            // These functions _should_ all be assignments
+                                            // These functions _should_ all be assignments, per the parser.
                                             // So after replacing the Types with Literals that have been derived from the expressions passed in,
                                             // they can be associated with the identifiers, and the identifiers can be used in the function body later.
                                             for rhs in rhs_replaced_with_evaluated_parameters_results {
@@ -272,7 +272,7 @@ impl Ast {
             }
             //Evaluate multiple expressions and return the result of the last one.
             Ast::VecExpression { expressions } => {
-                let mut val: Datatype = Datatype::None;
+                let mut val: Datatype = Datatype::None; // TODO, consider maxing this return an error if the expressions vector is empty
                 for e in expressions {
                     val = e.evaluate(map)?;
                 }

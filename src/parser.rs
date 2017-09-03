@@ -189,11 +189,23 @@ named!(any_expression_parens<Ast>,
 
 named!(identifier<Ast>,
     do_parse!(
-        not!(alt!(tag!("let") | ws!(tag!("fn")) | ws!(tag!("if")) | ws!(tag!("else")) | ws!(tag!("while")) | ws!(tag!("true")) | ws!(tag!("false"))  )) >> // reserved words
+        not!(reserved_words)>>
         id: ws!(
             accepted_identifier_characters
         ) >>
         (Ast::ValueIdentifier{ident: id.to_string()})
+    )
+);
+
+named!(reserved_words,
+    alt!(
+        ws!(tag!("let")) |
+        ws!(tag!("fn")) |
+        ws!(tag!("if")) |
+        ws!(tag!("else")) |
+        ws!(tag!("while")) |
+        ws!(tag!("true")) |
+        ws!(tag!("false"))
     )
 );
 
@@ -252,7 +264,7 @@ named!(function_parameter_assignment<Ast>,
     )
 );
 
-named!(function_body<Ast>,
+named!(body<Ast>,
     do_parse!(
         statements : delimited!(
             ws!(char!('{')),
@@ -287,7 +299,7 @@ named!(pub function<Ast>,
             ws!(char!(')'))
         ) >>
         return_type: function_return_type >>
-        body_expressions: function_body >>
+        body_expressions: body >>
         (Ast::Expression{
             operator: BinaryOperator::Assignment,
             expr1: Box::new(function_name),
@@ -305,14 +317,14 @@ named!(if_expression<Ast>,
     do_parse!(
         ws!(tag!("if")) >>
         if_conditional: ws!(expression_or_literal_or_identifier) >>
-        if_body: ws!(function_body) >> //Todo rename to just body. "bodies" should map to vecExpressions and be delimited by {}
+        if_body: ws!(body) >>
         else_body: opt!(
             complete!(
                 // nest another do_parse to get the else keyword and its associated block
                 do_parse!(
                     ws!(tag!("else")) >>
                     e: map!(
-                        ws!(function_body),
+                        ws!(body),
                         Box::new
                     ) >>
                     (e)
@@ -334,7 +346,7 @@ named!(while_loop<Ast>,
     do_parse!(
         ws!(tag!("while")) >>
         while_conditional: ws!(expression_or_literal_or_identifier) >>
-        while_body: ws!(function_body) >>
+        while_body: ws!(body) >>
 
         (Ast::Expression {
             operator: BinaryOperator::Loop,
@@ -537,9 +549,9 @@ fn parse_function_parameter_assignment_of_type_number_test() {
 }
 
 #[test]
-fn parse_function_body_nocheck_test() {
+fn parse_body_nocheck_test() {
     let input_string = "{ ( a + 8 ) }";
-    let (_, _) = match function_body(input_string.as_bytes()) {
+    let (_, _) = match body(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
         _ => panic!(),
@@ -689,7 +701,7 @@ fn parse_program_with_only_identifier_test() {
 #[test]
 fn parse_simple_body_test() {
     let input_string = "{ true }";
-    let (_, _) = match function_body(input_string.as_bytes()) {
+    let (_, _) = match body(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("Error in parsing: {}", e),
         IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
@@ -700,7 +712,7 @@ fn parse_simple_body_test() {
 #[test]
 fn parse_simple_body_assignment_test() {
     let input_string = "{ let a := 8 }";
-    let (_, _) = match function_body(input_string.as_bytes()) {
+    let (_, _) = match body(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("Error in parsing: {}", e),
         IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
@@ -730,7 +742,6 @@ fn parse_if_else_statement_test() {
         IResult::Error(e) => panic!("Error in parsing: {}", e),
         IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
     };
-
 }
 
 #[test]

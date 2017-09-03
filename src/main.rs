@@ -110,7 +110,7 @@ fn program_parse_and_execute_integration_test_1() {
     use nom::IResult;
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let input_string = "
-     let x 7
+     let x := 7
      fn test_function ( a : Number ) -> Number { ( a + 8 ) }
      test_function(x)";
     let (_, ast) = match program(input_string.as_bytes()) {
@@ -213,7 +213,7 @@ fn program_function_internals_does_not_clobber_outer_stack_integration_test() {
     use nom::IResult;
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let input_string = "
-     let a 2
+     let a := 2
      fn add_two_numbers ( a : Number b : Number) -> Number {
         ( a +  b )
      }
@@ -240,7 +240,7 @@ fn program_string_coercion_integration_test() {
     use nom::IResult;
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let input_string = r##"
-     let x "Hi "
+     let x := "Hi "
      fn test_function ( a : String ) -> String { ( a + 5 ) }
      test_function(x)"##;
     let (_, ast) = match program(input_string.as_bytes()) {

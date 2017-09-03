@@ -210,6 +210,7 @@ named!(assignment<Ast>,
     do_parse!(
         ws!(tag!("let")) >>
         id: ws!(identifier) >>
+        ws!(tag!(":="))>>
         value: ws!(expression_or_literal_or_identifier) >>
         (Ast::Expression{ operator: BinaryOperator::Assignment, expr1: Box::new(id), expr2: Box::new(value) })
     )
@@ -496,7 +497,7 @@ fn parse_string_and_number_addition_test() {
 
 #[test]
 fn parse_assignment_of_literal_test() {
-    let input_string = "let b 8";
+    let input_string = "let b := 8";
     let (_, value) = match assignment(input_string.as_bytes()) {
         IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
@@ -576,7 +577,7 @@ fn parse_whole_function_number_input_returns_number_test() {
 #[test]
 fn just_parse_program_test() {
     let input_string = "( 1 + 2)
-     let x 7
+     let x := 7
      fn test_function ( a : Number ) -> Number { ( a + 8 ) }
      test_function(8)";
     let (_, value) = match program(input_string.as_bytes()) {
@@ -593,7 +594,7 @@ fn just_parse_program_test() {
 #[test]
 fn parse_program_and_validate_ast_test() {
     let input_string = "
-     let x 7
+     let x := 7
      fn test_function ( a : Number ) -> Number { ( a + 8 ) }
      test_function(x)";
     let (_, value) = match program(input_string.as_bytes()) {

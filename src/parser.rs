@@ -105,7 +105,7 @@ named!(number<i32>,
 named!(number_literal<Ast>,
     do_parse!(
        num: ws!(number) >>
-        (Ast::Literal {datatype: Datatype::Number(num)})
+        (Ast::Literal ( Datatype::Number(num)))
     )
 );
 
@@ -126,7 +126,7 @@ named!(string<String>,
 named!(string_literal<Ast>,
     do_parse!(
         str: ws!(string) >>
-        (Ast::Literal {datatype: Datatype::String(str)})
+        (Ast::Literal (Datatype::String(str)))
     )
 );
 
@@ -145,7 +145,7 @@ named!(bool_true<bool>,
 named!(bool_literal<Ast>,
     do_parse!(
         boolean_value: alt!(bool_true | bool_false) >>
-        (Ast::Literal {datatype: Datatype::Bool(boolean_value)})
+        (Ast::Literal (Datatype::Bool(boolean_value)))
     )
 );
 
@@ -193,7 +193,7 @@ named!(identifier<Ast>,
         id: ws!(
             accepted_identifier_characters
         ) >>
-        (Ast::ValueIdentifier{ident: id.to_string()})
+        (Ast::ValueIdentifier ( id.to_string()))
     )
 );
 
@@ -236,19 +236,19 @@ named!(type_signature<Ast>,
 
 named!(number_ts<Ast>,
     value!(
-       Ast::Type{datatype: TypeInfo::Number},
+       Ast::Type( TypeInfo::Number),
        tag!("Number")
     )
 );
 named!(string_ts<Ast>,
     value!(
-        Ast::Type{datatype: TypeInfo::String},
+        Ast::Type( TypeInfo::String),
         tag!("String")
     )
 );
 named!(bool_ts<Ast>,
     value!(
-        Ast::Type{datatype: TypeInfo::Bool},
+        Ast::Type(TypeInfo::Bool),
         tag!("Bool")
     )
 );
@@ -281,8 +281,8 @@ named!(function_return_type<TypeInfo>,
         return_type: type_signature >>
         // Extract the datatype from the Ast::Type provided by the type_signature function
         (match return_type {
-            Ast::Type {datatype} => datatype,
-            _ => unreachable!() // this branch should never be encountered.
+            Ast::Type (datatype) => datatype,
+            _ => unreachable!() // this branch should never be encountered. //TODO create an error
         })
     )
 );
@@ -303,11 +303,13 @@ named!(pub function<Ast>,
         (Ast::Expression{
             operator: BinaryOperator::Assignment,
             expr1: Box::new(function_name),
-            expr2: Box::new(Ast::Literal {datatype: Datatype::Function {
-                parameters: Box::new(Ast::VecExpression{expressions: arguments}),
-                body: Box::new(body_expressions),
-                return_type: Box::new(return_type)
-            } } )
+            expr2: Box::new(Ast::Literal (
+                Datatype::Function {
+                    parameters: Box::new(Ast::VecExpression{expressions: arguments}),
+                    body: Box::new(body_expressions),
+                    return_type: Box::new(return_type)
+                }
+            ) )
         })
     )
 );
@@ -410,7 +412,7 @@ fn parse_addition_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal {datatype: Datatype::Number(3)}), expr2:  Box::new(Ast::Literal {datatype: Datatype::Number(4)}) }, value);
+    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal ( Datatype::Number(3))), expr2:  Box::new(Ast::Literal ( Datatype::Number(4))) }, value);
 }
 
 #[test]
@@ -420,7 +422,7 @@ fn parse_addition_parens_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal {datatype: Datatype::Number(3)}), expr2:  Box::new(Ast::Literal {datatype: Datatype::Number(4)}) }, value);
+    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal ( Datatype::Number(3))), expr2:  Box::new(Ast::Literal ( Datatype::Number(4))) }, value);
 }
 
 #[test]
@@ -450,7 +452,7 @@ fn parse_identifier_alphanumeric_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::ValueIdentifier {ident: "variableName".to_string()}, value)
+    assert_eq!(Ast::ValueIdentifier ( "variableName".to_string()), value)
 }
 
 #[test]
@@ -460,7 +462,7 @@ fn parse_identifier_underscore_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::ValueIdentifier {ident: "variable_name".to_string()}, value)
+    assert_eq!(Ast::ValueIdentifier ( "variable_name".to_string()), value)
 }
 
 #[test]
@@ -480,7 +482,7 @@ fn parse_number_literal_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Literal {datatype: Datatype::Number(42)}, value)
+    assert_eq!(Ast::Literal ( Datatype::Number(42)), value)
 }
 
 #[test]
@@ -490,7 +492,7 @@ fn parse_bool_literal_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Literal {datatype: Datatype::Bool(true)}, value)
+    assert_eq!(Ast::Literal ( Datatype::Bool(true)), value)
 }
 
 
@@ -513,7 +515,7 @@ fn parse_string_literal_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Literal {datatype: Datatype::String("Hello World".to_string())}, value)
+    assert_eq!(Ast::Literal ( Datatype::String("Hello World".to_string())), value)
 }
 
 #[test]
@@ -523,7 +525,7 @@ fn parse_string_and_number_addition_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal {datatype: Datatype::Number(3)}), expr2: Box::new(Ast::Literal {datatype: Datatype::String("Hi".to_string())}) }, value);
+    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal ( Datatype::Number(3))), expr2: Box::new(Ast::Literal ( Datatype::String("Hi".to_string()))) }, value);
 }
 
 #[test]
@@ -534,7 +536,7 @@ fn parse_assignment_of_literal_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::Assignment, expr1: Box::new(Ast::ValueIdentifier {ident: "b".to_string()}), expr2: Box::new(Ast::Literal {datatype: Datatype::Number(8)}) }, value)
+    assert_eq!(Ast::Expression {operator: BinaryOperator::Assignment, expr1: Box::new(Ast::ValueIdentifier ( "b".to_string())), expr2: Box::new(Ast::Literal ( Datatype::Number(8))) }, value)
 }
 
 #[test]
@@ -545,7 +547,7 @@ fn parse_function_parameter_assignment_of_type_number_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier {ident: "b".to_string()}), expr2: Box::new(Ast::Type {datatype: TypeInfo::Number}) }, value)
+    assert_eq!(Ast::Expression {operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier ( "b".to_string())), expr2: Box::new(Ast::Type ( TypeInfo::Number)) }, value)
 }
 
 #[test]
@@ -580,27 +582,27 @@ fn parse_whole_function_number_input_returns_number_test() {
 
     let expected_fn: Ast = Ast::Expression {
         operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier { ident: "test_function".to_string() }),
-        expr2: Box::new(Ast::Literal {
-            datatype: Datatype::Function {
+        expr1: Box::new(Ast::ValueIdentifier ("test_function".to_string() )),
+        expr2: Box::new(Ast::Literal (
+            Datatype::Function {
                 parameters: Box::new(Ast::VecExpression {
                     expressions: vec![Ast::Expression {
                     operator: BinaryOperator::FunctionParameterAssignment,
-                    expr1: Box::new(Ast::ValueIdentifier { ident: "a".to_string() }),
-                    expr2: Box::new(Ast::Type { datatype: TypeInfo::Number })
+                    expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
+                    expr2: Box::new(Ast::Type ( TypeInfo::Number ))
                 }],
                 }),
                 body: Box::new(Ast::VecExpression {
                     expressions: vec![
                     Ast::Expression {
                         operator: BinaryOperator::Plus,
-                        expr1: Box::new(Ast::ValueIdentifier { ident: "a".to_string() }),
-                        expr2: Box::new(Ast::Literal {datatype: Datatype::Number(8)}),
+                        expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
+                        expr2: Box::new(Ast::Literal ( Datatype::Number(8))),
                     }],
                 }),
                 return_type: Box::new(TypeInfo::Number),
             },
-        }),
+        )),
     };
     assert_eq!(expected_fn, value)
 }
@@ -636,41 +638,39 @@ fn parse_program_and_validate_ast_test() {
 
     let expected_assignment: Ast = Ast::Expression {
         operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier { ident: "x".to_string() }),
-        expr2: Box::new(Ast::Literal { datatype: Datatype::Number(7) }),
+        expr1: Box::new(Ast::ValueIdentifier ( "x".to_string() )),
+        expr2: Box::new(Ast::Literal ( Datatype::Number(7) )),
     };
 
     let expected_fn: Ast = Ast::Expression {
         operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier { ident: "test_function".to_string() }),
-        expr2: Box::new(Ast::Literal {
-            datatype: Datatype::Function {
+        expr1: Box::new(Ast::ValueIdentifier ( "test_function".to_string() )),
+        expr2: Box::new(Ast::Literal (
+            Datatype::Function {
                 parameters: Box::new(Ast::VecExpression {
                     expressions: vec![Ast::Expression {
                         operator: BinaryOperator::FunctionParameterAssignment,
-                        expr1: Box::new(Ast::ValueIdentifier { ident: "a".to_string() }),
-                        expr2: Box::new(Ast::Type { datatype: TypeInfo::Number })
+                        expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
+                        expr2: Box::new(Ast::Type ( TypeInfo::Number ))
                     }],
                 }),
                 body: Box::new(Ast::VecExpression {
                     expressions: vec![
                         Ast::Expression {
                             operator: BinaryOperator::Plus,
-                            expr1: Box::new(Ast::ValueIdentifier { ident: "a".to_string() }),
-                            expr2: Box::new(Ast::Literal {datatype: Datatype::Number(8)}),
+                            expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
+                            expr2: Box::new(Ast::Literal ( Datatype::Number(8))),
                         }],
                 }),
                 return_type: Box::new(TypeInfo::Number),
             },
-        }),
+        )),
     };
     let expected_fn_call: Ast = Ast::Expression {
         operator: BinaryOperator::ExecuteFn,
-        expr1: Box::new(Ast::ValueIdentifier { ident: "test_function".to_string() }),
+        expr1: Box::new(Ast::ValueIdentifier ( "test_function".to_string() )),
         expr2: Box::new(Ast::VecExpression {
-            expressions: vec![Ast::ValueIdentifier {
-                ident: "x".to_string()
-            }],
+            expressions: vec![Ast::ValueIdentifier ( "x".to_string() )],
         }),
     };
 
@@ -695,7 +695,7 @@ fn parse_program_with_only_identifier_test() {
         IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
     };
 
-    assert_eq!(Ast::VecExpression {expressions: vec![Ast::ValueIdentifier {ident: "x".to_string()}]}, value)
+    assert_eq!(Ast::VecExpression {expressions: vec![Ast::ValueIdentifier ( "x".to_string())]}, value)
 }
 
 #[test]
@@ -728,8 +728,8 @@ fn parse_if_statement_test() {
         IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
     };
     assert_eq!(Ast::Conditional {
-        condition: Box::new(Ast::Literal {datatype: Datatype::Bool(true)}),
-        true_expr: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal {datatype: Datatype::Bool(true)}]}),
+        condition: Box::new(Ast::Literal ( Datatype::Bool(true) )),
+        true_expr: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]}),
         false_expr: None
     }, value)
 }
@@ -755,9 +755,9 @@ fn parse_program_with_if_test() {
 
     assert_eq!(Ast::VecExpression {
         expressions: vec![Ast::Conditional {
-            condition: Box::new(Ast::Literal {datatype: Datatype::Bool(true)}),
-            true_expr: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal {datatype: Datatype::Bool(true)}]}),
-            false_expr: Some(Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal {datatype: Datatype::Bool(true)}]}))
+            condition: Box::new(Ast::Literal ( Datatype::Bool(true))),
+            true_expr: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]}),
+            false_expr: Some(Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]}))
         }]
     }, value)
 }
@@ -775,7 +775,7 @@ fn parse_while_loop_test() {
     assert_eq!(
         Ast::Expression  {
             operator: BinaryOperator::Loop,
-            expr1: Box::new(Ast::Literal{datatype: Datatype::Bool(true)}),
-            expr2: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal {datatype: Datatype::Bool(true)}]})
+            expr1: Box::new(Ast::Literal( Datatype::Bool(true))),
+            expr2: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]})
     }, value)
 }

@@ -94,9 +94,9 @@ fn function_parse_and_execute_separately_integration_test() {
 
     let executor_ast: Ast = Ast::Expression {
         operator: BinaryOperator::ExecuteFn,
-        expr1: Box::new(Ast::ValueIdentifier { ident: "add8ToValue".to_string() }),
+        expr1: Box::new(Ast::ValueIdentifier ( "add8ToValue".to_string() )),
         expr2: Box::new(Ast::VecExpression {
-            expressions: vec![Ast::Literal { datatype: Datatype::Number(7) }],
+            expressions: vec![Ast::Literal ( Datatype::Number(7) )],
         }),
     };
 

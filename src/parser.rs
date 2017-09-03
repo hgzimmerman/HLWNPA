@@ -189,7 +189,7 @@ named!(any_expression_parens<Ast>,
 
 named!(identifier<Ast>,
     do_parse!(
-        not!(alt!(tag!("let") | ws!(tag!("fn")) | ws!(tag!("true")) | ws!(tag!("false"))  )) >> // reserved words
+        not!(alt!(tag!("let") | ws!(tag!("fn")) | ws!(tag!("if")) | ws!(tag!("true")) | ws!(tag!("false"))  )) >> // reserved words
         id: ws!(
             accepted_identifier_characters
         ) >>
@@ -256,7 +256,7 @@ named!(function_body<Ast>,
     do_parse!(
         statements : delimited!(
             ws!(char!('{')),
-            many0!(ws!(any_expression_parens)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
+            many0!(ws!(expression_or_literal_or_identifier)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
             ws!(tag!("}"))
         ) >>
         (Ast::VecExpression{expressions: statements})
@@ -300,6 +300,43 @@ named!(pub function<Ast>,
     )
 );
 
+
+named!(if_expression<Ast>,
+    dbg!(
+    do_parse!(
+        ws!(tag!("if")) >>
+        if_conditional: ws!(expression_or_literal_or_identifier) >>
+        if_body: ws!(function_body) >> //Todo rename to just body. "bodies" should map to vecExpressions and be delimited by {}
+        // todo: To fix below: move the map inside the opt!
+//        else_body: map!(
+//            opt!(
+//                ws!(function_body)
+//            ),
+//            convert_optional_ast_to_optional_boxed_ast
+//        ) >>
+        (
+        Ast::Conditional {
+            condition: Box::new(if_conditional),
+            true_expr: Box::new(if_body),
+            false_expr: None //else_body
+        })
+    )
+    )
+);
+
+/// Helper function for if_expression
+fn convert_optional_ast_to_optional_boxed_ast(opt_ast: Option<Ast>) -> Option<Box<Ast>> {
+    match opt_ast {
+        Some(ast) => {
+            Some(Box::new(ast))
+        },
+        None => {
+            None
+        }
+    }
+}
+
+///Anything that generates an AST node.
 named!(any_ast<Ast>,
     alt!(
         complete!(function_execution) | // the complete! is necessary, as it causes the function execution parser to return an error instead of an incomplete, allowing the next values to evaluate.
@@ -632,4 +669,26 @@ fn parse_program_with_only_identifier_test() {
     };
 
     assert_eq!(Ast::VecExpression {expressions: vec![Ast::ValueIdentifier {ident: "x".to_string()}]}, value)
+}
+
+#[test]
+fn parse_simple_body_test() {
+    let input_string = "{ true }";
+    let (_, value) = match function_body(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("Error in parsing: {}", e),
+        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+    };
+}
+
+#[test]
+fn parse_if_statement() {
+    let input_string = "if (+ 1 1) { true }";
+    let (_, value) = match if_expression(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("Error in parsing: {}", e),
+        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+    };
+
+    //assert_eq!(Ast::VecExpression {expressions: vec![Ast::ValueIdentifier {ident: "x".to_string()}]}, value)
 }

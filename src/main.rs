@@ -81,7 +81,7 @@ fn function_parse_and_execute_separately_integration_test() {
     use nom::IResult;
     let mut map: HashMap<String, Datatype> = HashMap::new();
 
-    let input_string = "fn add8ToValue ( a : Number ) -> Number { ( + a 8 ) }";
+    let input_string = "fn add8ToValue ( a : Number ) -> Number { ( a + 8 ) }";
     let (_, ast_with_function) = match function(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
@@ -111,7 +111,7 @@ fn program_parse_and_execute_integration_test_1() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let input_string = "
      let x 7
-     fn test_function ( a : Number ) -> Number { ( + a 8 ) }
+     fn test_function ( a : Number ) -> Number { ( a + 8 ) }
      test_function(x)";
     let (_, ast) = match program(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
@@ -131,7 +131,7 @@ fn program_parse_and_execute_integration_test_2() {
     use nom::IResult;
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let input_string = "
-     fn test_function ( a : Number ) -> Number { ( + a 8 ) }
+     fn test_function ( a : Number ) -> Number { ( a + 8 ) }
      test_function(8)";
     let (_, ast) = match program(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
@@ -150,8 +150,8 @@ fn program_parse_and_execute_integration_test_3() {
     use nom::IResult;
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let input_string = "
-     fn test_function ( a : Number ) -> Number { ( + a 8 ) }
-     test_function( ( + 6 2) )";
+     fn test_function ( a : Number ) -> Number { ( a + 8 ) }
+     test_function( ( 6 + 2) )";
     let (_, ast) = match program(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
@@ -173,7 +173,7 @@ fn program_parse_and_execute_integration_test_4() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let input_string = "
      fn test_function ( a : Number ) -> Number {
-        ( + a 8 )
+        ( a + 8 )
      }
      test_function(8)";
     let (_, ast) = match program(input_string.as_bytes()) {
@@ -194,7 +194,7 @@ fn program_multiple_parameter_function_integration_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let input_string = "
      fn add_two_numbers ( a : Number b : Number) -> Number {
-        ( + a b )
+        ( a + b )
      }
      add_two_numbers(8 3)";
     let (_, ast) = match program(input_string.as_bytes()) {
@@ -243,7 +243,7 @@ fn program_string_coercion_integration_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     let input_string = r##"
      let x "Hi "
-     fn test_function ( a : String ) -> String { ( + a 5 ) }
+     fn test_function ( a : String ) -> String { ( a + 5 ) }
      test_function(x)"##;
     let (_, ast) = match program(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),

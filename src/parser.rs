@@ -160,8 +160,8 @@ named!(literal_or_identifier<Ast>,
 
 named!(binary_expr<Ast>,
     do_parse!(
-       op: binary_operator >>
        l1: literal_or_identifier >>
+       op: binary_operator >>
        l2: literal_or_identifier >>
        (Ast::Expression{ operator: op, expr1: Box::new(l1), expr2: Box::new(l2)})
     )
@@ -375,7 +375,7 @@ named!(function_execution<Ast>,
 
 #[test]
 fn parse_addition_test() {
-    let (_, value) = match binary_expr(b"+ 3 4") {
+    let (_, value) = match binary_expr(b"3 + 4") {
         IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
@@ -385,7 +385,7 @@ fn parse_addition_test() {
 
 #[test]
 fn parse_addition_parens_test() {
-    let (_, value) = match binary_expr_parens(b"(+ 3 4)") {
+    let (_, value) = match binary_expr_parens(b"(3 + 4)") {
         IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
@@ -488,7 +488,7 @@ fn parse_string_literal_test() {
 
 #[test]
 fn parse_string_and_number_addition_test() {
-    let (_, value) = match binary_expr_parens(b"(+ 3 \"Hi\")") {
+    let (_, value) = match binary_expr_parens(b"(3 + \"Hi\")") {
         IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
@@ -520,7 +520,7 @@ fn parse_function_parameter_assignment_of_type_number_test() {
 
 #[test]
 fn parse_function_body_nocheck_test() {
-    let input_string = "{ ( + a 8 ) }";
+    let input_string = "{ ( a + 8 ) }";
     let (_, _) = match function_body(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
@@ -541,7 +541,7 @@ fn parse_identifier_characters_test() {
 
 #[test]
 fn parse_whole_function_number_input_returns_number_test() {
-    let input_string = "fn test_function ( a : Number ) -> Number { ( + a 8 ) }";
+    let input_string = "fn test_function ( a : Number ) -> Number { ( a + 8 ) }";
     let (_, value) = match function(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
@@ -577,9 +577,9 @@ fn parse_whole_function_number_input_returns_number_test() {
 
 #[test]
 fn just_parse_program_test() {
-    let input_string = "( + 3 2)
+    let input_string = "( 1 + 2)
      let x 7
-     fn test_function ( a : Number ) -> Number { ( + a 8 ) }
+     fn test_function ( a : Number ) -> Number { ( a + 8 ) }
      test_function(8)";
     let (_, value) = match program(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
@@ -596,7 +596,7 @@ fn just_parse_program_test() {
 fn parse_program_and_validate_ast_test() {
     let input_string = "
      let x 7
-     fn test_function ( a : Number ) -> Number { ( + a 8 ) }
+     fn test_function ( a : Number ) -> Number { ( a + 8 ) }
      test_function(x)";
     let (_, value) = match program(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),

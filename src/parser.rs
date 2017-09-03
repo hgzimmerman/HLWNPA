@@ -681,12 +681,16 @@ fn parse_simple_body_test() {
 #[test]
 fn parse_if_statement_test() {
     let input_string = "if true { true }";
-    let (_, _) = match if_expression(input_string.as_bytes()) {
+    let (_, value) = match if_expression(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("Error in parsing: {}", e),
         IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
     };
-
+    assert_eq!(Ast::Conditional {
+        condition: Box::new(Ast::Literal {datatype: Datatype::Bool(true)}),
+        true_expr: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal {datatype: Datatype::Bool(true)}]}),
+        false_expr: None
+    }, value)
 }
 
 #[test]
@@ -703,9 +707,17 @@ fn parse_if_else_statement_test() {
 #[test]
 fn parse_program_with_if_test() {
     let input_string = "if true { true } else { true }";
-    let (_, _) = match program(input_string.as_bytes()) {
+    let (_, value) = match program(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("Error in parsing: {}", e),
         IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
     };
+
+    assert_eq!(Ast::VecExpression {
+        expressions: vec![Ast::Conditional {
+            condition: Box::new(Ast::Literal {datatype: Datatype::Bool(true)}),
+            true_expr: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal {datatype: Datatype::Bool(true)}]}),
+            false_expr: Some(Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal {datatype: Datatype::Bool(true)}]}))
+        }]
+    }, value)
 }

@@ -23,5 +23,5 @@ pub enum LangError {
     InvalidSyntaxFailedToParse,
     VariableDoesntExist(String),
     TriedToEvaluateTypeInfo(TypeInfo),
-    ConditionalNotBoolean(TypeInfo)
+    ConditionalNotBoolean(TypeInfo),
 }

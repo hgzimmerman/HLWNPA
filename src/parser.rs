@@ -605,8 +605,8 @@ fn parse_program_and_validate_ast_test() {
 
     let expected_assignment: Ast = Ast::Expression {
         operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier {ident: "x".to_string()}),
-        expr2: Box::new(Ast::Literal {datatype: Datatype::Number(7)})
+        expr1: Box::new(Ast::ValueIdentifier { ident: "x".to_string() }),
+        expr2: Box::new(Ast::Literal { datatype: Datatype::Number(7) }),
     };
 
     let expected_fn: Ast = Ast::Expression {
@@ -635,12 +635,12 @@ fn parse_program_and_validate_ast_test() {
     };
     let expected_fn_call: Ast = Ast::Expression {
         operator: BinaryOperator::ExecuteFn,
-        expr1: Box::new(Ast::ValueIdentifier {ident: "test_function".to_string()}),
+        expr1: Box::new(Ast::ValueIdentifier { ident: "test_function".to_string() }),
         expr2: Box::new(Ast::VecExpression {
             expressions: vec![Ast::ValueIdentifier {
                 ident: "x".to_string()
-            }]
-        })
+            }],
+        }),
     };
 
     let expected_program_ast: Ast = Ast::VecExpression {
@@ -648,7 +648,7 @@ fn parse_program_and_validate_ast_test() {
             expected_assignment,
             expected_fn,
             expected_fn_call
-        ]
+        ],
     };
 
     assert_eq!(expected_program_ast, value)

@@ -53,7 +53,7 @@ pub enum BinaryOperator {
     Assignment,
     ExecuteFn,
     FunctionParameterAssignment,
-    Loop
+    Loop,
 }
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
@@ -129,21 +129,19 @@ impl Ast {
                         let mut should_loop: bool = true;
                         let cloned_expr1 = *expr1.clone();
                         while should_loop {
-                            let condition : Datatype = cloned_expr1.evaluate(map)?;
+                            let condition: Datatype = cloned_expr1.evaluate(map)?;
                             match condition {
                                 Datatype::Bool(b) => {
                                     if b {
                                         expr1.evaluate(map)?; // This doesn't clone the map, so it can mutate the "stack" of its context
                                     } else {
-                                        return Ok(Datatype::None)
+                                        return Ok(Datatype::None);
                                     }
                                 }
-                                _ => {
-                                    return Err( LangError::ConditionalNotBoolean(TypeInfo::from(condition)) )
-                                }
+                                _ => return Err(LangError::ConditionalNotBoolean(TypeInfo::from(condition))),
                             }
                         }
-                        return Ok(Datatype::None) // leave block, // Todo maybe returning the last evaluated datatype or None?
+                        return Ok(Datatype::None); // leave block, // Todo maybe returning the last evaluated datatype or None?
                     }
 
                     BinaryOperator::ExecuteFn => {
@@ -305,7 +303,9 @@ impl Ast {
             Ast::ValueIdentifier { ident } => {
                 match map.get(&ident) {
                     Some(value) => Ok(value.clone()),
-                    None => Err(LangError::VariableDoesntExist( format!("Variable `{}` hasn't been assigned yet", ident)) ), // identifier hasn't been assigned yet.
+                    None => Err(LangError::VariableDoesntExist(
+                        format!("Variable `{}` hasn't been assigned yet", ident),
+                    )), // identifier hasn't been assigned yet.
                 }
             }
         }

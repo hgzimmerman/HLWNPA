@@ -40,12 +40,14 @@ fn main() {
     let matches = App::new("Toy Language")
         .version("0.1.0")
         .author("Henry Zimmerman")
-        .about("A toy language I made in a couple of days without thinking about it too much")
+        .about(
+            "A toy language I made in a couple of days without thinking about it too much",
+        )
         .arg(
             Arg::with_name("file")
-            .value_name("File")
-            .help("The file that you want to interpret")
-            .takes_value(true)
+                .value_name("File")
+                .help("The file that you want to interpret")
+                .takes_value(true),
         )
         .get_matches();
 
@@ -56,8 +58,8 @@ fn main() {
             let file: File = OpenOptions::new().read(true).open(&filename).unwrap();
             let mut buf_reader = BufReader::new(&file);
             match buf_reader.read_to_string(&mut file_contents) {
-                Ok(_) => {},
-                Err(e) => eprintln!("Couldn't read the file {} because {}", filename, e)
+                Ok(_) => {}
+                Err(e) => eprintln!("Couldn't read the file {} because {}", filename, e),
             }
 
             match program(file_contents.as_bytes()) {
@@ -65,12 +67,12 @@ fn main() {
                     let mut map: HashMap<String, Datatype> = HashMap::new();
                     let program_return_value = ast.evaluate(&mut map);
                     println!("{:?}", program_return_value);
-                },
+                }
                 IResult::Error(e) => eprintln!("encountered an error while parsing the file: {:?}", e),
-                IResult::Incomplete(i) => eprintln!("Couldn't parse all of the file: {:?}", i)
+                IResult::Incomplete(i) => eprintln!("Couldn't parse all of the file: {:?}", i),
             }
         }
-        None => repl() // If a file to run wasn't provided, drop the user into a REPL
+        None => repl(), // If a file to run wasn't provided, drop the user into a REPL
     }
 }
 
@@ -119,10 +121,7 @@ fn program_parse_and_execute_integration_test_1() {
         _ => panic!(),
     };
 
-    assert_eq!(
-    Datatype::Number(15),
-    ast.evaluate(&mut map).unwrap()
-    );
+    assert_eq!(Datatype::Number(15), ast.evaluate(&mut map).unwrap());
 }
 
 
@@ -139,10 +138,7 @@ fn program_parse_and_execute_integration_test_2() {
         _ => panic!(),
     };
 
-    assert_eq!(
-    Datatype::Number(16),
-    ast.evaluate(&mut map).unwrap()
-    );
+    assert_eq!(Datatype::Number(16), ast.evaluate(&mut map).unwrap());
 }
 
 #[test]
@@ -158,10 +154,7 @@ fn program_parse_and_execute_integration_test_3() {
         _ => panic!(),
     };
 
-    assert_eq!(
-    Datatype::Number(16),
-    ast.evaluate(&mut map).unwrap()
-    );
+    assert_eq!(Datatype::Number(16), ast.evaluate(&mut map).unwrap());
 }
 
 /// Test multiple line functions
@@ -180,10 +173,7 @@ fn program_parse_and_execute_integration_test_4() {
         _ => panic!(),
     };
 
-    assert_eq!(
-    Datatype::Number(16),
-    ast.evaluate(&mut map).unwrap()
-    );
+    assert_eq!(Datatype::Number(16), ast.evaluate(&mut map).unwrap());
 }
 
 #[test]
@@ -201,10 +191,7 @@ fn program_multiple_parameter_function_integration_test() {
         _ => panic!(),
     };
 
-    assert_eq!(
-    Datatype::Number(11),
-    ast.evaluate(&mut map).unwrap()
-    );
+    assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap());
 }
 
 
@@ -226,10 +213,7 @@ fn program_function_internals_does_not_clobber_outer_stack_integration_test() {
         _ => panic!(),
     };
 
-    assert_eq!(
-    Datatype::Number(2),
-    ast.evaluate(&mut map).unwrap()
-    );
+    assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap());
 }
 
 
@@ -250,8 +234,8 @@ fn program_string_coercion_integration_test() {
     };
 
     assert_eq!(
-    Datatype::String("Hi 5".to_string()),
-    ast.evaluate(&mut map).unwrap()
+        Datatype::String("Hi 5".to_string()),
+        ast.evaluate(&mut map).unwrap()
     );
 }
 

@@ -11,22 +11,22 @@ use std::io::Write;
 
 /// Reads and parses
 fn read<'a>(a: &'a str) -> IResult<&'a [u8], Ast> {
-    return program(a.as_bytes())
+    return program(a.as_bytes());
 }
 
 // Evaluates the AST
-fn evaluate(possibly_parsed_ast: IResult<&[u8], Ast>,map: &mut HashMap<String, Datatype>) -> LangResult {
+fn evaluate(possibly_parsed_ast: IResult<&[u8], Ast>, map: &mut HashMap<String, Datatype>) -> LangResult {
 
     match possibly_parsed_ast {
         IResult::Done(_, ast) => ast.evaluate(map),
         IResult::Error(e) => {
             print!("Invalid syntax: {}\nuser>", e);
             Err(LangError::InvalidSyntax)
-        },
+        }
         IResult::Incomplete(i) => {
             print!("Invalid syntax. Parser returned incomplete: {:?}\nuser>", i);
             Err(LangError::InvalidSyntaxFailedToParse)
-        },
+        }
     }
 }
 
@@ -58,7 +58,7 @@ pub fn repl() {
 
 
 fn rep(a: String, map: &mut HashMap<String, Datatype>) {
-    let parsed = read(a.as_str());;
+    let parsed = read(a.as_str());
     let evaled = evaluate(parsed, map);
     print(evaled)
 }

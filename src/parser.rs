@@ -189,7 +189,7 @@ named!(any_expression_parens<Ast>,
 
 named!(identifier<Ast>,
     do_parse!(
-        not!(alt!(tag!("let") | ws!(tag!("fn")) | ws!(tag!("if")) | ws!(tag!("else")) | ws!(tag!("true")) | ws!(tag!("false"))  )) >> // reserved words
+        not!(alt!(tag!("let") | ws!(tag!("fn")) | ws!(tag!("if")) | ws!(tag!("else")) | ws!(tag!("while")) | ws!(tag!("true")) | ws!(tag!("false"))  )) >> // reserved words
         id: ws!(
             accepted_identifier_characters
         ) >>
@@ -204,7 +204,6 @@ named!(accepted_identifier_characters<&str>,
     )
 );
 
-// TODO consider changing the syntax to: identifier := expr
 // TODO leave the let binding, possibly as a way to declare a const vs mutable structure
 named!(assignment<Ast>,
     do_parse!(
@@ -257,7 +256,7 @@ named!(function_body<Ast>,
     do_parse!(
         statements : delimited!(
             ws!(char!('{')),
-            many0!(ws!(expression_or_literal_or_identifier)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
+            many0!(ws!(expression_or_literal_or_identifier_or_assignment)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
             ws!(tag!("}"))
         ) >>
         (Ast::VecExpression{expressions: statements})
@@ -331,12 +330,28 @@ named!(if_expression<Ast>,
 );
 
 
+named!(while_loop<Ast>,
+    do_parse!(
+        ws!(tag!("while")) >>
+        while_conditional: ws!(expression_or_literal_or_identifier) >>
+        while_body: ws!(function_body) >>
+
+        (Ast::Expression {
+            operator: BinaryOperator::Loop,
+            expr1: Box::new(while_conditional),
+            expr2: Box::new(while_body)
+        })
+    )
+);
+
+
 ///Anything that generates an AST node.
 named!(any_ast<Ast>,
     alt!(
         complete!(function_execution) | // the complete! is necessary, as it causes the function execution parser to return an error instead of an incomplete, allowing the next values to evaluate.
         complete!(assignment) |
         complete!(if_expression) |
+        complete!(while_loop) |
         identifier |
         function |
         any_expression_parens
@@ -345,6 +360,10 @@ named!(any_ast<Ast>,
 
 named!(expression_or_literal_or_identifier<Ast>,
     alt!(any_expression_parens | literal | identifier)
+);
+
+named!(expression_or_literal_or_identifier_or_assignment<Ast>,
+    alt!(any_expression_parens | literal | identifier | assignment)
 );
 
 named!(pub program<Ast>,
@@ -677,6 +696,17 @@ fn parse_simple_body_test() {
     };
 }
 
+
+#[test]
+fn parse_simple_body_assignment_test() {
+    let input_string = "{ let a := 8 }";
+    let (_, _) = match function_body(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("Error in parsing: {}", e),
+        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+    };
+}
+
 #[test]
 fn parse_if_statement_test() {
     let input_string = "if true { true }";
@@ -718,5 +748,23 @@ fn parse_program_with_if_test() {
             true_expr: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal {datatype: Datatype::Bool(true)}]}),
             false_expr: Some(Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal {datatype: Datatype::Bool(true)}]}))
         }]
+    }, value)
+}
+
+
+#[test]
+fn parse_while_loop_test() {
+    let input_string = "while true { true }";
+    let (_, value) = match while_loop(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("Error in parsing: {}", e),
+        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+    };
+
+    assert_eq!(
+        Ast::Expression  {
+            operator: BinaryOperator::Loop,
+            expr1: Box::new(Ast::Literal{datatype: Datatype::Bool(true)}),
+            expr2: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal {datatype: Datatype::Bool(true)}]})
     }, value)
 }

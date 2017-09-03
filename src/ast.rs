@@ -126,22 +126,22 @@ impl Ast {
                         }
                     }
                     BinaryOperator::Loop => {
-                        let mut should_loop: bool = true;
+                        let mut evaluated_loop: Datatype = Datatype::None;
                         let cloned_expr1 = *expr1.clone();
-                        while should_loop {
+                        loop {
                             let condition: Datatype = cloned_expr1.evaluate(map)?;
                             match condition {
                                 Datatype::Bool(b) => {
                                     if b {
-                                        expr1.evaluate(map)?; // This doesn't clone the map, so it can mutate the "stack" of its context
+                                        evaluated_loop = expr2.evaluate(map)?; // This doesn't clone the map, so it can mutate the "stack" of its context
                                     } else {
-                                        return Ok(Datatype::None);
+                                        break
                                     }
                                 }
                                 _ => return Err(LangError::ConditionalNotBoolean(TypeInfo::from(condition))),
                             }
                         }
-                        return Ok(Datatype::None); // leave block, // Todo maybe returning the last evaluated datatype or None?
+                        return Ok(evaluated_loop); // leave block
                     }
 
                     BinaryOperator::ExecuteFn => {

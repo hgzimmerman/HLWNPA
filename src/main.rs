@@ -240,6 +240,76 @@ fn program_string_coercion_integration_test() {
 }
 
 
+
+#[test]
+fn program_if_test() {
+    use nom::IResult;
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    // the while loop should increment the x once
+    let input_string = r##"
+     let x := 3
+     if ( x == 3) {
+        let x := 40
+     }
+     x"##;
+    let (_, ast) = match program(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
+
+    assert_eq!(
+        Datatype::Number(40),
+        ast.evaluate(&mut map).unwrap()
+    );
+}
+
+#[test]
+fn program_while_loop_test() {
+    use nom::IResult;
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    // the while loop should increment the x once
+    let input_string = r##"
+     let x := 3
+     while (x == 3) {
+        let x := 40
+     }
+     x"##;
+    let (_, ast) = match program(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
+
+    assert_eq!(
+        Datatype::Number(40),
+        ast.evaluate(&mut map).unwrap()
+    );
+}
+
+#[test]
+fn program_while_loop_false_test() {
+    use nom::IResult;
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    // the while loop should increment the x once
+    let input_string = r##"
+     let x := 42
+     while (x == 3) {
+        let x := (x + 1)
+     }
+     x"##;
+    let (_, ast) = match program(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("{}", e),
+        _ => panic!(),
+    };
+
+    assert_eq!(
+        Datatype::Number(42),
+        ast.evaluate(&mut map).unwrap()
+    );
+}
+
 #[bench]
 fn simple_program_bench(b: &mut Bencher) {
     b.iter(|| program_string_coercion_integration_test())

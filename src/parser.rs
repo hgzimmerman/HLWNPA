@@ -337,6 +337,7 @@ named!(any_ast<Ast>,
     alt!(
         complete!(function_execution) | // the complete! is necessary, as it causes the function execution parser to return an error instead of an incomplete, allowing the next values to evaluate.
         complete!(assignment) |
+        complete!(if_expression) |
         identifier |
         function |
         any_expression_parens
@@ -697,4 +698,14 @@ fn parse_if_else_statement_test() {
         IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
     };
 
+}
+
+#[test]
+fn parse_program_with_if_test() {
+    let input_string = "if true { true } else { true }";
+    let (_, _) = match program(input_string.as_bytes()) {
+        IResult::Done(rest, v) => (rest, v),
+        IResult::Error(e) => panic!("Error in parsing: {}", e),
+        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+    };
 }

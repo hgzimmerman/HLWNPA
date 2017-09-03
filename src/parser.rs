@@ -189,7 +189,7 @@ named!(any_expression_parens<Ast>,
 
 named!(identifier<Ast>,
     do_parse!(
-        not!(alt!(tag!("let") | ws!(tag!("fn")) | ws!(tag!("if")) | ws!(tag!("true")) | ws!(tag!("false"))  )) >> // reserved words
+        not!(alt!(tag!("let") | ws!(tag!("fn")) | ws!(tag!("if")) | ws!(tag!("else")) | ws!(tag!("true")) | ws!(tag!("false"))  )) >> // reserved words
         id: ws!(
             accepted_identifier_characters
         ) >>
@@ -330,19 +330,6 @@ named!(if_expression<Ast>,
     )
     )
 );
-
-/// Helper function for if_expression
-fn convert_optional_ast_to_optional_boxed_ast(opt_ast: Option<Ast>) -> Option<Box<Ast>> {
-    match opt_ast {
-        Some(ast) => {
-            Some(Box::new(ast))
-        },
-        None => {
-            None
-        }
-    }
-}
-
 
 
 ///Anything that generates an AST node.

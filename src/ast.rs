@@ -50,6 +50,8 @@ pub enum BinaryOperator {
     Equals,
     GreaterThan,
     LessThan,
+    GreaterThanOrEqual,
+    LessThanOrEqual,
     Assignment,
     ExecuteFn,
     FunctionParameterAssignment,
@@ -89,13 +91,27 @@ impl Ast {
                         }
                     }
                     BinaryOperator::GreaterThan => {
-                        if expr1.evaluate(map)? >= expr2.evaluate(map)? {
+                        if expr1.evaluate(map)? > expr2.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));
                         }
                     }
                     BinaryOperator::LessThan => {
+                        if expr1.evaluate(map)? < expr2.evaluate(map)? {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    }
+                    BinaryOperator::GreaterThanOrEqual => {
+                        if expr1.evaluate(map)? >= expr2.evaluate(map)? {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    }
+                    BinaryOperator::LessThanOrEqual => {
                         if expr1.evaluate(map)? <= expr2.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
@@ -299,7 +315,7 @@ impl Ast {
                 }
             }
             Ast::Literal ( datatype ) => Ok(datatype),
-            Ast::Type ( datatype ) => Err(LangError::TriedToEvaluateTypeInfo(datatype)), // you shouldn't try to evaluate the datatype, // todo consider making this an error
+            Ast::Type ( datatype ) => Err(LangError::TriedToEvaluateTypeInfo(datatype)), // you shouldn't try to evaluate the datatype,
             Ast::ValueIdentifier ( ident ) => {
                 match map.get(&ident) {
                     Some(value) => Ok(value.clone()),

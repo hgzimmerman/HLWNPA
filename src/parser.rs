@@ -51,9 +51,52 @@ named!(equals<BinaryOperator>,
         tag!("==")
     )
 );
+named!(not_equals<BinaryOperator>,
+    value!(
+        BinaryOperator::Equals,
+        tag!("!=")
+    )
+);
+named!(greater_than<BinaryOperator>,
+    value!(
+        BinaryOperator::GreaterThan,
+        tag!(">")
+    )
+);
+named!(less_than<BinaryOperator>,
+    value!(
+        BinaryOperator::LessThan,
+        tag!("<")
+    )
+);
+named!(greater_than_or_eq<BinaryOperator>,
+    value!(
+        BinaryOperator::GreaterThanOrEqual,
+        tag!(">=")
+    )
+);
+named!(less_than_or_eq<BinaryOperator>,
+    value!(
+        BinaryOperator::LessThanOrEqual,
+        tag!("<=")
+    )
+);
+
 
 named!(binary_operator<BinaryOperator>,
-    ws!(alt!(plus | minus | multiply | divide | modulo | equals))
+    ws!(alt!(
+        plus |
+        minus |
+        multiply |
+        divide |
+        modulo |
+        equals |
+        not_equals |
+        greater_than |
+        less_than |
+        greater_than_or_eq |
+        less_than_or_eq
+    ))
 );
 
 // _   _                           ___                       _

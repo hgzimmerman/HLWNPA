@@ -53,7 +53,7 @@ named!(equals<BinaryOperator>,
 );
 named!(not_equals<BinaryOperator>,
     value!(
-        BinaryOperator::Equals,
+        BinaryOperator::NotEquals,
         tag!("!=")
     )
 );

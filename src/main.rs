@@ -314,3 +314,32 @@ fn program_while_loop_false_test() {
 fn simple_program_bench(b: &mut Bencher) {
     b.iter(|| program_string_coercion_integration_test())
 }
+
+#[bench]
+fn while_loop_program_bench(b: &mut Bencher) {
+    fn loop_1000_times_program() {
+        use nom::IResult;
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        // the while body should not execute
+        let input_string = r##"
+        let x := 0
+        while (x < 1000) {
+           let x := (x + 1)
+        }
+        x"##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(
+            Datatype::Number(1000),
+            ast.evaluate(&mut map).unwrap()
+        );
+    }
+
+    b.iter(||
+        loop_1000_times_program()
+    );
+}

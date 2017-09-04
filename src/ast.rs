@@ -48,6 +48,7 @@ pub enum BinaryOperator {
     Divide,
     Modulo,
     Equals,
+    NotEquals,
     GreaterThan,
     LessThan,
     GreaterThanOrEqual,
@@ -85,6 +86,13 @@ impl Ast {
                     BinaryOperator::Modulo => expr1.evaluate(map)? % expr2.evaluate(map)?,
                     BinaryOperator::Equals => {
                         if expr1.evaluate(map)? == expr2.evaluate(map)? {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    }
+                    BinaryOperator::NotEquals => {
+                        if expr1.evaluate(map)? != expr2.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));

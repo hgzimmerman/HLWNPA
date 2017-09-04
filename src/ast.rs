@@ -71,14 +71,13 @@ pub enum UnaryOperator {
 
 impl Ast {
     pub fn evaluate(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
-        // TODO this clone will be expensive, try to make due with just using refs of the self, for a small program this is already adds a 50% overhead, and that is with a shallow ast.
-        match self.clone() {
+        match *self {
             Ast::Expression {
-                operator,
-                expr1,
-                expr2,
+                ref operator,
+                ref expr1,
+                ref expr2,
             } => {
-                match operator {
+                match *operator {
                     BinaryOperator::Plus => expr1.evaluate(map)? + expr2.evaluate(map)?,
                     BinaryOperator::Minus => expr1.evaluate(map)? - expr2.evaluate(map)?,
                     BinaryOperator::Multiply => expr1.evaluate(map)? * expr2.evaluate(map)?,
@@ -127,11 +126,11 @@ impl Ast {
                         }
                     }
                     BinaryOperator::Assignment => {
-                        if let Ast::ValueIdentifier ( ident ) = *expr1 {
+                        if let Ast::ValueIdentifier ( ref ident ) = **expr1 {
                             let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
                             let evaluated_right_hand_side = expr2.evaluate(&mut cloned_map)?;
                             let cloned_evaluated_rhs = evaluated_right_hand_side.clone();
-                            map.insert(ident, evaluated_right_hand_side);
+                            map.insert(ident.clone(), evaluated_right_hand_side);
                             return Ok(cloned_evaluated_rhs);
                         } else {
                             Err(LangError::IdentifierDoesntExist)
@@ -139,11 +138,11 @@ impl Ast {
                     }
                     BinaryOperator::FunctionParameterAssignment => {
                         // does the same thing as assignment, but I want a separate type for this.
-                        if let Ast::ValueIdentifier ( ident ) = *expr1 {
+                        if let Ast::ValueIdentifier ( ref ident ) = **expr1 {
                             let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
                             let evaluated_right_hand_side = expr2.evaluate(&mut cloned_map)?;
                             let cloned_evaluated_rhs = evaluated_right_hand_side.clone();
-                            map.insert(ident, evaluated_right_hand_side);
+                            map.insert(ident.clone(), evaluated_right_hand_side);
                             return Ok(cloned_evaluated_rhs);
                         } else {
                             Err(LangError::IdentifierDoesntExist)
@@ -172,8 +171,8 @@ impl Ast {
                         let mut cloned_map = map.clone(); // clone the map, to create a temporary new "stack" for the life of the function
 
                         // evaluate the parameters
-                        let evaluated_parameters: Vec<Datatype> = match *expr2 {
-                            Ast::VecExpression { expressions } => {
+                        let evaluated_parameters: Vec<Datatype> = match **expr2 {
+                            Ast::VecExpression { ref expressions } => {
                                 let mut evaluated_expressions: Vec<Datatype> = vec![];
                                 for e in expressions {
                                     match e.evaluate(&mut cloned_map) {
@@ -268,8 +267,8 @@ impl Ast {
                     }
                 }
             }
-            Ast::UnaryExpression { operator, expr } => {
-                match operator {
+            Ast::UnaryExpression { ref operator, ref expr } => {
+                match *operator {
                     UnaryOperator::Print => {
                         print!("{:?}", expr.evaluate(map)?); // todo use: std::fmt::Display::fmt instead
                         Ok(Datatype::None)
@@ -295,7 +294,7 @@ impl Ast {
                 }
             }
             //Evaluate multiple expressions and return the result of the last one.
-            Ast::VecExpression { expressions } => {
+            Ast::VecExpression { ref expressions } => {
                 let mut val: Datatype = Datatype::None; // TODO, consider maxing this return an error if the expressions vector is empty
                 for e in expressions {
                     val = e.evaluate(map)?;
@@ -303,17 +302,17 @@ impl Ast {
                 Ok(val) // return the last evaluated expression;
             }
             Ast::Conditional {
-                condition,
-                true_expr,
-                false_expr,
+                ref condition,
+                ref true_expr,
+                ref false_expr,
             } => {
                 match condition.evaluate(map)? {
                     Datatype::Bool(bool) => {
                         match bool {
                             true => Ok(true_expr.evaluate(map)?),
                             false => {
-                                match false_expr {
-                                    Some(e) => Ok(e.evaluate(map)?),
+                                match *false_expr {
+                                    Some(ref e) => Ok(e.evaluate(map)?),
                                     _ => Ok(Datatype::None),
                                 }
                             }
@@ -322,10 +321,10 @@ impl Ast {
                     _ => Err(LangError::ConditionOnNonBoolean),
                 }
             }
-            Ast::Literal ( datatype ) => Ok(datatype),
-            Ast::Type ( datatype ) => Err(LangError::TriedToEvaluateTypeInfo(datatype)), // you shouldn't try to evaluate the datatype,
-            Ast::ValueIdentifier ( ident ) => {
-                match map.get(&ident) {
+            Ast::Literal ( ref datatype ) => Ok(datatype.clone()),
+            Ast::Type ( ref datatype ) => Err(LangError::TriedToEvaluateTypeInfo(datatype.clone())), // you shouldn't try to evaluate the datatype,
+            Ast::ValueIdentifier ( ref ident ) => {
+                match map.get(ident) {
                     Some(value) => Ok(value.clone()),
                     None => Err(LangError::VariableDoesntExist(
                         format!("Variable `{}` hasn't been assigned yet", ident),

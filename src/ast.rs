@@ -1,6 +1,6 @@
 use lang_result::*;
 use datatype::{Datatype, TypeInfo};
-use std::mem::discriminant;
+//use std::mem::discriminant;
 
 use std::boxed::Box;
 use std::collections::HashMap;

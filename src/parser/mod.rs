@@ -1,17 +1,10 @@
-use datatype::{Datatype, TypeInfo};
-use ast::{Ast, BinaryOperator, UnaryOperator};
+use ast::{Ast, BinaryOperator};
 use nom::*;
-use nom::IResult;
-use std::str::FromStr;
-use std::str;
+
 use std::boxed::Box;
 
-use test::Bencher;
-#[allow(unused_imports)]
-use testing::SIMPLE_PROGRAM_INPUT_1;
 
 mod operators;
-use self::operators::{unary_operator, binary_operator};
 
 mod expressions;
 use self::expressions::any_expression_parens;
@@ -81,108 +74,114 @@ named!(function_execution<Ast>,
     )
 );
 
-
-/// assign the value 7 to x
+#[cfg(test)]
+mod test {
+    use super::*;
+    use testing::SIMPLE_PROGRAM_INPUT_1;
+    use nom::IResult;
+    use ast::{BinaryOperator, UnaryOperator};
+    use test::Bencher;
+    use datatype::{Datatype, TypeInfo};
+    /// assign the value 7 to x
 /// create a function that takes a number
 /// call the function with x
-#[test]
-fn parse_program_and_validate_ast_test() {
-
-    let (_, value) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
-        IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("{}", e),
-        _ => panic!(),
-    };
-
-    let expected_assignment: Ast = Ast::Expression {
-        operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier("x".to_string())),
-        expr2: Box::new(Ast::Literal(Datatype::Number(7))),
-    };
-
-    let expected_fn: Ast = Ast::Expression {
-        operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
-        expr2: Box::new(Ast::Literal(Datatype::Function {
-            parameters: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::Expression {
-                        operator: BinaryOperator::FunctionParameterAssignment,
-                        expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
-                        expr2: Box::new(Ast::Type ( TypeInfo::Number ))
-                    }],
-            }),
-            body: Box::new(Ast::VecExpression {
-                expressions: vec![
-                        Ast::Expression {
-                            operator: BinaryOperator::Plus,
-                            expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
-                            expr2: Box::new(Ast::Literal ( Datatype::Number(8))),
-                        }],
-            }),
-            return_type: Box::new(TypeInfo::Number),
-        })),
-    };
-    let expected_fn_call: Ast = Ast::Expression {
-        operator: BinaryOperator::ExecuteFn,
-        expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
-        expr2: Box::new(Ast::VecExpression {
-            expressions: vec![Ast::ValueIdentifier ( "x".to_string() )],
-        }),
-    };
-
-    let expected_program_ast: Ast = Ast::VecExpression {
-        expressions: vec![
-            expected_assignment,
-            expected_fn,
-            expected_fn_call
-        ],
-    };
-
-    assert_eq!(expected_program_ast, value)
-}
-
-
-#[bench]
-fn parse_simple_program_bench(b: &mut Bencher) {
-    fn parse_simple_program() {
-        let (_, _) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
+    #[test]
+    fn parse_program_and_validate_ast_test() {
+        let (_, value) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("{}", e),
             _ => panic!(),
         };
+
+        let expected_assignment: Ast = Ast::Expression {
+            operator: BinaryOperator::Assignment,
+            expr1: Box::new(Ast::ValueIdentifier("x".to_string())),
+            expr2: Box::new(Ast::Literal(Datatype::Number(7))),
+        };
+
+        let expected_fn: Ast = Ast::Expression {
+            operator: BinaryOperator::Assignment,
+            expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
+            expr2: Box::new(Ast::Literal(Datatype::Function {
+                parameters: Box::new(Ast::VecExpression {
+                    expressions: vec![Ast::Expression {
+                        operator: BinaryOperator::FunctionParameterAssignment,
+                        expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+                        expr2: Box::new(Ast::Type(TypeInfo::Number))
+                    }],
+                }),
+                body: Box::new(Ast::VecExpression {
+                    expressions: vec![
+                        Ast::Expression {
+                            operator: BinaryOperator::Plus,
+                            expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+                            expr2: Box::new(Ast::Literal(Datatype::Number(8))),
+                        }],
+                }),
+                return_type: Box::new(TypeInfo::Number),
+            })),
+        };
+        let expected_fn_call: Ast = Ast::Expression {
+            operator: BinaryOperator::ExecuteFn,
+            expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
+            expr2: Box::new(Ast::VecExpression {
+                expressions: vec![Ast::ValueIdentifier("x".to_string())],
+            }),
+        };
+
+        let expected_program_ast: Ast = Ast::VecExpression {
+            expressions: vec![
+                expected_assignment,
+                expected_fn,
+                expected_fn_call
+            ],
+        };
+
+        assert_eq!(expected_program_ast, value)
     }
 
-    b.iter(|| parse_simple_program());
-}
 
-#[test]
-fn parse_program_with_only_identifier_test() {
-    let input_string = "x";
-    let (_, value) = match program(input_string.as_bytes()) {
-        IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("Error in parsing: {}", e),
-        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
-    };
+    #[bench]
+    fn parse_simple_program_bench(b: &mut Bencher) {
+        fn parse_simple_program() {
+            let (_, _) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
+                IResult::Done(rest, v) => (rest, v),
+                IResult::Error(e) => panic!("{}", e),
+                _ => panic!(),
+            };
+        }
 
-    assert_eq!(Ast::VecExpression {expressions: vec![Ast::ValueIdentifier ( "x".to_string())]}, value)
-}
+        b.iter(|| parse_simple_program());
+    }
+
+    #[test]
+    fn parse_program_with_only_identifier_test() {
+        let input_string = "x";
+        let (_, value) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+
+        assert_eq!(Ast::VecExpression { expressions: vec![Ast::ValueIdentifier("x".to_string())] }, value)
+    }
 
 
+    #[test]
+    fn parse_program_with_if_test() {
+        let input_string = "if true { true } else { true }";
+        let (_, value) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
 
-#[test]
-fn parse_program_with_if_test() {
-    let input_string = "if true { true } else { true }";
-    let (_, value) = match program(input_string.as_bytes()) {
-        IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("Error in parsing: {}", e),
-        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
-    };
-
-    assert_eq!(Ast::VecExpression {
-        expressions: vec![Ast::Conditional {
-            condition: Box::new(Ast::Literal ( Datatype::Bool(true))),
-            true_expr: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]}),
-            false_expr: Some(Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]}))
-        }]
-    }, value)
+        assert_eq!(Ast::VecExpression {
+            expressions: vec![Ast::Conditional {
+                condition: Box::new(Ast::Literal(Datatype::Bool(true))),
+                true_expr: Box::new(Ast::VecExpression { expressions: vec![Ast::Literal(Datatype::Bool(true))] }),
+                false_expr: Some(Box::new(Ast::VecExpression { expressions: vec![Ast::Literal(Datatype::Bool(true))] }))
+            }]
+        }, value)
+    }
 }

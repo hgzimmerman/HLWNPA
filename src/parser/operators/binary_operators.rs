@@ -1,6 +1,7 @@
-use ast::{Ast, BinaryOperator};
+use ast::{BinaryOperator};
+#[allow(unused_imports)]
 use nom::*;
-use nom::IResult;
+
 
 named!(plus<BinaryOperator>,
     value!(
@@ -87,23 +88,27 @@ named!( pub binary_operator<BinaryOperator>,
     ))
 );
 
+#[cfg(test)]
+mod test {
+    use super::*;
+    use nom::IResult;
+    #[test]
+    fn parse_plus_test() {
+        let (_, value) = match plus(b"+") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(BinaryOperator::Plus, value)
+    }
 
-#[test]
-fn parse_plus_test() {
-    let (_, value) = match plus(b"+") {
-        IResult::Done(r, v) => (r, v),
-        IResult::Error(e) => panic!("{:?}", e),
-        _ => panic!(),
-    };
-    assert_eq!(BinaryOperator::Plus, value)
-}
-
-#[test]
-fn parse_binary_operator_test() {
-    let (_, value) = match binary_operator(b"%") {
-        IResult::Done(r, v) => (r, v),
-        IResult::Error(e) => panic!("{:?}", e),
-        _ => panic!(),
-    };
-    assert_eq!(BinaryOperator::Modulo, value)
+    #[test]
+    fn parse_binary_operator_test() {
+        let (_, value) = match binary_operator(b"%") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(BinaryOperator::Modulo, value)
+    }
 }

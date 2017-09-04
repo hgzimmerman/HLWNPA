@@ -1,4 +1,4 @@
-#![feature(discriminant_value)]
+//#![feature(discriminant_value)]
 #![feature(trace_macros)]
 #![feature(test)]
 
@@ -10,9 +10,6 @@ extern crate clap;
 use clap::{Arg, App};
 use nom::IResult;
 
-
-
-use std::boxed::Box;
 use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
@@ -26,6 +23,7 @@ mod lang_result;
 mod ast;
 mod parser;
 mod repl;
+#[cfg(test)]
 mod testing;
 
 use datatype::{Datatype};

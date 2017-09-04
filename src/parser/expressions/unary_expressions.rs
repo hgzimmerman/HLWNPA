@@ -1,8 +1,12 @@
+#[allow(unused_imports)]
 use nom::*;
-use ast::{Ast, BinaryOperator, UnaryOperator};
-use datatype::Datatype;
+use ast::Ast;
 use parser::operators::unary_operator;
-use parser::expression_or_literal_or_identifier; // move this to utilities once applicable.
+use parser::expression_or_literal_or_identifier;
+
+//#[allow(unused_imports)]
+//use ast::UnaryOperator;
+//use datatype::Datatype;
 
 named!(unary_expr<Ast>,
     do_parse!(

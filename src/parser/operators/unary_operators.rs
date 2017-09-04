@@ -1,6 +1,6 @@
-use ast::{Ast, UnaryOperator};
+use ast::{UnaryOperator};
+#[allow(unused_imports)]
 use nom::*;
-use nom::IResult;
 
 named!(invert<UnaryOperator>,
     value!(

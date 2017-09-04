@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use nom::*;
 use ast::Ast;
 use parser::utilities::expression_or_literal_or_identifier_or_assignment;

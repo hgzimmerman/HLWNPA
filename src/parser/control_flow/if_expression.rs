@@ -1,13 +1,10 @@
+#[allow(unused_imports)]
 use nom::*;
 use ast::{Ast};
 use parser::utilities::expression_or_literal_or_identifier;
 use parser::body::body;
 //use parser::type_signature::type_signature;
-use datatype::Datatype;
 use std::boxed::Box;
-
-#[allow(unused_imports)]
-use ast::BinaryOperator;
 
 named!(pub if_expression<Ast>,
     do_parse!(
@@ -37,45 +34,52 @@ named!(pub if_expression<Ast>,
     )
 );
 
-#[test]
-fn parse_if_statement_test() {
-    let input_string = "if true { true }";
-    let (_, value) = match if_expression(input_string.as_bytes()) {
-        IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("Error in parsing: {}", e),
-        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
-    };
-    assert_eq!(
-        Ast::Conditional {
-            condition: Box::new(Ast::Literal(Datatype::Bool(true))),
-            true_expr: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::Literal(Datatype::Bool(true))],
-            }),
-            false_expr: None,
-        },
-        value
-    )
-}
+#[cfg(test)]
+mod test {
+    use super::*;
+    use ast::BinaryOperator;
+    use datatype::Datatype;
 
-#[test]
-fn parse_if_else_statement_test() {
-    let input_string = "if true { true } else { true }";
-    let (_, value) = match if_expression(input_string.as_bytes()) {
-        IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("Error in parsing: {}", e),
-        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
-    };
+    #[test]
+    fn parse_if_statement_test() {
+        let input_string = "if true { true }";
+        let (_, value) = match if_expression(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+        assert_eq!(
+            Ast::Conditional {
+                condition: Box::new(Ast::Literal(Datatype::Bool(true))),
+                true_expr: Box::new(Ast::VecExpression {
+                    expressions: vec![Ast::Literal(Datatype::Bool(true))],
+                }),
+                false_expr: None,
+            },
+            value
+        )
+    }
 
-    assert_eq!(
-        Ast::Conditional {
-            condition: Box::new(Ast::Literal(Datatype::Bool(true))),
-            true_expr: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::Literal(Datatype::Bool(true))],
-            }),
-            false_expr: Some(Box::new(Ast::VecExpression {
-                expressions: vec![Ast::Literal(Datatype::Bool(true))],
-            })),
-        },
-        value
-    )
+    #[test]
+    fn parse_if_else_statement_test() {
+        let input_string = "if true { true } else { true }";
+        let (_, value) = match if_expression(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+
+        assert_eq!(
+            Ast::Conditional {
+                condition: Box::new(Ast::Literal(Datatype::Bool(true))),
+                true_expr: Box::new(Ast::VecExpression {
+                    expressions: vec![Ast::Literal(Datatype::Bool(true))],
+                }),
+                false_expr: Some(Box::new(Ast::VecExpression {
+                    expressions: vec![Ast::Literal(Datatype::Bool(true))],
+                })),
+            },
+            value
+        )
+    }
 }

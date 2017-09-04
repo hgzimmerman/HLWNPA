@@ -1,7 +1,7 @@
+#[allow(unused_imports)]
 use nom::*;
 use ast::{Ast, BinaryOperator};
 use parser::identifier::identifier;
-use parser::utilities::expression_or_literal_or_identifier;
 use parser::body::body;
 use parser::type_signature::type_signature;
 use datatype::{Datatype, TypeInfo};

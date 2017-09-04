@@ -326,7 +326,8 @@ fn while_loop_program_bench(b: &mut Bencher) {
         while (x < 1000) {
            let x := (x + 1)
         }
-        x"##;
+        x
+        "##;
         let (_, ast) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("{}", e),

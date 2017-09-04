@@ -437,6 +437,8 @@ fn division_by_zero_test() {
     )
 }
 
+
+
 #[test]
 fn modulo_test() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
@@ -481,7 +483,44 @@ fn less_than_test() {
     assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
 }
 
+#[test]
+fn greater_than_or_equal_test() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let ast = Ast::Expression {
+        operator: BinaryOperator::GreaterThanOrEqual,
+        expr1: Box::new(Ast::Literal ( Datatype::Number(4) )),
+        expr2: Box::new(Ast::Literal ( Datatype::Number(3) )),
+    };
+    assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
 
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let equals_ast = Ast::Expression {
+        operator: BinaryOperator::GreaterThanOrEqual,
+        expr1: Box::new(Ast::Literal ( Datatype::Number(5) )),
+        expr2: Box::new(Ast::Literal ( Datatype::Number(5) )),
+    };
+    assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
+}
+
+#[test]
+fn less_than_or_equal_test() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let ast = Ast::Expression {
+        operator: BinaryOperator::LessThanOrEqual,
+        expr1: Box::new(Ast::Literal ( Datatype::Number(2) )),
+        expr2: Box::new(Ast::Literal ( Datatype::Number(3) )),
+    };
+    assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
+
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let equals_ast = Ast::Expression {
+        operator: BinaryOperator::LessThanOrEqual,
+        expr1: Box::new(Ast::Literal ( Datatype::Number(5) )),
+        expr2: Box::new(Ast::Literal ( Datatype::Number(5) )),
+    };
+    assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
+
+}
 
 /// Assign the value 6 to the identifier "a"
 /// Recall that identifier and add it to 5

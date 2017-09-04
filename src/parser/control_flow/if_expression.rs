@@ -4,7 +4,7 @@ use parser::identifier::identifier;
 use parser::utilities::expression_or_literal_or_identifier;
 use parser::body::body;
 use parser::type_signature::type_signature;
-use datatype::{Datatype};
+use datatype::Datatype;
 use std::boxed::Box;
 
 named!(pub if_expression<Ast>,
@@ -43,11 +43,16 @@ fn parse_if_statement_test() {
         IResult::Error(e) => panic!("Error in parsing: {}", e),
         IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
     };
-    assert_eq!(Ast::Conditional {
-        condition: Box::new(Ast::Literal ( Datatype::Bool(true) )),
-        true_expr: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]}),
-        false_expr: None
-    }, value)
+    assert_eq!(
+        Ast::Conditional {
+            condition: Box::new(Ast::Literal(Datatype::Bool(true))),
+            true_expr: Box::new(Ast::VecExpression {
+                expressions: vec![Ast::Literal(Datatype::Bool(true))],
+            }),
+            false_expr: None,
+        },
+        value
+    )
 }
 
 #[test]
@@ -61,9 +66,13 @@ fn parse_if_else_statement_test() {
 
     assert_eq!(
         Ast::Conditional {
-            condition: Box::new(Ast::Literal ( Datatype::Bool(true))),
-            true_expr: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]}),
-            false_expr: Some(Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]}))
+            condition: Box::new(Ast::Literal(Datatype::Bool(true))),
+            true_expr: Box::new(Ast::VecExpression {
+                expressions: vec![Ast::Literal(Datatype::Bool(true))],
+            }),
+            false_expr: Some(Box::new(Ast::VecExpression {
+                expressions: vec![Ast::Literal(Datatype::Bool(true))],
+            })),
         },
         value
     )

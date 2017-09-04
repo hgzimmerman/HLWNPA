@@ -23,5 +23,12 @@ fn parse_assignment_of_literal_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::Assignment, expr1: Box::new(Ast::ValueIdentifier ( "b".to_string())), expr2: Box::new(Ast::Literal ( Datatype::Number(8))) }, value)
+    assert_eq!(
+        Ast::Expression {
+            operator: BinaryOperator::Assignment,
+            expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
+            expr2: Box::new(Ast::Literal(Datatype::Number(8))),
+        },
+        value
+    )
 }

@@ -1,6 +1,6 @@
 use nom::*;
 use ast::{Ast, BinaryOperator, UnaryOperator};
-use datatype::{Datatype};
+use datatype::Datatype;
 use parser::operators::binary_operator;
 use parser::expression_or_literal_or_identifier;
 

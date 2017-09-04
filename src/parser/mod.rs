@@ -13,7 +13,7 @@ mod operators;
 use self::operators::{unary_operator, binary_operator};
 
 mod expressions;
-use self::expressions::{any_expression_parens};
+use self::expressions::any_expression_parens;
 
 mod identifier;
 use self::identifier::identifier;
@@ -112,37 +112,35 @@ fn parse_program_and_validate_ast_test() {
 
     let expected_assignment: Ast = Ast::Expression {
         operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier ( "x".to_string() )),
-        expr2: Box::new(Ast::Literal ( Datatype::Number(7) )),
+        expr1: Box::new(Ast::ValueIdentifier("x".to_string())),
+        expr2: Box::new(Ast::Literal(Datatype::Number(7))),
     };
 
     let expected_fn: Ast = Ast::Expression {
         operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier ( "test_function".to_string() )),
-        expr2: Box::new(Ast::Literal (
-            Datatype::Function {
-                parameters: Box::new(Ast::VecExpression {
-                    expressions: vec![Ast::Expression {
+        expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
+        expr2: Box::new(Ast::Literal(Datatype::Function {
+            parameters: Box::new(Ast::VecExpression {
+                expressions: vec![Ast::Expression {
                         operator: BinaryOperator::FunctionParameterAssignment,
                         expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                         expr2: Box::new(Ast::Type ( TypeInfo::Number ))
                     }],
-                }),
-                body: Box::new(Ast::VecExpression {
-                    expressions: vec![
+            }),
+            body: Box::new(Ast::VecExpression {
+                expressions: vec![
                         Ast::Expression {
                             operator: BinaryOperator::Plus,
                             expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                             expr2: Box::new(Ast::Literal ( Datatype::Number(8))),
                         }],
-                }),
-                return_type: Box::new(TypeInfo::Number),
-            },
-        )),
+            }),
+            return_type: Box::new(TypeInfo::Number),
+        })),
     };
     let expected_fn_call: Ast = Ast::Expression {
         operator: BinaryOperator::ExecuteFn,
-        expr1: Box::new(Ast::ValueIdentifier ( "test_function".to_string() )),
+        expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         expr2: Box::new(Ast::VecExpression {
             expressions: vec![Ast::ValueIdentifier ( "x".to_string() )],
         }),
@@ -160,18 +158,18 @@ fn parse_program_and_validate_ast_test() {
 }
 
 
- #[bench]
- fn parse_simple_program_bench(b: &mut Bencher) {
-     fn parse_simple_program() {
-         let (_, value) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
-             IResult::Done(rest, v) => (rest, v),
-             IResult::Error(e) => panic!("{}", e),
-             _ => panic!(),
-         };
-     }
+#[bench]
+fn parse_simple_program_bench(b: &mut Bencher) {
+    fn parse_simple_program() {
+        let (_, value) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+    }
 
-     b.iter(|| parse_simple_program());
- }
+    b.iter(|| parse_simple_program());
+}
 
 #[test]
 fn parse_program_with_only_identifier_test() {
@@ -204,5 +202,3 @@ fn parse_program_with_if_test() {
         }]
     }, value)
 }
-
-

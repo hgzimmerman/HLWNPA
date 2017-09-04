@@ -81,27 +81,25 @@ fn parse_whole_function_number_input_returns_number_test() {
 
     let expected_fn: Ast = Ast::Expression {
         operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier ("test_function".to_string() )),
-        expr2: Box::new(Ast::Literal (
-            Datatype::Function {
-                parameters: Box::new(Ast::VecExpression {
-                    expressions: vec![Ast::Expression {
+        expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
+        expr2: Box::new(Ast::Literal(Datatype::Function {
+            parameters: Box::new(Ast::VecExpression {
+                expressions: vec![Ast::Expression {
                         operator: BinaryOperator::FunctionParameterAssignment,
                         expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                         expr2: Box::new(Ast::Type ( TypeInfo::Number ))
                     }],
-                }),
-                body: Box::new(Ast::VecExpression {
-                    expressions: vec![
+            }),
+            body: Box::new(Ast::VecExpression {
+                expressions: vec![
                         Ast::Expression {
                             operator: BinaryOperator::Plus,
                             expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                             expr2: Box::new(Ast::Literal ( Datatype::Number(8))),
                         }],
-                }),
-                return_type: Box::new(TypeInfo::Number),
-            },
-        )),
+            }),
+            return_type: Box::new(TypeInfo::Number),
+        })),
     };
     assert_eq!(expected_fn, value)
 }

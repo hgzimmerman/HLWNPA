@@ -31,9 +31,13 @@ fn parse_while_loop_test() {
     };
 
     assert_eq!(
-        Ast::Expression  {
+        Ast::Expression {
             operator: BinaryOperator::Loop,
-            expr1: Box::new(Ast::Literal( Datatype::Bool(true))),
-            expr2: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]})
-        }, value)
+            expr1: Box::new(Ast::Literal(Datatype::Bool(true))),
+            expr2: Box::new(Ast::VecExpression {
+                expressions: vec![Ast::Literal(Datatype::Bool(true))],
+            }),
+        },
+        value
+    )
 }

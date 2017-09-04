@@ -10,5 +10,3 @@ use ast::Ast;
 named!(pub any_expression_parens<Ast>,
     alt!(binary_expr_parens | unary_expr_parens)
 );
-
-

@@ -1,5 +1,5 @@
 
-use ast::{Ast};
+use ast::Ast;
 use nom::*;
 use datatype::Datatype;
 use std::str::FromStr;

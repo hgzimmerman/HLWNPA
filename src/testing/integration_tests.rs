@@ -23,9 +23,9 @@ fn function_parse_and_execute_separately_integration_test() {
 
     let executor_ast: Ast = Ast::Expression {
         operator: BinaryOperator::ExecuteFn,
-        expr1: Box::new(Ast::ValueIdentifier ( "add8ToValue".to_string() )),
+        expr1: Box::new(Ast::ValueIdentifier("add8ToValue".to_string())),
         expr2: Box::new(Ast::VecExpression {
-            expressions: vec![Ast::Literal ( Datatype::Number(7) )],
+            expressions: vec![Ast::Literal(Datatype::Number(7))],
         }),
     };
 
@@ -187,10 +187,7 @@ fn program_if_test() {
         _ => panic!(),
     };
 
-    assert_eq!(
-        Datatype::Number(40),
-        ast.evaluate(&mut map).unwrap()
-    );
+    assert_eq!(Datatype::Number(40), ast.evaluate(&mut map).unwrap());
 }
 
 #[test]
@@ -210,10 +207,7 @@ fn program_while_loop_test() {
         _ => panic!(),
     };
 
-    assert_eq!(
-        Datatype::Number(40),
-        ast.evaluate(&mut map).unwrap()
-    );
+    assert_eq!(Datatype::Number(40), ast.evaluate(&mut map).unwrap());
 }
 
 #[test]
@@ -233,10 +227,7 @@ fn program_while_loop_false_test() {
         _ => panic!(),
     };
 
-    assert_eq!(
-        Datatype::Number(42),
-        ast.evaluate(&mut map).unwrap()
-    );
+    assert_eq!(Datatype::Number(42), ast.evaluate(&mut map).unwrap());
 }
 
 #[bench]
@@ -249,13 +240,13 @@ fn simple_program_bench(b: &mut Bencher) {
         _ => panic!(),
     };
 
-    b.iter(||
+    b.iter(|| {
         assert_eq!(Datatype::Number(15), ast.evaluate(&mut map).unwrap())
-    )
+    })
 }
 
 #[bench]
-fn while_loop_program_bench(b: &mut Bencher) {
+fn while_loop_parse_and_execute_program_bench(b: &mut Bencher) {
     fn loop_1000_times_program() {
         use nom::IResult;
         let mut map: HashMap<String, Datatype> = HashMap::new();
@@ -272,20 +263,15 @@ fn while_loop_program_bench(b: &mut Bencher) {
             _ => panic!(),
         };
 
-        assert_eq!(
-            Datatype::Number(1000),
-            ast.evaluate(&mut map).unwrap()
-        );
+        assert_eq!(Datatype::Number(1000), ast.evaluate(&mut map).unwrap());
     }
 
-    b.iter(||
-        loop_1000_times_program()
-    );
+    b.iter(|| loop_1000_times_program());
 }
 
 
 #[bench]
-fn while_loop_with_useless_conditionals_program_bench(b: &mut Bencher) {
+fn while_loop_with_useless_conditionals_parse_and_execute_program_bench(b: &mut Bencher) {
     fn loop_1000_times_program() {
         use nom::IResult;
         let mut map: HashMap<String, Datatype> = HashMap::new();
@@ -305,13 +291,8 @@ fn while_loop_with_useless_conditionals_program_bench(b: &mut Bencher) {
             _ => panic!(),
         };
 
-        assert_eq!(
-            Datatype::Number(1000),
-            ast.evaluate(&mut map).unwrap()
-        );
+        assert_eq!(Datatype::Number(1000), ast.evaluate(&mut map).unwrap());
     }
 
-    b.iter(||
-        loop_1000_times_program()
-    );
+    b.iter(|| loop_1000_times_program());
 }

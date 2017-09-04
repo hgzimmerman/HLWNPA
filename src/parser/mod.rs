@@ -6,131 +6,14 @@ use std::str::FromStr;
 use std::str;
 use std::boxed::Box;
 
+mod operators;
+use self::operators::{unary_operator, binary_operator};
 
-// ____  _                           ___                       _
-//| __ )(_)_ __   __ _ _ __ _   _   / _ \ _ __   ___ _ __ __ _| |_ ___  _ __ ___
-//|  _ \| | '_ \ / _` | '__| | | | | | | | '_ \ / _ \ '__/ _` | __/ _ \| '__/ __|
-//| |_) | | | | | (_| | |  | |_| | | |_| | |_) |  __/ | | (_| | || (_) | |  \__ \
-//|____/|_|_| |_|\__,_|_|   \__, |  \___/| .__/ \___|_|  \__,_|\__\___/|_|  |___/
-//                          |___/        |_|
+mod expressions;
+use self::expressions::{any_expression_parens};
 
-named!(plus<BinaryOperator>,
-    value!(
-        BinaryOperator::Plus,
-        tag!("+")
-    )
-);
-named!(minus<BinaryOperator>,
-    value!(
-        BinaryOperator::Minus,
-        tag!("-")
-    )
-);
-
-named!(multiply<BinaryOperator>,
-     value!(
-        BinaryOperator::Multiply,
-        tag!("*")
-    )
-);
-named!(divide<BinaryOperator>,
-    value!(
-        BinaryOperator::Divide,
-        tag!("/")
-    )
-);
-named!(modulo<BinaryOperator>,
-    value!(
-        BinaryOperator::Modulo,
-        tag!("%")
-    )
-);
-named!(equals<BinaryOperator>,
-    value!(
-        BinaryOperator::Equals,
-        tag!("==")
-    )
-);
-named!(not_equals<BinaryOperator>,
-    value!(
-        BinaryOperator::NotEquals,
-        tag!("!=")
-    )
-);
-named!(greater_than<BinaryOperator>,
-    value!(
-        BinaryOperator::GreaterThan,
-        tag!(">")
-    )
-);
-named!(less_than<BinaryOperator>,
-    value!(
-        BinaryOperator::LessThan,
-        tag!("<")
-    )
-);
-named!(greater_than_or_eq<BinaryOperator>,
-    value!(
-        BinaryOperator::GreaterThanOrEqual,
-        tag!(">=")
-    )
-);
-named!(less_than_or_eq<BinaryOperator>,
-    value!(
-        BinaryOperator::LessThanOrEqual,
-        tag!("<=")
-    )
-);
-
-
-named!(binary_operator<BinaryOperator>,
-    ws!(alt!(
-        plus |
-        minus |
-        multiply |
-        divide |
-        modulo |
-        equals |
-        not_equals |
-        greater_than_or_eq | // try to match these before the normal greater_than or less_than operators, because those parsers will preemptivly match input like "<=" leaving the "=" as the remainder of input, causing the next parser to fail.
-        less_than_or_eq |
-        greater_than |
-        less_than
-
-    ))
-);
-
-// _   _                           ___                       _
-//| | | |_ __   __ _ _ __ _   _   / _ \ _ __   ___ _ __ __ _| |_ ___  _ __ ___
-//| | | | '_ \ / _` | '__| | | | | | | | '_ \ / _ \ '__/ _` | __/ _ \| '__/ __|
-//| |_| | | | | (_| | |  | |_| | | |_| | |_) |  __/ | | (_| | || (_) | |  \__ \
-// \___/|_| |_|\__,_|_|   \__, |  \___/| .__/ \___|_|  \__,_|\__\___/|_|  |___/
-//                        |___/        |_|
-
-named!(invert<UnaryOperator>,
-    value!(
-        UnaryOperator::Invert,
-        tag!("!")
-    )
-);
-named!(increment<UnaryOperator>,
-    value!(
-        UnaryOperator::Increment,
-        tag!("++")
-
-    )
-);
-named!(decrement<UnaryOperator>,
-    value!(
-        UnaryOperator::Decrement,
-        tag!("--")
-    )
-);
-
-named!(unary_operator<UnaryOperator>,
-    ws!(alt!(invert | increment | decrement))
-);
-
+//mod utilities;
+//use self::utilities::{expression_or_literal_or_identifier};
 
 named!(number<i32>,
     do_parse!(
@@ -202,33 +85,6 @@ named!(literal_or_identifier<Ast>,
     alt!(literal | identifier)
 );
 
-named!(binary_expr<Ast>,
-    do_parse!(
-       l1: expression_or_literal_or_identifier >>
-       op: binary_operator >>
-       l2: expression_or_literal_or_identifier >>
-       (Ast::Expression{ operator: op, expr1: Box::new(l1), expr2: Box::new(l2)})
-    )
-);
-named!(binary_expr_parens<Ast>,
-    delimited!(char!('('), binary_expr, char!(')'))
-);
-
-
-named!(unary_expr<Ast>,
-    do_parse!(
-        op: unary_operator >>
-        l: expression_or_literal_or_identifier >>
-         (Ast::UnaryExpression{ operator: op, expr: Box::new(l)})
-    )
-);
-named!(unary_expr_parens<Ast>,
-    delimited!(char!('('), unary_expr, char!(')') )
-);
-
-named!(any_expression_parens<Ast>,
-    alt!(binary_expr_parens | unary_expr_parens)
-);
 
 
 named!(identifier<Ast>,
@@ -271,8 +127,6 @@ named!(assignment<Ast>,
     )
 );
 
-// TODO: Consider having this return a TypeInfo and let a higher up parser assign this into the proper AST form.
-// ^^ eeeh, probably not.
 /// _ts indicates that the parser combinator is a getting a type signature
 named!(type_signature<Ast>,
    ws!(alt!(number_ts | string_ts | bool_ts ))
@@ -416,9 +270,7 @@ named!(any_ast<Ast>,
     ) // Order is very important here
 );
 
-named!(expression_or_literal_or_identifier<Ast>,
-    alt!(any_expression_parens | literal | identifier)
-);
+
 
 named!(expression_or_literal_or_identifier_or_assignment<Ast>,
     alt!(any_expression_parens | literal | identifier | assignment)
@@ -449,67 +301,9 @@ named!(function_execution<Ast>,
 );
 
 
-#[test]
-fn parse_addition_test() {
-    let (_, value) = match binary_expr(b"3 + 4") {
-        IResult::Done(r, v) => (r, v),
-        IResult::Error(e) => panic!("{:?}", e),
-        _ => panic!(),
-    };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal ( Datatype::Number(3))), expr2:  Box::new(Ast::Literal ( Datatype::Number(4))) }, value);
-}
-
-#[test]
-fn parse_addition_parens_test() {
-    let (_, value) = match binary_expr_parens(b"(3 + 4)") {
-        IResult::Done(r, v) => (r, v),
-        IResult::Error(e) => panic!("{:?}", e),
-        _ => panic!(),
-    };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal ( Datatype::Number(3))), expr2:  Box::new(Ast::Literal ( Datatype::Number(4))) }, value);
-}
-
-#[test]
-fn parse_nested_addition_parens_test() {
-    let (_, value) = match binary_expr_parens(b"((3 + 4) + 7)") {
-        IResult::Done(r, v) => (r, v),
-        IResult::Error(e) => panic!("{:?}", e),
-        _ => panic!(),
-    };
-    assert_eq!(
-        Ast::Expression {
-            operator: BinaryOperator::Plus,
-            expr1: Box::new(
-                Ast::Expression{
-                    operator: BinaryOperator::Plus,
-                    expr1: Box::new(Ast::Literal ( Datatype::Number(3))),
-                    expr2:  Box::new(Ast::Literal ( Datatype::Number(4)))
-                }
-            ),
-            expr2: Box::new(Ast::Literal(Datatype::Number(7)))
-        }, value
-    );
-}
-
-#[test]
-fn parse_plus_test() {
-    let (_, value) = match plus(b"+") {
-        IResult::Done(r, v) => (r, v),
-        IResult::Error(e) => panic!("{:?}", e),
-        _ => panic!(),
-    };
-    assert_eq!(BinaryOperator::Plus, value)
-}
-
-#[test]
-fn parse_operator_test() {
-    let (_, value) = match binary_operator(b"%") {
-        IResult::Done(r, v) => (r, v),
-        IResult::Error(e) => panic!("{:?}", e),
-        _ => panic!(),
-    };
-    assert_eq!(BinaryOperator::Modulo, value)
-}
+named!(pub expression_or_literal_or_identifier<Ast>,
+    alt!(any_expression_parens | literal | identifier)
+);
 
 #[test]
 fn parse_identifier_alphanumeric_test() {
@@ -584,15 +378,7 @@ fn parse_string_literal_test() {
     assert_eq!(Ast::Literal ( Datatype::String("Hello World".to_string())), value)
 }
 
-#[test]
-fn parse_string_and_number_addition_test() {
-    let (_, value) = match binary_expr_parens(b"(3 + \"Hi\")") {
-        IResult::Done(r, v) => (r, v),
-        IResult::Error(e) => panic!("{:?}", e),
-        _ => panic!(),
-    };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::Plus, expr1: Box::new(Ast::Literal ( Datatype::Number(3))), expr2: Box::new(Ast::Literal ( Datatype::String("Hi".to_string()))) }, value);
-}
+
 
 #[test]
 fn parse_assignment_of_literal_test() {

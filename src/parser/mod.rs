@@ -7,6 +7,7 @@ use std::str;
 use std::boxed::Box;
 
 use test::Bencher;
+use testing::SIMPLE_PROGRAM_INPUT_1;
 
 mod operators;
 use self::operators::{unary_operator, binary_operator};
@@ -83,12 +84,6 @@ named!(function_execution<Ast>,
 );
 
 
-
-
-
-
-
-
 #[test]
 fn just_parse_program_test() {
     let input_string = "( 1 + 2)
@@ -108,11 +103,8 @@ fn just_parse_program_test() {
 /// call the function with x
 #[test]
 fn parse_program_and_validate_ast_test() {
-    let input_string = "
-     let x := 7
-     fn test_function ( a : Number ) -> Number { ( a + 8 ) }
-     test_function(x)";
-    let (_, value) = match program(input_string.as_bytes()) {
+
+    let (_, value) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
         _ => panic!(),
@@ -171,12 +163,7 @@ fn parse_program_and_validate_ast_test() {
  #[bench]
  fn parse_simple_program_bench(b: &mut Bencher) {
      fn parse_simple_program() {
-         let input_string = "
-         let x := 7
-         fn test_function ( a : Number ) -> Number { ( a + 8 ) }
-         test_function(x)
-         ";
-         let (_, value) = match program(input_string.as_bytes()) {
+         let (_, value) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
              IResult::Done(rest, v) => (rest, v),
              IResult::Error(e) => panic!("{}", e),
              _ => panic!(),

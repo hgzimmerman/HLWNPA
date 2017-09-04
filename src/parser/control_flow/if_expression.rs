@@ -37,7 +37,6 @@ named!(pub if_expression<Ast>,
 #[cfg(test)]
 mod test {
     use super::*;
-    use ast::BinaryOperator;
     use datatype::Datatype;
 
     #[test]

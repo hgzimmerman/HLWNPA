@@ -11,7 +11,6 @@ use clap::{Arg, App};
 use nom::IResult;
 
 use std::collections::HashMap;
-use std::fs;
 use std::fs::File;
 use std::path::Path;
 use std::io::prelude::*;

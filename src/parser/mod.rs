@@ -25,7 +25,7 @@ use self::assignment::assignment;
 mod type_signature;
 
 mod function;
-pub use self::function::function; // todo, maybe not have this be pub in the future.
+use self::function::function; // todo, maybe not have this be pub in the future.
 
 mod body;
 
@@ -79,9 +79,9 @@ named!(function_execution<Ast>,
 #[cfg(test)]
 mod test {
     use super::*;
-    use testing::SIMPLE_PROGRAM_INPUT_1;
+    use testing::test_constants::SIMPLE_PROGRAM_INPUT_1;
     use nom::IResult;
-    use ast::{BinaryOperator, UnaryOperator};
+    use ast::{BinaryOperator};
     use test::Bencher;
     use datatype::{Datatype, TypeInfo};
     /// assign the value 7 to x

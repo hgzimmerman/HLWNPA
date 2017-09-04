@@ -1,4 +1,3 @@
-use std::str::FromStr;
 use std::str;
 use nom::*;
 use ast::Ast;

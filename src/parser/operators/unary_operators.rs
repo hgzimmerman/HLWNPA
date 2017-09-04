@@ -1,4 +1,4 @@
-use ast::{Ast, BinaryOperator, UnaryOperator};
+use ast::{Ast, UnaryOperator};
 use nom::*;
 use nom::IResult;
 

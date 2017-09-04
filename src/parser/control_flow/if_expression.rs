@@ -1,11 +1,13 @@
 use nom::*;
-use ast::{Ast, BinaryOperator};
-use parser::identifier::identifier;
+use ast::{Ast};
 use parser::utilities::expression_or_literal_or_identifier;
 use parser::body::body;
-use parser::type_signature::type_signature;
+//use parser::type_signature::type_signature;
 use datatype::Datatype;
 use std::boxed::Box;
+
+#[allow(unused_imports)]
+use ast::BinaryOperator;
 
 named!(pub if_expression<Ast>,
     do_parse!(

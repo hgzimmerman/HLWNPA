@@ -1,10 +1,16 @@
+#[allow(unused_imports)]
 use nom::IResult;
+#[allow(unused_imports)]
 use parser::{function, program};
+#[allow(unused_imports)]
 use ast::*;
+#[allow(unused_imports)]
 use std::boxed::Box;
+#[allow(unused_imports)]
 use std::collections::HashMap;
-use datatype::{Datatype, TypeInfo};
-
+#[allow(unused_imports)]
+use datatype::{Datatype};
+#[allow(unused_imports)]
 use test::Bencher;
 
 #[test]

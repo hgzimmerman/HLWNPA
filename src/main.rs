@@ -28,12 +28,11 @@ mod parser;
 mod repl;
 mod testing;
 
-use lang_result::*;
-use datatype::{Datatype, TypeInfo};
+use datatype::{Datatype};
 use ast::*;
 use repl::repl;
 
-use parser::{function, program};
+use parser::program;
 
 
 fn main() {

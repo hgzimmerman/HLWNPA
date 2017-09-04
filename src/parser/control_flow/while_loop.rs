@@ -3,6 +3,8 @@ use ast::{Ast, BinaryOperator};
 use parser::body::body;
 use parser::utilities::expression_or_literal_or_identifier;
 use std::boxed::Box;
+
+#[allow(unused_imports)]
 use datatype::Datatype;
 
 

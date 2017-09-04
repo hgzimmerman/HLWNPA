@@ -7,6 +7,7 @@ use std::str;
 use std::boxed::Box;
 
 use test::Bencher;
+#[allow(unused_imports)]
 use testing::SIMPLE_PROGRAM_INPUT_1;
 
 mod operators;
@@ -19,7 +20,6 @@ mod identifier;
 use self::identifier::identifier;
 
 mod literal;
-use self::literal::literal;
 
 mod utilities;
 use self::utilities::*;
@@ -28,13 +28,11 @@ mod assignment;
 use self::assignment::assignment;
 
 mod type_signature;
-use self::type_signature::type_signature;
 
 mod function;
 pub use self::function::function; // todo, maybe not have this be pub in the future.
 
 mod body;
-use self::body::body;
 
 mod control_flow;
 use self::control_flow::{if_expression, while_loop};
@@ -82,20 +80,6 @@ named!(function_execution<Ast>,
         })
     )
 );
-
-
-#[test]
-fn just_parse_program_test() {
-    let input_string = "( 1 + 2)
-     let x := 7
-     fn test_function ( a : Number ) -> Number { ( a + 8 ) }
-     test_function(8)";
-    let (_, value) = match program(input_string.as_bytes()) {
-        IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("{}", e),
-        _ => panic!(),
-    };
-}
 
 
 /// assign the value 7 to x
@@ -161,7 +145,7 @@ fn parse_program_and_validate_ast_test() {
 #[bench]
 fn parse_simple_program_bench(b: &mut Bencher) {
     fn parse_simple_program() {
-        let (_, value) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
+        let (_, _) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("{}", e),
             _ => panic!(),

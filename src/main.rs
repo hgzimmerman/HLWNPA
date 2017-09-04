@@ -320,11 +320,43 @@ fn while_loop_program_bench(b: &mut Bencher) {
     fn loop_1000_times_program() {
         use nom::IResult;
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        // the while body should not execute
         let input_string = r##"
         let x := 0
         while (x < 1000) {
            let x := (x + 1)
+        }
+        x
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(
+            Datatype::Number(1000),
+            ast.evaluate(&mut map).unwrap()
+        );
+    }
+
+    b.iter(||
+        loop_1000_times_program()
+    );
+}
+
+
+#[bench]
+fn while_loop_with_useless_conditionals_program_bench(b: &mut Bencher) {
+    fn loop_1000_times_program() {
+        use nom::IResult;
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        let x := 0
+        while (x < 1000) {
+            ( 1 * 3 )
+            ( 1 * 40000 )
+            ( 34234 % 7 )
+            let x := (x + 1)
         }
         x
         "##;

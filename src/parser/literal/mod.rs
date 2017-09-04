@@ -7,6 +7,8 @@ use self::string::string_literal;
 mod boolean;
 use self::boolean::bool_literal;
 
+
+#[allow(unused_imports)]
 use nom::*;
 use ast::Ast;
 

@@ -4,6 +4,7 @@ use self::binary_expressions::binary_expr_parens;
 mod unary_expressions;
 use self::unary_expressions::unary_expr_parens;
 
+#[allow(unused_imports)]
 use nom::*;
 use ast::Ast;
 

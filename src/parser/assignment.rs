@@ -1,4 +1,4 @@
-#[allow(dead_code)]
+#[allow(unused_imports)]
 use nom::*;
 use ast::{Ast, BinaryOperator};
 use parser::identifier::identifier;

@@ -1,4 +1,5 @@
 use std::str;
+#[allow(unused_imports)]
 use nom::*;
 use ast::Ast;
 use datatype::Datatype;

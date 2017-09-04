@@ -1,4 +1,6 @@
 use ast::{Ast, BinaryOperator};
+
+#[allow(unused_imports)]
 use nom::*;
 
 use std::boxed::Box;

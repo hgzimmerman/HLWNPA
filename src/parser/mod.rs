@@ -6,6 +6,8 @@ use std::str::FromStr;
 use std::str;
 use std::boxed::Box;
 
+use test::Bencher;
+
 mod operators;
 use self::operators::{unary_operator, binary_operator};
 
@@ -33,52 +35,10 @@ pub use self::function::function; // todo, maybe not have this be pub in the fut
 mod body;
 use self::body::body;
 
+mod control_flow;
+use self::control_flow::{if_expression, while_loop};
 
 
-
-
-named!(if_expression<Ast>,
-    do_parse!(
-        ws!(tag!("if")) >>
-        if_conditional: ws!(expression_or_literal_or_identifier) >>
-        if_body: ws!(body) >>
-        else_body: opt!(
-            complete!(
-                // nest another do_parse to get the else keyword and its associated block
-                do_parse!(
-                    ws!(tag!("else")) >>
-                    e: map!(
-                        ws!(body),
-                        Box::new
-                    ) >>
-                    (e)
-                )
-
-            )
-        ) >>
-        (
-        Ast::Conditional {
-            condition: Box::new(if_conditional),
-            true_expr: Box::new(if_body),
-            false_expr: else_body
-        })
-    )
-);
-
-
-named!(while_loop<Ast>,
-    do_parse!(
-        ws!(tag!("while")) >>
-        while_conditional: ws!(expression_or_literal_or_identifier) >>
-        while_body: ws!(body) >>
-
-        (Ast::Expression {
-            operator: BinaryOperator::Loop,
-            expr1: Box::new(while_conditional),
-            expr2: Box::new(while_body)
-        })
-    )
-);
 
 
 ///Anything that generates an AST node.
@@ -205,8 +165,26 @@ fn parse_program_and_validate_ast_test() {
     };
 
     assert_eq!(expected_program_ast, value)
-
 }
+
+
+ #[bench]
+ fn parse_simple_program_bench(b: &mut Bencher) {
+     fn parse_simple_program() {
+         let input_string = "
+         let x := 7
+         fn test_function ( a : Number ) -> Number { ( a + 8 ) }
+         test_function(x)
+         ";
+         let (_, value) = match program(input_string.as_bytes()) {
+             IResult::Done(rest, v) => (rest, v),
+             IResult::Error(e) => panic!("{}", e),
+             _ => panic!(),
+         };
+     }
+
+     b.iter(|| parse_simple_program());
+ }
 
 #[test]
 fn parse_program_with_only_identifier_test() {
@@ -221,30 +199,6 @@ fn parse_program_with_only_identifier_test() {
 }
 
 
-#[test]
-fn parse_if_statement_test() {
-    let input_string = "if true { true }";
-    let (_, value) = match if_expression(input_string.as_bytes()) {
-        IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("Error in parsing: {}", e),
-        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
-    };
-    assert_eq!(Ast::Conditional {
-        condition: Box::new(Ast::Literal ( Datatype::Bool(true) )),
-        true_expr: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]}),
-        false_expr: None
-    }, value)
-}
-
-#[test]
-fn parse_if_else_statement_test() {
-    let input_string = "if true { true } else { true }";
-    let (_, _) = match if_expression(input_string.as_bytes()) {
-        IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("Error in parsing: {}", e),
-        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
-    };
-}
 
 #[test]
 fn parse_program_with_if_test() {
@@ -265,19 +219,3 @@ fn parse_program_with_if_test() {
 }
 
 
-#[test]
-fn parse_while_loop_test() {
-    let input_string = "while true { true }";
-    let (_, value) = match while_loop(input_string.as_bytes()) {
-        IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("Error in parsing: {}", e),
-        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
-    };
-
-    assert_eq!(
-        Ast::Expression  {
-            operator: BinaryOperator::Loop,
-            expr1: Box::new(Ast::Literal( Datatype::Bool(true))),
-            expr2: Box::new(Ast::VecExpression{ expressions: vec![Ast::Literal ( Datatype::Bool(true))]})
-    }, value)
-}

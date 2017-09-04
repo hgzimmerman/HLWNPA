@@ -4,6 +4,7 @@ This is that possibly workable result.
 
 # Process
 I defined what the AST should look like, then defined a syntax that would parse input to that AST, and then implemented a REPL.
+I then proceeded to graft things onto the AST and syntax parser once I had a minimal language.
 I did this just to see what I could acomplish with no prior experience with language design or compiler theory.
 
 

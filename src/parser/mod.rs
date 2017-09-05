@@ -88,7 +88,7 @@ mod test {
 /// create a function that takes a number
 /// call the function with x
     #[test]
-    fn parse_program_and_validate_ast_test() {
+    fn parse_simple_program_and_validate_ast_test() {
         let (_, value) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("{}", e),
@@ -98,7 +98,11 @@ mod test {
         let expected_assignment: Ast = Ast::Expression {
             operator: BinaryOperator::Assignment,
             expr1: Box::new(Ast::ValueIdentifier("x".to_string())),
-            expr2: Box::new(Ast::Literal(Datatype::Number(7))),
+            expr2: Box::new(Ast::Expression {
+                operator: BinaryOperator::Plus,
+                expr1: Box::new(Ast::Literal(Datatype::Number(3))),
+                expr2: Box::new(Ast::Literal(Datatype::Number(4)))
+            }),
         };
 
         let expected_fn: Ast = Ast::Expression {

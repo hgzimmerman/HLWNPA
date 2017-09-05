@@ -6,16 +6,6 @@ use std::boxed::Box;
 use std::collections::HashMap;
 
 
-// Consider allowing inner type safety by switching the Ast to this style:
-//
-//struct FooData { ... }
-//struct BarData { ... }
-//enum Baz {
-//Foo(FooData),
-//Bar(BarData)
-//}
-// Good candidates for a first pass are Type and Literal
-
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum Ast {
@@ -57,7 +47,7 @@ pub enum BinaryOperator {
     ExecuteFn,
     FunctionParameterAssignment,
     Loop,
-//    AccessArray // Array on lefthand side, Index on rightside
+    AccessArray // Array on lefthand side, Index on rightside
 }
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
@@ -166,6 +156,30 @@ impl Ast {
                             }
                         }
                         return Ok(evaluated_loop); // leave block
+                    }
+                    BinaryOperator::AccessArray => {
+                        let datatype: Datatype = expr1.evaluate(map)?;
+                        match datatype {
+                            Datatype::Array {value, type_} => {
+                                let possible_index = expr2.evaluate(map)?;
+                                match possible_index {
+                                    Datatype::Number(index) => {
+                                        if index >= 0 {
+                                            match value.get(index as usize) {
+                                                Some(indexed_result) => Ok(indexed_result.clone()), // cannot mutate the interior of the array.
+                                                None => Err(LangError::OutOfBoundsArrayAccess)
+                                            }
+                                        } else {
+                                            Err(LangError::NegativeIndex(index))
+                                        }
+                                    }
+                                    _ => Err(LangError::InvalidIndexType(possible_index))
+                                }
+
+
+                            }
+                            _ => return Err(LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype)))
+                        }
                     }
 
                     BinaryOperator::ExecuteFn => {

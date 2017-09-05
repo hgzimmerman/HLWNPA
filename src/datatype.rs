@@ -124,7 +124,7 @@ impl Rem for Datatype {
 pub enum TypeInfo {
     Number,
     String,
-    Array,
+    Array(Box<TypeInfo>),
     Bool,
     None,
     Function,
@@ -136,7 +136,7 @@ impl From<Datatype> for TypeInfo {
         match datatype {
             Datatype::Number(_) => TypeInfo::Number,
             Datatype::String(_) => TypeInfo::String,
-            Datatype::Array { .. } => TypeInfo::Array,
+            Datatype::Array { value, type_ } => TypeInfo::Array(Box::new(type_)),
             Datatype::Bool(_) => TypeInfo::Bool,
             Datatype::None => TypeInfo::None,
             Datatype::Function { .. } => TypeInfo::Function,

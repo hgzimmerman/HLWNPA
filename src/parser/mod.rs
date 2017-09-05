@@ -33,6 +33,8 @@ mod body;
 mod control_flow;
 use self::control_flow::{if_expression, while_loop};
 
+mod array;
+use self::array::array_access;
 
 
 
@@ -45,6 +47,7 @@ named!(any_ast<Ast>,
         complete!(while_loop) |
         complete!(literal) |
         complete!(identifier) |
+        complete!(array_access) |
         function |
         any_expression_parens
     ) // Order is very important here

@@ -5,7 +5,7 @@ use datatype::Datatype;
 use std::str::FromStr;
 use std::str;
 
-named!(number<i32>,
+named!(number_raw<i32>,
     do_parse!(
         number: map_res!(
             map_res!(
@@ -21,14 +21,14 @@ named!(number<i32>,
 );
 named!(pub number_literal<Ast>,
     do_parse!(
-       num: ws!(number) >>
+       num: ws!(number_raw) >>
         (Ast::Literal ( Datatype::Number(num)))
     )
 );
 
 #[test]
 fn parse_number_test() {
-    let (_, value) = match number(b"42") {
+    let (_, value) = match number_raw(b"42") {
         IResult::Done(r, v) => (r, v),
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),

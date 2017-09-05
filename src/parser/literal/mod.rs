@@ -1,4 +1,4 @@
-mod number;
+pub mod number; // TODO move number_raw to other file/module so this can remove the "pub"
 use self::number::number_literal;
 
 mod string;
@@ -16,5 +16,10 @@ use ast::Ast;
 
 /// put all literal types here
 named!(pub literal<Ast>,
-    alt!(number_literal | string_literal | bool_literal| array_literal)
+    alt!(
+        complete!(array_literal) |
+        complete!(number_literal) |
+        complete!(string_literal) |
+        complete!(bool_literal)
+    )
 );

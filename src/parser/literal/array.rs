@@ -11,9 +11,9 @@ pub const TYPE_MISMATCH_ERROR: u32 = 10001;
 named!(pub array_literal<Ast>,
     do_parse!(
         array: delimited!(
-            char!('['),
+            ws!(char!('[')),
             array_values,
-            char!(']')
+            ws!(char!(']'))
         ) >>
         (
             Ast::Literal( Datatype::Array {
@@ -89,4 +89,14 @@ fn parse_array_bool_test() {
 fn fail_parse_array_mismatched_literal_test() {
     let error = array_literal(b"[true, 8]");
     assert_eq!(IResult::Error(ErrorKind::Custom(TYPE_MISMATCH_ERROR)), error );
+}
+
+#[test]
+fn parse_array_multiple_number_literal_test() {
+    let (_, value) = match array_literal(b"[12, 13, 14]") {
+        IResult::Done(r, v) => (r, v),
+        IResult::Error(e) => panic!("{:?}", e),
+        _ => panic!(),
+    };
+    assert_eq!(Ast::Literal ( Datatype::Array{value: vec![Datatype::Number(12), Datatype::Number(13), Datatype::Number(14)], type_: TypeInfo::Number}), value)
 }

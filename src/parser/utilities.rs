@@ -8,7 +8,11 @@ use parser::identifier::identifier;
 use parser::assignment::assignment;
 
 named!(pub expression_or_literal_or_identifier<Ast>,
-    alt!(any_expression_parens | literal | identifier)
+    alt!(
+        complete!(any_expression_parens) |
+        complete!(literal) |
+        complete!(identifier)
+    )
 );
 
 named!(pub expression_or_literal_or_identifier_or_assignment<Ast>,

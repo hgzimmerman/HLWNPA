@@ -6,7 +6,7 @@ mod test {
 //    use ast::*;
 //    use std::boxed::Box;
     use std::collections::HashMap;
-    use datatype::{Datatype};
+    use datatype::{Datatype, TypeInfo};
     use test::Bencher;
 
     //#[test]
@@ -212,11 +212,11 @@ mod test {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         // the while body should not execute
         let input_string = r##"
-     let x := 42
-     while (x == 3) {
-        let x := (x + 1)
-     }
-     x"##;
+        let x := 42
+        while (x == 3) {
+           let x := (x + 1)
+        }
+        x"##;
         let (_, ast) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("{}", e),
@@ -224,6 +224,38 @@ mod test {
         };
 
         assert_eq!(Datatype::Number(42), ast.evaluate(&mut map).unwrap());
+    }
+
+    #[test]
+    fn program_parse_literal_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        // the while body should not execute
+        let input_string = r##"
+        32
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(Datatype::Number(32), ast.evaluate(&mut map).unwrap());
+    }
+
+    #[test]
+    fn program_parse_and_verify_array_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        // the while body should not execute
+        let input_string = r##"
+        [23, 43, 11]
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(Datatype::Array{value: vec![Datatype::Number(23), Datatype::Number(43), Datatype::Number(11)], type_: TypeInfo::Number }, ast.evaluate(&mut map).unwrap());
     }
 
     #[bench]

@@ -15,6 +15,7 @@ mod identifier;
 use self::identifier::identifier;
 
 mod literal;
+use self::literal::literal;
 
 mod utilities;
 use self::utilities::*;
@@ -42,7 +43,8 @@ named!(any_ast<Ast>,
         complete!(assignment) |
         complete!(if_expression) |
         complete!(while_loop) |
-        identifier |
+        complete!(literal) |
+        complete!(identifier) |
         function |
         any_expression_parens
     ) // Order is very important here

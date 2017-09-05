@@ -745,3 +745,39 @@ fn function_with_two_parameters_addition_test() {
     };
     assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
 }
+
+#[test]
+fn array_access_test() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let ast: Ast = Ast::Expression {
+        operator: BinaryOperator::AccessArray,
+        expr1: Box::new(Ast::Literal(Datatype::Array {
+            value: vec![
+                Datatype::Number(12),
+                Datatype::Number(14),
+                Datatype::Number(16)
+            ],
+            type_: TypeInfo::Number
+        })),
+        expr2: Box::new(Ast::Literal(Datatype::Number(0))) // get the first element
+    };
+    assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
+}
+
+#[test]
+fn array_incorrect_access_test() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let ast: Ast = Ast::Expression {
+        operator: BinaryOperator::AccessArray,
+        expr1: Box::new(Ast::Literal(Datatype::Array {
+            value: vec![
+                Datatype::Number(12),
+                Datatype::Number(14),
+                Datatype::Number(16)
+            ],
+            type_: TypeInfo::Number
+        })),
+        expr2: Box::new(Ast::Literal(Datatype::Number(3))) // Array size 3. 0, 1, 2 hold elements. Index 3 doesn't.
+    };
+    assert_eq!(LangError::OutOfBoundsArrayAccess, ast.evaluate(&mut map).unwrap_err())
+}

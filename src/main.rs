@@ -12,7 +12,6 @@ use nom::IResult;
 
 use std::collections::HashMap;
 use std::fs::File;
-use std::path::Path;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::OpenOptions;
@@ -43,7 +42,7 @@ fn main() {
         .arg(
             Arg::with_name("file")
                 .value_name("File")
-                .help("The file that you want to interpret")
+                .help("The file that you want to interpret. If nothing is provided, you will be dropped into a REPL.")
                 .takes_value(true),
         )
         .get_matches();
@@ -51,6 +50,7 @@ fn main() {
 
     match matches.value_of("file") {
         Some(filename) => {
+            // read the file into a string, parse it, and execute the resulting AST
             let mut file_contents: String = String::new();
             let file: File = OpenOptions::new().read(true).open(&filename).unwrap();
             let mut buf_reader = BufReader::new(&file);

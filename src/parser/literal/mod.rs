@@ -7,6 +7,8 @@ use self::string::string_literal;
 mod boolean;
 use self::boolean::bool_literal;
 
+mod array;
+//use self::array::array_literal;
 
 #[allow(unused_imports)]
 use nom::*;

@@ -14,14 +14,14 @@ pub enum Datatype {
     String(String),
     Array {
         value: Vec<Datatype>,
-        type_: Box<TypeInfo>, // the type of data allowed in the array.
+        type_: TypeInfo, // the type of data allowed in the array.
     },
     Bool(bool),
     None,
     Function {
         parameters: Box<Ast>,
         body: Box<Ast>,
-        return_type: Box<TypeInfo>,
+        return_type: Box<TypeInfo>, // this box isn't needed
     },
     //Object { value: Vec<Datatype>, v_table: Vec<Ast>}
 }

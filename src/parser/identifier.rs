@@ -5,7 +5,7 @@ use std::str;
 
 named!(
     reserved_words,
-    alt!(ws!(tag!("let")) | ws!(tag!("fn")) | ws!(tag!("if")) | ws!(tag!("else")) | ws!(tag!("while")) | ws!(tag!("true")) | ws!(tag!("false")))
+    alt!(ws!(tag!("let")) | ws!(tag!("fn")) | ws!(tag!("if")) | ws!(tag!("else")) | ws!(tag!("while")) | ws!(tag!("true")) | ws!(tag!("false")) | ws!(tag!("please")) | ws!(tag!("thankyou")) )
 );
 
 named!(accepted_identifier_characters<&str>,

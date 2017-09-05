@@ -57,6 +57,7 @@ pub enum BinaryOperator {
     ExecuteFn,
     FunctionParameterAssignment,
     Loop,
+//    AccessArray // Array on lefthand side, Index on rightside
 }
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]

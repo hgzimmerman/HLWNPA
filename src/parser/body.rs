@@ -3,13 +3,28 @@ use nom::*;
 use ast::Ast;
 use parser::utilities::expression_or_literal_or_identifier_or_assignment;
 
+#[cfg(not(feature = "polite"))]
 named!(pub body<Ast>,
     do_parse!(
         statements : delimited!(
             ws!(char!('{')),
             many0!(ws!(expression_or_literal_or_identifier_or_assignment)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
-            ws!(tag!("}"))
+            ws!(char!('}'))
         ) >>
+        (Ast::VecExpression{expressions: statements})
+    )
+);
+
+// easter egg
+#[cfg(feature = "polite")]
+named!(pub body<Ast>,
+    do_parse!(
+        statements : delimited!(
+            ws!(tag!("please")),
+            many0!(ws!(expression_or_literal_or_identifier_or_assignment)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
+            ws!(tag!("thankyou"))
+        ) >>
+
         (Ast::VecExpression{expressions: statements})
     )
 );

@@ -35,6 +35,8 @@ pub enum Datatype {
     }
 }
 
+
+// TODO: Rust comparisons will auto deref references, so I may be able to avoid cloning everything here, use test below to verify validity.
 impl PartialOrd for Datatype {
     fn partial_cmp(&self, rhs: &Datatype) -> Option<Ordering> {
         match *self {
@@ -115,7 +117,6 @@ impl PartialOrd for Datatype {
                 } else {
                     Some(Ordering::Less)
                 }
-
             }
             _ => { None }
         }
@@ -252,6 +253,7 @@ fn datatype_equality_tests() {
     assert_ne!(Datatype::Number(23), Datatype::Number(30));
     assert_eq!(Datatype::String("Hello".to_string()), Datatype::String("Hello".to_string()));
     assert_eq!(Datatype::Bool(true), Datatype::Bool(true));
+    assert_ne!(Datatype::Bool(false), Datatype::Bool(true));
     assert_eq!(Datatype::Array {value: vec!(), type_: TypeInfo::Number}, Datatype::Array {value: vec!(), type_: TypeInfo::Number});
     assert_eq!(Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool}, Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool});
     assert_ne!(Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool}, Datatype::Array {value: vec!(Datatype::Bool(true), Datatype::Bool(true)), type_: TypeInfo::Number});

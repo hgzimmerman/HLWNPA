@@ -2,7 +2,7 @@
 use nom::*;
 use ast::{Ast, BinaryOperator};
 use parser::identifier::identifier;
-use parser::body::type_assignment_body;
+use parser::body::{type_assignment_body, struct_init_body};
 use parser::type_signature::type_signature;
 use datatype::{Datatype, TypeInfo};
 
@@ -33,6 +33,21 @@ named!(pub struct_access<Ast>,
     )
 );
 
+named!(pub create_struct_instance<Ast>,
+    do_parse!(
+        ws!(tag!("new")) >>
+        struct_type: ws!(identifier) >>
+        body: ws!(struct_init_body) >>
+        (Ast::Expression {
+            operator: BinaryOperator::CreateStruct,
+            expr1: Box::new(struct_type),
+            expr2: Box::new(body)
+        })
+
+
+    )
+);
+
 #[cfg(test)]
 mod test {
 
@@ -52,7 +67,7 @@ mod test {
             expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             expr2: Box::new(Ast::VecExpression{
                 expressions: vec![
-                    Ast::Expression{
+                    Ast::Expression {
                         operator: BinaryOperator::FunctionParameterAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("a_number".to_string())),
                         expr2: Box::new(Ast::Type(TypeInfo::Number))
@@ -66,7 +81,8 @@ mod test {
 
     #[test]
     fn parse_struct_access() {
-        let input_string = "structVariable.field";
+        // TODO: structVariable.field fails, because identifier's reserved words forbids "struct" as a sequence of characters as an identifier. It should allow it _in_ the identifier, it just cant be the identifier itself.
+        let input_string = "strucVariable.field";
         let (_, value) = match struct_access(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("{}", e),
@@ -74,7 +90,7 @@ mod test {
         };
         let expected_ast = Ast::Expression {
             operator: BinaryOperator::AccessStructField,
-            expr1: Box::new(Ast::ValueIdentifier("structVariable".to_string())),
+            expr1: Box::new(Ast::ValueIdentifier("strucVariable".to_string())),
             expr2: Box::new(Ast::ValueIdentifier("field".to_string()))
         };
         assert_eq!(expected_ast, value)

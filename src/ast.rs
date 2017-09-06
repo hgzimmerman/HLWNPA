@@ -49,7 +49,8 @@ pub enum BinaryOperator {
     Loop,
     AccessArray,
     StructDeclaration,
-    AccessStructField
+    AccessStructField,
+    CreateStruct
 }
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
@@ -232,7 +233,11 @@ impl Ast {
                             return Err(LangError::TriedToAccessNonStruct)
                         }
 
-                        Err(LangError::IdentifierDoesntExist) // TODO not fully implemented, plz implement
+                        Err(LangError::IdentifierDoesntExist)
+                    }
+
+                    BinaryOperator::CreateStruct => {
+                        return Err(LangError::IdentifierDoesntExist) // TODO not implemented
                     }
 
                     BinaryOperator::ExecuteFn => {

@@ -27,6 +27,17 @@ named!(pub type_assignment<Ast>,
     )
 );
 
+/// Used for assigning identifiers to types
+named!(pub struct_value_assignment<Ast>,
+    do_parse!(
+        id: identifier >>
+        tag!(":") >>
+        value:  expression_or_literal_or_identifier >>
+        (Ast::Expression{ operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(id), expr2: Box::new(value) })
+    )
+);
+
+
 #[cfg(test)]
 mod test {
     use super::*;

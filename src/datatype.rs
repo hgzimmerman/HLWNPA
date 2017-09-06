@@ -78,11 +78,10 @@ impl PartialOrd for Datatype {
                     None
                 }
             }
-            //TODO lots of cloning here, this can be more efficient.
             Datatype::Array { value: ref lhs_array, type_: ref lhs_type } => {
-                if let Datatype::Array {value: rhs_array, type_: rhs_type} = rhs.clone() {
-                    if lhs_type.clone() == rhs_type && lhs_array.len() == rhs_array.len() {
-                        let matches = lhs_array.clone().into_iter().zip(rhs_array.into_iter()).filter(|&(ref lhs, ref rhs)| lhs.clone() == rhs.clone()).count();
+                if let &Datatype::Array {value: ref rhs_array, type_: ref rhs_type} = rhs {
+                    if lhs_type == rhs_type && lhs_array.len() == rhs_array.len() {
+                        let matches = lhs_array.into_iter().zip(rhs_array.into_iter()).filter(|&(ref lhs, ref rhs)| lhs == rhs).count();
                         if matches == lhs_array.len() {
                             Some(Ordering::Equal)
                         } else {
@@ -96,13 +95,12 @@ impl PartialOrd for Datatype {
                 }
             }
             //Datatype::Function
-            //TODO More cloning than I'm comfortable with, make more efficient.
             Datatype::Struct {struct_type: ref lhs_struct_type, map: ref lhs_map } => {
-                if let Datatype::Struct {struct_type: rhs_struct_type, map: rhs_map} = rhs.clone() {
-                    if lhs_struct_type.clone() == rhs_struct_type {
-                        for (lhs_key, lhs_value) in lhs_map.clone().into_iter() {
+                if let &Datatype::Struct {struct_type: ref rhs_struct_type, map: ref rhs_map} = rhs {
+                    if lhs_struct_type == rhs_struct_type {
+                        for (lhs_key, lhs_value) in lhs_map.into_iter() {
                             // clone the rhs value out of the rhs_map so it can be compared.
-                            if rhs_map.get(&lhs_key).map(|rhs_value: &(TypeInfo,Option<Datatype>)| rhs_value.clone()) == Some(lhs_value) {
+                            if rhs_map.get(lhs_key) == Some(lhs_value) {
                                 continue
                             } else {
                                 return Some(Ordering::Less)

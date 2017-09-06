@@ -393,6 +393,9 @@ impl Ast {
 
 #[cfg(test)]
 mod test {
+
+    use super::*;
+
     #[test]
     fn plus_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();

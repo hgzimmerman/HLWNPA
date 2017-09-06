@@ -36,6 +36,9 @@ use self::control_flow::{if_expression, while_loop};
 mod array;
 use self::array::array_access;
 
+mod structure;
+use self::structure::struct_definition;
+
 
 
 ///Anything that generates an AST node.

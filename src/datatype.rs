@@ -30,9 +30,9 @@ pub enum Datatype {
         return_type: Box<TypeInfo>, // this box isn't needed
     },
     Struct {
-        struct_type: String,
         map: HashMap<String, Datatype>
-    }
+    },
+    StructType(TypeInfo)
 }
 
 impl PartialOrd for Datatype {
@@ -94,21 +94,17 @@ impl PartialOrd for Datatype {
                 }
             }
             //Datatype::Function
-            Datatype::Struct {struct_type: ref lhs_struct_type, map: ref lhs_map } => {
-                if let &Datatype::Struct {struct_type: ref rhs_struct_type, map: ref rhs_map} = rhs {
-                    if lhs_struct_type == rhs_struct_type {
-                        for (lhs_key, lhs_value) in lhs_map.into_iter() {
-                            // clone the rhs value out of the rhs_map so it can be compared.
-                            if rhs_map.get(lhs_key) == Some(lhs_value) {
-                                continue
-                            } else {
-                                return Some(Ordering::Less)
-                            }
+            Datatype::Struct { map: ref lhs_map } => {
+                if let &Datatype::Struct { map: ref rhs_map} = rhs {
+                    for (lhs_key, lhs_value) in lhs_map.into_iter() {
+                        // clone the rhs value out of the rhs_map so it can be compared.
+                        if rhs_map.get(lhs_key) == Some(lhs_value) {
+                            continue
+                        } else {
+                            return Some(Ordering::Less)
                         }
-                        Some(Ordering::Equal)
-                    } else {
-                        Some(Ordering::Less)
                     }
+                    Some(Ordering::Equal)
                 } else {
                     Some(Ordering::Less)
                 }
@@ -222,9 +218,11 @@ pub enum TypeInfo {
     Bool,
     None,
     Function,
-    Struct{struct_type: String, map: HashMap<String,TypeInfo>}
+    Struct{map: HashMap<String, TypeInfo>},
+    StructType
 }
 
+//TODO, implement this. It is never used, but should be accurate
 impl PartialOrd for TypeInfo {
     fn partial_cmp(&self, rhs: &TypeInfo) -> Option<Ordering>{
         Some(Ordering::Equal)
@@ -241,18 +239,17 @@ impl From<Datatype> for TypeInfo {
             Datatype::Bool(_) => TypeInfo::Bool,
             Datatype::None => TypeInfo::None,
             Datatype::Function { .. } => TypeInfo::Function,
-            Datatype::Struct { struct_type, map } => {
+            Datatype::Struct { map } => {
                 let mut type_map = HashMap::new();
                 for tuple in map.into_iter() {
                     let (key, value) = tuple;
                     type_map.insert(key, TypeInfo::from(value));
                 }
                 TypeInfo::Struct{
-                    struct_type: struct_type,
                     map: type_map
-
                 }
             }
+            Datatype::StructType(_) => TypeInfo::StructType
         }
     }
 }
@@ -268,13 +265,13 @@ fn datatype_equality_tests() {
     assert_eq!(Datatype::Array {value: vec!(), type_: TypeInfo::Number}, Datatype::Array {value: vec!(), type_: TypeInfo::Number});
     assert_eq!(Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool}, Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool});
     assert_ne!(Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool}, Datatype::Array {value: vec!(Datatype::Bool(true), Datatype::Bool(true)), type_: TypeInfo::Number});
-    assert_eq!(Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()}, Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()});
+    assert_eq!(Datatype::Struct { map: HashMap::new()}, Datatype::Struct { map: HashMap::new()});
 
     let mut map: HashMap<String, Datatype> = HashMap::new();
     map.insert("field".to_string(), Datatype::Bool(true) );
-    assert_ne!(Datatype::Struct {struct_type: "StructName".to_string(), map: map.clone()}, Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()});
+    assert_ne!(Datatype::Struct {map: map.clone()}, Datatype::Struct { map: HashMap::new()});
 
     let mut other_map: HashMap<String, Datatype> = HashMap::new();
     other_map.insert("field".to_string(), Datatype::Bool(true));
-    assert_eq!(Datatype::Struct {struct_type: "StructName".to_string(), map: map}, Datatype::Struct {struct_type: "StructName".to_string(), map: other_map});
+    assert_eq!(Datatype::Struct { map: map}, Datatype::Struct { map: other_map});
 }

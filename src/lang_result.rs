@@ -27,5 +27,10 @@ pub enum LangError {
     ArrayAccessOnNonArry(TypeInfo),
     InvalidIndexType(Datatype),
     NegativeIndex(i32),
-    OutOfBoundsArrayAccess
+    OutOfBoundsArrayAccess,
+    FieldTypeNotSupplied,
+    FieldIdentifierNotSupplied,
+    NonAssignmentInStructDeclaration,
+    StructBodyNotSupplied,
+    StructNameNotSupplied
 }

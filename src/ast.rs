@@ -47,7 +47,8 @@ pub enum BinaryOperator {
     ExecuteFn,
     FunctionParameterAssignment,
     Loop,
-    AccessArray
+    AccessArray,
+    StructDeclaration
 }
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
@@ -177,6 +178,44 @@ impl Ast {
                             }
                             _ => return Err(LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype)))
                         }
+                    }
+
+                    BinaryOperator::StructDeclaration => {
+                        if let Ast::ValueIdentifier(ref struct_type_identifier) = **expr1 {
+                            if let Ast::VecExpression {ref expressions} = **expr2 {
+
+                                let mut struct_map: HashMap<String, TypeInfo> = HashMap::new();
+
+                                for assignment_expr in expressions {
+                                    if let &Ast::Expression {operator: ref assignment_op, expr1: ref field_identifier_expr, expr2: ref field_type_expr} = assignment_expr {
+                                        if let BinaryOperator::Assignment = *assignment_op {
+                                            if let Ast::ValueIdentifier(ref field_id) = **field_identifier_expr {
+                                                if let Ast::Type(ref field_type) = **field_type_expr {
+                                                    struct_map.insert(field_id.clone(), field_type.clone());
+                                                } else {
+                                                    return Err(LangError::FieldTypeNotSupplied)
+                                                }
+                                            } else {
+                                                return Err(LangError::FieldIdentifierNotSupplied)
+                                            }
+                                        } else {
+                                            return Err(LangError::NonAssignmentInStructDeclaration)
+                                        }
+                                    } else {
+                                        return Err(LangError::NonAssignmentInStructDeclaration)
+                                    }
+                                }
+                                let new_struct_type = TypeInfo::Struct {map: struct_map};
+                                let retval = Datatype::StructType(new_struct_type);
+                                map.insert(struct_type_identifier.clone(), retval.clone() );
+                                return Ok(retval)
+                            } else {
+                                return Err(LangError::StructBodyNotSupplied)
+                            }
+                        } else {
+                            Err(LangError::StructNameNotSupplied)
+                        }
+
                     }
 
                     BinaryOperator::ExecuteFn => {

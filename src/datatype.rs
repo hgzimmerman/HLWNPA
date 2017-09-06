@@ -31,7 +31,7 @@ pub enum Datatype {
     },
     Struct {
         struct_type: String,
-        map: HashMap<String, Datatype>
+        map: HashMap<String, (TypeInfo, Option<Datatype>)>
     }
 }
 
@@ -102,7 +102,7 @@ impl PartialOrd for Datatype {
                     if lhs_struct_type.clone() == rhs_struct_type {
                         for (lhs_key, lhs_value) in lhs_map.clone().into_iter() {
                             // clone the rhs value out of the rhs_map so it can be compared.
-                            if rhs_map.get(&lhs_key).map(|rhs_value: &Datatype| rhs_value.clone()) == Some(lhs_value) {
+                            if rhs_map.get(&lhs_key).map(|rhs_value: &(TypeInfo,Option<Datatype>)| rhs_value.clone()) == Some(lhs_value) {
                                 continue
                             } else {
                                 return Some(Ordering::Less)
@@ -258,6 +258,10 @@ fn datatype_equality_tests() {
     assert_eq!(Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()}, Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()});
 
     let mut map: HashMap<String, Datatype> = HashMap::new();
-    map.insert("field".to_string(), Datatype::Bool(true));
-    assert_ne!(Datatype::Struct {struct_type: "StructName".to_string(), map: map}, Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()})
+    map.insert("field".to_string(), ( TypeInfo::Bool, Some(Datatype::Bool(true)) ));
+    assert_ne!(Datatype::Struct {struct_type: "StructName".to_string(), map: map}, Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()});
+
+    let mut other_map: HashMap<String, Datatype> = HashMap::new();
+    other_map.insert("field".to_string(), ( TypeInfo::Bool, Some(Datatype::Bool(true)) ));
+    assert_eq!(Datatype::Struct {struct_type: "StructName".to_string(), map: map}, Datatype::Struct {struct_type: "StructName".to_string(), map: other_map});
 }

@@ -32,5 +32,8 @@ pub enum LangError {
     FieldIdentifierNotSupplied,
     NonAssignmentInStructDeclaration,
     StructBodyNotSupplied,
-    StructNameNotSupplied
+    StructNameNotSupplied,
+    StructFieldDoesntExist,
+    TriedToAccessNonStruct
+
 }

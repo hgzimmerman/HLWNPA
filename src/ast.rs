@@ -218,6 +218,19 @@ impl Ast {
                         }
                     }
                     BinaryOperator::AccessStructField => {
+                        // if expr1 produces a struct when evaluated
+                        if let Datatype::Struct { map: struct_map } = expr1.evaluate(map)? {
+                            if let Ast::ValueIdentifier(ref field_identifier) = **expr2 {
+                                match struct_map.get(field_identifier) {
+                                    Some(struct_field_datatype) => return Ok(struct_field_datatype.clone()),
+                                    None => return Err(LangError::StructFieldDoesntExist)
+                                }
+                            } else {
+                                return Err(LangError::IdentifierDoesntExist)
+                            }
+                        } else {
+                            return Err(LangError::TriedToAccessNonStruct)
+                        }
 
                         Err(LangError::IdentifierDoesntExist) // TODO not fully implemented, plz implement
                     }

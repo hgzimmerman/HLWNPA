@@ -96,6 +96,7 @@ impl PartialOrd for Datatype {
                 }
             }
             //Datatype::Function
+            //TODO More cloning than I'm comfortable with, make more efficient.
             Datatype::Struct {struct_type: ref lhs_struct_type, map: ref lhs_map } => {
                 if let Datatype::Struct {struct_type: rhs_struct_type, map: rhs_map} = rhs.clone() {
                     if lhs_struct_type.clone() == rhs_struct_type {
@@ -241,4 +242,22 @@ impl From<Datatype> for TypeInfo {
             Datatype::Struct { .. } => TypeInfo::Struct
         }
     }
+}
+
+
+#[test]
+fn datatype_equality_tests() {
+    // I reimplemented PartialEq to accommodate HashMap (which doesn't implement it)
+    assert_eq!(Datatype::Number(30), Datatype::Number(30));
+    assert_ne!(Datatype::Number(23), Datatype::Number(30));
+    assert_eq!(Datatype::String("Hello".to_string()), Datatype::String("Hello".to_string()));
+    assert_eq!(Datatype::Bool(true), Datatype::Bool(true));
+    assert_eq!(Datatype::Array {value: vec!(), type_: TypeInfo::Number}, Datatype::Array {value: vec!(), type_: TypeInfo::Number});
+    assert_eq!(Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool}, Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool});
+    assert_ne!(Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool}, Datatype::Array {value: vec!(Datatype::Bool(true), Datatype::Bool(true)), type_: TypeInfo::Number});
+    assert_eq!(Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()}, Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()});
+
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    map.insert("field".to_string(), Datatype::Bool(true));
+    assert_ne!(Datatype::Struct {struct_type: "StructName".to_string(), map: map}, Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()})
 }

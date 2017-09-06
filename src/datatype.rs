@@ -257,11 +257,11 @@ fn datatype_equality_tests() {
     assert_ne!(Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool}, Datatype::Array {value: vec!(Datatype::Bool(true), Datatype::Bool(true)), type_: TypeInfo::Number});
     assert_eq!(Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()}, Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()});
 
-    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let mut map: HashMap<String, (TypeInfo, Option<Datatype>)> = HashMap::new();
     map.insert("field".to_string(), ( TypeInfo::Bool, Some(Datatype::Bool(true)) ));
-    assert_ne!(Datatype::Struct {struct_type: "StructName".to_string(), map: map}, Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()});
+    assert_ne!(Datatype::Struct {struct_type: "StructName".to_string(), map: map.clone()}, Datatype::Struct {struct_type: "StructName".to_string(), map: HashMap::new()});
 
-    let mut other_map: HashMap<String, Datatype> = HashMap::new();
+    let mut other_map: HashMap<String, (TypeInfo, Option<Datatype>)> = HashMap::new();
     other_map.insert("field".to_string(), ( TypeInfo::Bool, Some(Datatype::Bool(true)) ));
     assert_eq!(Datatype::Struct {struct_type: "StructName".to_string(), map: map}, Datatype::Struct {struct_type: "StructName".to_string(), map: other_map});
 }

@@ -47,7 +47,7 @@ pub enum BinaryOperator {
     ExecuteFn,
     FunctionParameterAssignment,
     Loop,
-    AccessArray // Array on lefthand side, Index on rightside
+    AccessArray
 }
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
@@ -57,7 +57,6 @@ pub enum UnaryOperator {
     Increment,
     Decrement,
 }
-
 
 
 impl Ast {
@@ -175,8 +174,6 @@ impl Ast {
                                     }
                                     _ => Err(LangError::InvalidIndexType(possible_index))
                                 }
-
-
                             }
                             _ => return Err(LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype)))
                         }

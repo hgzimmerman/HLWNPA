@@ -4,12 +4,18 @@ use std::ops::Mul;
 use std::ops::Div;
 use std::ops::Rem;
 
+use std::cmp::PartialOrd;
+use std::cmp::Ordering;
+
 use lang_result::*;
 use Ast;
 
+use std::collections::HashMap;
 
-#[derive(PartialEq, PartialOrd, Debug, Clone)]
+
+#[derive(PartialEq, Debug, Clone)]
 pub enum Datatype {
+
     Number(i32),
     String(String),
     Array {
@@ -23,8 +29,49 @@ pub enum Datatype {
         body: Box<Ast>,
         return_type: Box<TypeInfo>, // this box isn't needed
     },
-    //Object { value: Vec<Datatype>, v_table: Vec<Ast>}
+    Struct {
+        struct_type: String,
+        map: HashMap<String, Datatype>
+    }
 }
+
+impl PartialOrd for Datatype {
+    fn partial_cmp(&self, rhs: &Datatype) -> Option<Ordering> {
+        match *self {
+            Datatype::Number(lhs) => {
+                if let Datatype::Number(rhs_number) = *rhs {
+                    if lhs < rhs_number {
+                        Some(Ordering::Less)
+                    } else if  lhs > rhs_number {
+                        Some(Ordering::Greater)
+                    } else {
+                        Some(Ordering::Equal)
+                    }
+                } else {
+                    None
+                }
+            }
+            Datatype::String(ref lhs) => {
+                if let Datatype::String(rhs_string) = rhs.clone() {
+                    let lhs = lhs.clone();
+                    if lhs < rhs_string {
+                        Some(Ordering::Less)
+                    } else if  lhs > rhs_string {
+                        Some(Ordering::Greater)
+                    } else {
+                        Some(Ordering::Equal)
+                    }
+                } else {
+                    None
+                }
+            }
+
+            _ => { None }
+        }
+    }
+}
+
+
 
 impl Sub for Datatype {
     type Output = LangResult;
@@ -128,6 +175,7 @@ pub enum TypeInfo {
     Bool,
     None,
     Function,
+    Struct
 }
 
 
@@ -140,6 +188,7 @@ impl From<Datatype> for TypeInfo {
             Datatype::Bool(_) => TypeInfo::Bool,
             Datatype::None => TypeInfo::None,
             Datatype::Function { .. } => TypeInfo::Function,
+            Datatype::Struct { .. } => TypeInfo::Struct
         }
     }
 }

@@ -224,7 +224,7 @@ pub enum TypeInfo {
 
 //TODO, implement this. It is never used, but should be accurate
 impl PartialOrd for TypeInfo {
-    fn partial_cmp(&self, rhs: &TypeInfo) -> Option<Ordering>{
+    fn partial_cmp(&self, _rhs: &TypeInfo) -> Option<Ordering>{
         Some(Ordering::Equal)
     }
 }
@@ -235,7 +235,7 @@ impl From<Datatype> for TypeInfo {
         match datatype {
             Datatype::Number(_) => TypeInfo::Number,
             Datatype::String(_) => TypeInfo::String,
-            Datatype::Array { value, type_ } => TypeInfo::Array(Box::new(type_)),
+            Datatype::Array { value: _value, type_ } => TypeInfo::Array(Box::new(type_)),
             Datatype::Bool(_) => TypeInfo::Bool,
             Datatype::None => TypeInfo::None,
             Datatype::Function { .. } => TypeInfo::Function,

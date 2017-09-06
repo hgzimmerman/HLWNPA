@@ -179,7 +179,7 @@ impl Ast {
                             _ => return Err(LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype)))
                         }
                     }
-
+                    // Add an entry for a struct type to the current stack
                     BinaryOperator::StructDeclaration => {
                         if let Ast::ValueIdentifier(ref struct_type_identifier) = **expr1 {
                             if let Ast::VecExpression {ref expressions} = **expr2 {
@@ -816,4 +816,30 @@ fn array_incorrect_access_test() {
         expr2: Box::new(Ast::Literal(Datatype::Number(3))) // Array size 3. 0, 1, 2 hold elements. Index 3 doesn't.
     };
     assert_eq!(LangError::OutOfBoundsArrayAccess, ast.evaluate(&mut map).unwrap_err())
+}
+
+#[test]
+fn struct_declartion_test() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let ast: Ast = Ast::Expression {
+        operator: BinaryOperator::StructDeclaration,
+        expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
+        expr2: Box::new(Ast::VecExpression {
+            expressions: vec![
+                Ast::Expression {
+                    operator: BinaryOperator::Assignment,
+                    expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+                    expr2: Box::new(Ast::Type(TypeInfo::Number))
+
+                }
+            ]
+        })
+    };
+    let _ = ast.evaluate(&mut map);
+    let mut expected_map = HashMap::new();
+    let mut inner_struct_hash_map = HashMap::new();
+    inner_struct_hash_map.insert("Field1".to_string(), TypeInfo::Number);
+    expected_map.insert("MyStruct".to_string(), Datatype::StructType(TypeInfo::Struct {map: inner_struct_hash_map}));
+    assert_eq!(expected_map, map)
+
 }

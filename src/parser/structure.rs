@@ -20,6 +20,19 @@ named!(pub struct_definition<Ast>,
     )
 );
 
+named!(pub struct_access<Ast>,
+    do_parse!(
+        struct_name: ws!(identifier) >>
+        ws!(tag!(".")) >>
+        struct_field_name: ws!(identifier) >>
+        (Ast::Expression{
+            operator: BinaryOperator::AccessStructField,
+            expr1: Box::new(struct_name),
+            expr2: Box::new(struct_field_name)
+        })
+    )
+);
+
 #[cfg(test)]
 mod test {
 
@@ -50,4 +63,23 @@ mod test {
 
         assert_eq!(expected_struct_ast,value);
     }
+
+    #[test]
+    fn parse_struct_access() {
+        let input_string = "structVariable.field";
+        let (_, value) = match struct_access(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+        let expected_ast = Ast::Expression {
+            operator: BinaryOperator::AccessStructField,
+            expr1: Box::new(Ast::ValueIdentifier("structVariable".to_string())),
+            expr2: Box::new(Ast::ValueIdentifier("field".to_string()))
+        };
+        assert_eq!(expected_ast, value)
+
+    }
+
+
 }

@@ -244,10 +244,10 @@ impl From<Datatype> for TypeInfo {
     }
 }
 
-
+/// I reimplemented PartialEq for Datatype to accommodate the HashMap in Struct (which doesn't implement it)
+/// This test checks that I didn't break the re-implementation.
 #[test]
 fn datatype_equality_tests() {
-    // I reimplemented PartialEq to accommodate HashMap (which doesn't implement it)
     assert_eq!(Datatype::Number(30), Datatype::Number(30));
     assert_ne!(Datatype::Number(23), Datatype::Number(30));
     assert_eq!(Datatype::String("Hello".to_string()), Datatype::String("Hello".to_string()));

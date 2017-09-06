@@ -94,6 +94,35 @@ mod test {
             expr2: Box::new(Ast::ValueIdentifier("field".to_string()))
         };
         assert_eq!(expected_ast, value)
+    }
+
+
+    #[test]
+    fn parse_new_struct() {
+        let input_string = r##"new MyStruct {
+            a : 8
+        }""##;
+        let (_, value) = match create_struct_instance(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+        let expected_ast = Ast::Expression {
+            operator: BinaryOperator::CreateStruct,
+            expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
+            expr2: Box::new(Ast::VecExpression {
+                expressions: vec![
+                    Ast::Expression {
+                        operator: BinaryOperator::FunctionParameterAssignment,
+                        expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+                        expr2: Box::new(Ast::Literal(Datatype::Number(8)))
+                    }
+                ]
+            })
+        };
+
+        assert_eq!(expected_ast, value);
+
 
     }
 

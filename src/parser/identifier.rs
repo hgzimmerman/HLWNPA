@@ -6,31 +6,34 @@ use std::str;
 
 #[cfg(not(feature = "polite"))]
 named!( reserved_words,
-    alt!(ws!(tag!("let")) |
-    ws!(tag!("fn")) |
-    ws!(tag!("if")) |
-    ws!(tag!("else")) |
-    ws!(tag!("while")) |
-    ws!(tag!("true")) |
-    ws!(tag!("false"))  |
-    ws!(tag!("struct")) |
-    ws!(tag!("new"))
+    alt!(
+        ws!(tag!("let")) |
+        ws!(tag!("fn")) |
+        ws!(tag!("if")) |
+        ws!(tag!("else")) |
+        ws!(tag!("while")) |
+        ws!(tag!("true")) |
+        ws!(tag!("false"))  |
+        ws!(tag!("struct")) |
+        ws!(tag!("new"))
     )
 );
 
 #[cfg(feature = "polite")]
 named!( reserved_words,
-    alt!(ws!(tag!("let")) |
-    ws!(tag!("fn")) |
-    ws!(tag!("if")) |
-    ws!(tag!("else")) |
-    ws!(tag!("while")) |
-    ws!(tag!("true")) |
-    ws!(tag!("false")) |
-    ws!(tag!("struct")) |
-    ws!(tag!("new")) |
-    ws!(tag!("please")) |
-    ws!(tag!("thankyou")) )
+    alt!(
+        ws!(tag!("let")) |
+        ws!(tag!("fn")) |
+        ws!(tag!("if")) |
+        ws!(tag!("else")) |
+        ws!(tag!("while")) |
+        ws!(tag!("true")) |
+        ws!(tag!("false")) |
+        ws!(tag!("struct")) |
+        ws!(tag!("new")) |
+        ws!(tag!("please")) |
+        ws!(tag!("thankyou"))
+    )
 );
 
 named!(accepted_identifier_characters<&str>,

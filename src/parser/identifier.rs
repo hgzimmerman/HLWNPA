@@ -12,7 +12,10 @@ named!( reserved_words,
     ws!(tag!("else")) |
     ws!(tag!("while")) |
     ws!(tag!("true")) |
-    ws!(tag!("false")) )
+    ws!(tag!("false"))  |
+    ws!(tag!("struct")) |
+    ws!(tag!("new"))
+    )
 );
 
 #[cfg(feature = "polite")]
@@ -24,6 +27,8 @@ named!( reserved_words,
     ws!(tag!("while")) |
     ws!(tag!("true")) |
     ws!(tag!("false")) |
+    ws!(tag!("struct")) |
+    ws!(tag!("new")) |
     ws!(tag!("please")) |
     ws!(tag!("thankyou")) )
 );

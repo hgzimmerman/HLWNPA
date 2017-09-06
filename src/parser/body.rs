@@ -2,6 +2,7 @@
 use nom::*;
 use ast::Ast;
 use parser::utilities::expression_or_literal_or_identifier_or_assignment;
+use parser::assignment::{type_assignment, struct_value_assignment};
 
 #[cfg(not(feature = "polite"))]
 named!(pub body<Ast>,
@@ -28,6 +29,32 @@ named!(pub body<Ast>,
         (Ast::VecExpression{expressions: statements})
     )
 );
+
+
+//Body that only accepts assignments in the form: a : 4
+named!(pub type_assignment_body<Ast>,
+    do_parse!(
+        statements : delimited!(
+            ws!(char!('{')),
+            many0!(ws!(type_assignment)),
+            ws!(char!('}'))
+        ) >>
+        (Ast::VecExpression{expressions: statements})
+    )
+);
+
+named!(pub struct_init_body<Ast>,
+    do_parse!(
+        statements : delimited!(
+            ws!(char!('{')),
+            many0!(ws!(struct_value_assignment)),
+            ws!(char!('}'))
+        ) >>
+        (Ast::VecExpression{expressions: statements})
+    )
+);
+
+
 
 #[test]
 fn parse_body_nocheck_test() {

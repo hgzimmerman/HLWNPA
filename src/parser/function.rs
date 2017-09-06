@@ -5,16 +5,9 @@ use parser::identifier::identifier;
 use parser::body::body;
 use parser::type_signature::type_signature;
 use datatype::{Datatype, TypeInfo};
+use parser::assignment::type_assignment;
 
-/// Used for assigning identifiers to types
-named!(function_parameter_assignment<Ast>,
-    do_parse!(
-        id: identifier >>
-        tag!(":") >>
-        type_info: type_signature >>
-        (Ast::Expression{ operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(id), expr2: Box::new(type_info) })
-    )
-);
+
 
 named!(function_return_type<TypeInfo>,
     do_parse!(
@@ -36,7 +29,7 @@ named!(pub function<Ast>,
         function_name: identifier >>
         arguments: delimited!(
             ws!(char!('(')),
-            many0!(ws!(function_parameter_assignment)),
+            many0!(ws!(type_assignment)),
             ws!(char!(')'))
         ) >>
         return_type: function_return_type >>
@@ -55,16 +48,7 @@ named!(pub function<Ast>,
     )
 );
 
-#[test]
-fn parse_function_parameter_assignment_of_type_number_test() {
-    let input_string = "b : Number";
-    let (_, value) = match function_parameter_assignment(input_string.as_bytes()) {
-        IResult::Done(r, v) => (r, v),
-        IResult::Error(e) => panic!("{:?}", e),
-        _ => panic!(),
-    };
-    assert_eq!(Ast::Expression {operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier ( "b".to_string())), expr2: Box::new(Ast::Type ( TypeInfo::Number)) }, value)
-}
+
 
 
 

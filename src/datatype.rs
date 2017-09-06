@@ -52,8 +52,7 @@ impl PartialOrd for Datatype {
                 }
             }
             Datatype::String(ref lhs) => {
-                if let Datatype::String(rhs_string) = rhs.clone() {
-                    let lhs = lhs.clone();
+                if let &Datatype::String(ref rhs_string) = rhs {
                     if lhs < rhs_string {
                         Some(Ordering::Less)
                     } else if  lhs > rhs_string {
@@ -113,7 +112,6 @@ impl PartialOrd for Datatype {
                 } else {
                     Some(Ordering::Less)
                 }
-
             }
             _ => { None }
         }

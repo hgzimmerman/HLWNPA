@@ -12,7 +12,6 @@ use clap::{Arg, App};
 use nom::IResult;
 
 use std::collections::HashMap;
-use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::OpenOptions;
@@ -52,22 +51,31 @@ fn main() {
     match matches.value_of("file") {
         Some(filename) => {
             // read the file into a string, parse it, and execute the resulting AST
-            let mut file_contents: String = String::new();
-            let file: File = OpenOptions::new().read(true).open(&filename).unwrap();
-            let mut buf_reader = BufReader::new(&file);
-            match buf_reader.read_to_string(&mut file_contents) {
-                Ok(_) => {}
-                Err(e) => eprintln!("Couldn't read the file {} because {}", filename, e),
-            }
 
-            match program(file_contents.as_bytes()) {
-                IResult::Done(_, ast) => {
-                    let mut map: HashMap<String, Datatype> = HashMap::new();
-                    let program_return_value = ast.evaluate(&mut map);
-                    println!("{:?}", program_return_value);
+            match OpenOptions::new().read(true).open(&filename) {
+                Ok(file) => {
+                    let mut file_contents: String = String::new();
+                    let mut buf_reader = BufReader::new(&file);
+                    match buf_reader.read_to_string(&mut file_contents) {
+                        Ok(_) => {}
+                        Err(e) => eprintln!("Couldn't read the file {} because: {}", filename, e),
+                    }
+
+                    match program(file_contents.as_bytes()) {
+                        IResult::Done(_, ast) => {
+                            let mut map: HashMap<String, Datatype> = HashMap::new();
+                            let program_return_value = ast.evaluate(&mut map);
+                            match program_return_value {
+                                Ok(ok_value) => println!("{:?}", ok_value),
+                                Err(e) => println!("{:?}", e)
+                            }
+
+                        }
+                        IResult::Error(e) => eprintln!("encountered an error while parsing the file: {:?}", e),
+                        IResult::Incomplete(i) => eprintln!("Couldn't parse all of the file: {:?}", i),
+                    }
                 }
-                IResult::Error(e) => eprintln!("encountered an error while parsing the file: {:?}", e),
-                IResult::Incomplete(i) => eprintln!("Couldn't parse all of the file: {:?}", i),
+                Err(e) => eprintln!("Couldn't open file because: {}", e)
             }
         }
         None => repl(), // If a file to run wasn't provided, drop the user into a REPL

@@ -535,7 +535,7 @@ mod test {
         use super::*;
 
         #[bench]
-        fn simple_program_bench(b: &mut Bencher) {
+        fn simple_program_execute_bench(b: &mut Bencher) {
             use super::super::super::test_constants::SIMPLE_PROGRAM_INPUT_1;
             let mut map: HashMap<String, Datatype> = HashMap::new();
             let (_, ast) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
@@ -545,6 +545,21 @@ mod test {
             };
 
             b.iter(|| {
+                assert_eq!(Datatype::Number(15), ast.evaluate(&mut map).unwrap())
+            })
+        }
+
+        #[bench]
+        fn simple_program_parse_and_execute_bench(b: &mut Bencher) {
+            use super::super::super::test_constants::SIMPLE_PROGRAM_INPUT_1;
+
+            b.iter(|| {
+                let mut map: HashMap<String, Datatype> = HashMap::new();
+                let (_, ast) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
+                    IResult::Done(rest, v) => (rest, v),
+                    IResult::Error(e) => panic!("{}", e),
+                    _ => panic!(),
+                };
                 assert_eq!(Datatype::Number(15), ast.evaluate(&mut map).unwrap())
             })
         }

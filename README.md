@@ -17,6 +17,7 @@ I did this just to see what I could acomplish with no prior experience with lang
 * Type System. Runtime checking only.
 * Statements are delimited by `()`, because the language has no concept of order of operations.
 * Functions and structs must be declared in the order they are used.
+* I don't think I have support for functions returning arrays.
 
 
 # Actual Features

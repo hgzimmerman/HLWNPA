@@ -38,6 +38,7 @@ named!(pub if_expression<Ast>,
 mod test {
     use super::*;
     use datatype::Datatype;
+    use ast::BinaryOperator;
 
     #[test]
     fn parse_if_statement_test() {
@@ -59,6 +60,30 @@ mod test {
         )
     }
 
+
+    #[test]
+    fn parse_if_statement_with_expression_test() {
+        let input_string = "if (1 == 1) { true }";
+        let (_, value) = match if_expression(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+        assert_eq!(
+            Ast::Conditional {
+                condition: Box::new(Ast::Expression {
+                    operator: BinaryOperator::Equals,
+                    expr1: Box::new(Ast::Literal(Datatype::Number(1))),
+                    expr2: Box::new(Ast::Literal(Datatype::Number(1)))
+                }),
+                true_expr: Box::new(Ast::VecExpression {
+                    expressions: vec![Ast::Literal(Datatype::Bool(true))],
+                }),
+                false_expr: None,
+            },
+            value
+        )
+    }
     #[test]
     fn parse_if_else_statement_test() {
         let input_string = "if true { true } else { true }";

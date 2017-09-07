@@ -345,52 +345,56 @@ mod test {
         assert_eq!(Datatype::Number(180), ast.evaluate(&mut map).unwrap())
     }
 
-    #[bench]
-    fn simple_program_bench(b: &mut Bencher) {
-        use super::super::test_constants::SIMPLE_PROGRAM_INPUT_1;
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let (_, ast) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
-            IResult::Done(rest, v) => (rest, v),
-            IResult::Error(e) => panic!("{}", e),
-            _ => panic!(),
-        };
 
-        b.iter(|| {
-            assert_eq!(Datatype::Number(15), ast.evaluate(&mut map).unwrap())
-        })
-    }
+    mod benches {
+        use super::*;
 
-    #[bench]
-    fn while_loop_parse_and_execute_program_bench(b: &mut Bencher) {
-        fn loop_1000_times_program() {
-            use nom::IResult;
+        #[bench]
+        fn simple_program_bench(b: &mut Bencher) {
+            use super::super::super::test_constants::SIMPLE_PROGRAM_INPUT_1;
             let mut map: HashMap<String, Datatype> = HashMap::new();
-            let input_string = r##"
+            let (_, ast) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
+                IResult::Done(rest, v) => (rest, v),
+                IResult::Error(e) => panic!("{}", e),
+                _ => panic!(),
+            };
+
+            b.iter(|| {
+                assert_eq!(Datatype::Number(15), ast.evaluate(&mut map).unwrap())
+            })
+        }
+
+        #[bench]
+        fn while_loop_parse_and_execute_program_bench(b: &mut Bencher) {
+            fn loop_1000_times_program() {
+                use nom::IResult;
+                let mut map: HashMap<String, Datatype> = HashMap::new();
+                let input_string = r##"
         let x := 0
         while (x < 1000) {
            let x := (x + 1)
         }
         x
         "##;
-            let (_, ast) = match program(input_string.as_bytes()) {
-                IResult::Done(rest, v) => (rest, v),
-                IResult::Error(e) => panic!("{}", e),
-                _ => panic!(),
-            };
+                let (_, ast) = match program(input_string.as_bytes()) {
+                    IResult::Done(rest, v) => (rest, v),
+                    IResult::Error(e) => panic!("{}", e),
+                    _ => panic!(),
+                };
 
-            assert_eq!(Datatype::Number(1000), ast.evaluate(&mut map).unwrap());
+                assert_eq!(Datatype::Number(1000), ast.evaluate(&mut map).unwrap());
+            }
+
+            b.iter(|| loop_1000_times_program());
         }
 
-        b.iter(|| loop_1000_times_program());
-    }
 
-
-    #[bench]
-    fn while_loop_with_useless_conditionals_parse_and_execute_program_bench(b: &mut Bencher) {
-        fn loop_1000_times_program() {
-            use nom::IResult;
-            let mut map: HashMap<String, Datatype> = HashMap::new();
-            let input_string = r##"
+        #[bench]
+        fn while_loop_with_useless_conditionals_parse_and_execute_program_bench(b: &mut Bencher) {
+            fn loop_1000_times_program() {
+                use nom::IResult;
+                let mut map: HashMap<String, Datatype> = HashMap::new();
+                let input_string = r##"
         let x := 0
         while (x < 1000) {
             ( 1 * 3 )
@@ -400,15 +404,17 @@ mod test {
         }
         x
         "##;
-            let (_, ast) = match program(input_string.as_bytes()) {
-                IResult::Done(rest, v) => (rest, v),
-                IResult::Error(e) => panic!("{}", e),
-                _ => panic!(),
-            };
+                let (_, ast) = match program(input_string.as_bytes()) {
+                    IResult::Done(rest, v) => (rest, v),
+                    IResult::Error(e) => panic!("{}", e),
+                    _ => panic!(),
+                };
 
-            assert_eq!(Datatype::Number(1000), ast.evaluate(&mut map).unwrap());
+                assert_eq!(Datatype::Number(1000), ast.evaluate(&mut map).unwrap());
+            }
+
+            b.iter(|| loop_1000_times_program());
         }
-
-        b.iter(|| loop_1000_times_program());
     }
+
 }

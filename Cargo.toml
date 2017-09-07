@@ -1,6 +1,6 @@
 [package]
-name = "rust-lisp-thing"
-version = "0.1.0"
+name = "hlwnpa"
+version = "0.1.1"
 authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 
 [dependencies]

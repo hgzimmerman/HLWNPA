@@ -38,7 +38,7 @@ fn main() {
         .version("0.1.1")
         .author("Henry Zimmerman")
         .about(
-            "A toy language I made in a couple of days without thinking about it too much",
+            "A toy language I made in a couple of days without thinking about it too much.",
         )
         .arg(
             Arg::with_name("file")

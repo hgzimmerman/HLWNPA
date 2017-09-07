@@ -1,0 +1,21 @@
+struct MyStruct {
+    a : Number
+    b : Number
+}
+
+let a := 3
+
+fn create_new_MyStruct( value: Number ) -> MyStruct {
+    new MyStruct {
+        a: 8
+        b: value
+    }
+}
+
+fn addContents( s: MyStruct ) -> Number {
+    (s.a + s.b)
+}
+
+let instance := create_new_MyStruct( a )
+
+addContents( instance )

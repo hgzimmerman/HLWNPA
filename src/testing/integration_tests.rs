@@ -375,7 +375,62 @@ mod test {
         assert_eq!(Datatype::Number(180), ast.evaluate(&mut map).unwrap())
     }
 
+    #[test]
+    fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_with_internal_assignment() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        struct MyStruct {
+            a : Number
+            b : Number
+        }
 
+        fn create_new_MyStruct( value: Number ) -> MyStruct {
+            let c := new MyStruct {
+                a: 8
+                b: value
+            }
+            c
+        }
+        create_new_MyStruct( 3 )
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+        let mut struct_map: HashMap<String, Datatype> = HashMap::new();
+        struct_map.insert("a".to_string(), Datatype::Number(8));
+        struct_map.insert("b".to_string(), Datatype::Number(3));
+        assert_eq!(Datatype::Struct{map: struct_map}, ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn program_parse_struct_with_multiple_fields_and_return_struct_from_function() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        struct MyStruct {
+            a : Number
+            b : Number
+        }
+
+        fn create_new_MyStruct( value: Number ) -> MyStruct {
+            new MyStruct {
+                a: 8
+                b: value
+            }
+        }
+        create_new_MyStruct( 3 )
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+        let mut struct_map: HashMap<String, Datatype> = HashMap::new();
+        struct_map.insert("a".to_string(), Datatype::Number(8));
+        struct_map.insert("b".to_string(), Datatype::Number(3));
+        assert_eq!(Datatype::Struct{map: struct_map}, ast.evaluate(&mut map).unwrap())
+    }
 
     mod benches {
         use super::*;

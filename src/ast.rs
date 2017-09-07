@@ -378,7 +378,26 @@ impl Ast {
 
                                         // Evaluate the body of the function
                                         let output: Datatype = body.evaluate(&mut cloned_map)?;
-                                        if TypeInfo::from(output.clone()) == *return_type {
+                                        let expected_return_type: TypeInfo = match *return_type {
+                                            Ast::Type(type_) => type_,
+                                            Ast::ValueIdentifier(ref id) => {
+                                                match map.get(id) {
+                                                    Some(datatype) => {
+                                                        if let Datatype::StructType(ref structTypeInfo) = *datatype {
+                                                            structTypeInfo.clone()
+                                                        } else {
+                                                            return Err(LangError::ExpectedIdentifierToBeStructType { found: id.clone() })
+                                                        }
+                                                    }
+                                                    None => return Err(LangError::IdentifierDoesntExist)
+                                                }
+                                            }
+                                            _ => {
+                                               return Err(LangError::ExpectedDataTypeInfo)
+                                            }
+                                        };
+
+                                        if TypeInfo::from(output.clone()) == expected_return_type {
                                             return Ok(output);
                                         } else {
                                             return Err(LangError::ReturnTypeDoesNotMatchReturnValue);
@@ -761,7 +780,7 @@ mod test {
                         // empty parameters
                         body: (Box::new(Ast::Literal(Datatype::Number(32)))),
                         // just return a number
-                        return_type: Box::new(TypeInfo::Number),
+                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
                         // expect a number
                     })),
                 },
@@ -799,7 +818,7 @@ mod test {
                         }),
                         body: (Box::new(Ast::ValueIdentifier("b".to_string()))),
                         // just return the number passed in.
-                        return_type: Box::new(TypeInfo::Number),
+                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
                         // expect a number to be returned
                     })),
                 },
@@ -852,7 +871,7 @@ mod test {
                             expr2: Box::new(Ast::ValueIdentifier("c".to_string())),
                         })),
 
-                        return_type: Box::new(TypeInfo::Number),
+                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
                         // expect a number to be returned
                     })),
                 },

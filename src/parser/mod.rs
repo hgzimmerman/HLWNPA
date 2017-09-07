@@ -133,7 +133,7 @@ mod test {
                             expr2: Box::new(Ast::Literal(Datatype::Number(8))),
                         }],
                 }),
-                return_type: Box::new(TypeInfo::Number),
+                return_type: Box::new(Ast::Type(TypeInfo::Number)),
             })),
         };
         let expected_fn_call: Ast = Ast::Expression {

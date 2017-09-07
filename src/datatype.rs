@@ -27,7 +27,7 @@ pub enum Datatype {
     Function {
         parameters: Box<Ast>,
         body: Box<Ast>,
-        return_type: Box<TypeInfo>, // this box isn't needed
+        return_type: Box<Ast>, // This Ast should be shallow and easily resovable to a TypeInfo (either is directly a TypeInfo or an Identifier that can be resolved to a TypeInfo)
     },
     Struct {
         map: HashMap<String, Datatype>

@@ -16,8 +16,8 @@ named!(pub expression_or_literal_or_identifier<Ast>,
         complete!(any_expression_parens) |
         complete!(literal) |
         complete!(struct_access) | // must come before identifier
-        complete!(identifier) |
-        complete!(create_struct_instance)
+        complete!(create_struct_instance) |
+        complete!(identifier)
 //        complete!(array_access)
     )
 );
@@ -37,5 +37,12 @@ named!(pub expression_or_literal_or_identifier_or_struct_or_array<Ast>,
 );
 
 named!(pub expression_or_literal_or_identifier_or_assignment<Ast>,
-    alt!(any_expression_parens | literal | identifier | assignment)
+    alt!(
+        any_expression_parens |
+        literal |
+        struct_access |
+        create_struct_instance |
+        identifier |
+        assignment
+    )
 );

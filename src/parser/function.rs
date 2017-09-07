@@ -8,16 +8,13 @@ use datatype::{Datatype, TypeInfo};
 use parser::assignment::type_assignment;
 
 
-
-named!(function_return_type<TypeInfo>,
+/// Either a Type or an identifier that can be resolved to a Struct's Type
+named!(function_return_type<Ast>,
     do_parse!(
         ws!(tag!("->")) >>
-        return_type: type_signature >>
+        return_type: alt!( complete!(type_signature) | complete!(identifier) ) >>
         // Extract the datatype from the Ast::Type provided by the type_signature function
-        (match return_type {
-            Ast::Type (datatype) => datatype,
-            _ => unreachable!() // this branch should never be encountered. //TODO create an error
-        })
+        (return_type)
     )
 );
 
@@ -82,7 +79,7 @@ fn parse_whole_function_number_input_returns_number_test() {
                             expr2: Box::new(Ast::Literal ( Datatype::Number(8))),
                         }],
             }),
-            return_type: Box::new(TypeInfo::Number),
+            return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),
     };
     assert_eq!(expected_fn, value)
@@ -117,7 +114,7 @@ fn parse_whole_function_identifier_input_returns_number_test() {
                         expr2: Box::new(Ast::Literal ( Datatype::Number(8))),
                     }],
             }),
-            return_type: Box::new(TypeInfo::Number),
+            return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),
     };
     assert_eq!(expected_fn, value)

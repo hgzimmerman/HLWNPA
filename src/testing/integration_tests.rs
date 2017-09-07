@@ -2,9 +2,6 @@
 mod test {
     use nom::IResult;
     use parser::program;
-    //use parser::function::function;
-//    use ast::*;
-//    use std::boxed::Box;
     use std::collections::HashMap;
     use datatype::{Datatype, TypeInfo};
     use test::Bencher;
@@ -336,7 +333,7 @@ mod test {
             b: 10
         }
 
-        (instance.8 + instance.b)
+        ((instance.a + instance.b) * instance.b)
 
         "##;
         let (_, ast) = match program(input_string.as_bytes()) {
@@ -345,7 +342,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(Datatype::Number(18), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(180), ast.evaluate(&mut map).unwrap())
     }
 
     #[bench]

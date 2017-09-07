@@ -906,7 +906,7 @@ mod test {
             expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
                     Ast::Expression {
-                        operator: BinaryOperator::Assignment,
+                        operator: BinaryOperator::FunctionParameterAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
                         expr2: Box::new(Ast::Type(TypeInfo::Number))
                     }
@@ -932,7 +932,7 @@ mod test {
             expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
                     Ast::Expression {
-                        operator: BinaryOperator::Assignment,
+                        operator: BinaryOperator::FunctionParameterAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
                         expr2: Box::new(Ast::Type(TypeInfo::Number))
                     }

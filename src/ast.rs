@@ -120,7 +120,6 @@ impl Ast {
                         }
                     }
                     BinaryOperator::Assignment | BinaryOperator::TypeAssignment | BinaryOperator::FieldAssignment => {
-                        // does the same thing as assignment, but I want a separate type for this.
                         if let Ast::ValueIdentifier(ref ident) = **expr1 {
                             let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
                             let evaluated_right_hand_side = expr2.evaluate(&mut cloned_map)?;
@@ -173,40 +172,7 @@ impl Ast {
                     }
                     // Add an entry for a struct type to the current stack
                     BinaryOperator::StructDeclaration => {
-                        if let Ast::ValueIdentifier(ref struct_type_identifier) = **expr1 {
-                            if let Ast::VecExpression {ref expressions} = **expr2 {
-
-                                let mut struct_map: HashMap<String, TypeInfo> = HashMap::new();
-
-                                for assignment_expr in expressions {
-                                    if let &Ast::Expression {operator: ref assignment_op, expr1: ref field_identifier_expr, expr2: ref field_type_expr} = assignment_expr {
-                                        if let BinaryOperator::TypeAssignment = *assignment_op {
-                                            if let Ast::ValueIdentifier(ref field_id) = **field_identifier_expr {
-                                                if let Ast::Type(ref field_type) = **field_type_expr {
-                                                    struct_map.insert(field_id.clone(), field_type.clone());
-                                                } else {
-                                                    return Err(LangError::FieldTypeNotSupplied)
-                                                }
-                                            } else {
-                                                return Err(LangError::FieldIdentifierNotSupplied)
-                                            }
-                                        } else {
-                                            return Err(LangError::NonAssignmentInStructDeclaration)
-                                        }
-                                    } else {
-                                        return Err(LangError::ExpectedExpression)
-                                    }
-                                }
-                                let new_struct_type = TypeInfo::Struct {map: struct_map};
-                                let retval = Datatype::StructType(new_struct_type);
-                                map.insert(struct_type_identifier.clone(), retval.clone() );
-                                return Ok(retval)
-                            } else {
-                                return Err(LangError::StructBodyNotSupplied)
-                            }
-                        } else {
-                            Err(LangError::StructNameNotSupplied)
-                        }
+                        return declare_struct(expr1, expr2, map)
                     }
                     BinaryOperator::AccessStructField => {
                         // if expr1 produces a struct when evaluated
@@ -297,10 +263,53 @@ impl Ast {
                     Some(value) => Ok(value.clone()),
                     None => Err(LangError::VariableDoesntExist(
                         format!("Variable `{}` hasn't been assigned yet", ident),
-                    )), // identifier hasn't been assigned yet.
+                    )),
                 }
             }
         }
+    }
+}
+
+
+/// Given an Identifier,
+/// and a vector of expressions tha contains only TypeAssignments.
+/// Create a new map that will represent the binding between the fields in the struct and the types they should have when instansiated.
+/// Insert into the map these field-type pairs.
+/// Create a new StructType from the new map and return it.
+fn declare_struct (expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
+    if let Ast::ValueIdentifier(ref struct_type_identifier) = *expr1 {
+        if let Ast::VecExpression {ref expressions} = *expr2 {
+
+            let mut struct_map: HashMap<String, TypeInfo> = HashMap::new();
+
+            for assignment_expr in expressions {
+                if let &Ast::Expression {operator: ref assignment_op, expr1: ref field_identifier_expr, expr2: ref field_type_expr} = assignment_expr {
+                    if let BinaryOperator::TypeAssignment = *assignment_op {
+                        if let Ast::ValueIdentifier(ref field_id) = **field_identifier_expr {
+                            if let Ast::Type(ref field_type) = **field_type_expr {
+                                struct_map.insert(field_id.clone(), field_type.clone());
+                            } else {
+                                return Err(LangError::FieldTypeNotSupplied)
+                            }
+                        } else {
+                            return Err(LangError::FieldIdentifierNotSupplied)
+                        }
+                    } else {
+                        return Err(LangError::NonAssignmentInStructDeclaration)
+                    }
+                } else {
+                    return Err(LangError::ExpectedExpression)
+                }
+            }
+            let new_struct_type = TypeInfo::Struct {map: struct_map};
+            let retval = Datatype::StructType(new_struct_type);
+            map.insert(struct_type_identifier.clone(), retval.clone() );
+            return Ok(retval)
+        } else {
+            return Err(LangError::StructBodyNotSupplied)
+        }
+    } else {
+        Err(LangError::StructNameNotSupplied)
     }
 }
 

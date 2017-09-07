@@ -64,6 +64,10 @@ pub enum UnaryOperator {
 
 
 impl Ast {
+
+
+    /// Recurse down the AST, evaluating expressions where possible, turning them into Literals that contain Datatypes.
+    /// If no errors are encountered, the whole AST should resolve to become a single Datatype, which is then returned.
     pub fn evaluate(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
         match *self {
             Ast::Expression {

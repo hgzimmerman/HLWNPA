@@ -237,7 +237,9 @@ impl Ast {
                     }
 
                     BinaryOperator::CreateStruct => {
+                        // This expects the expr1 to be an Identifier that resolves to be a struct definition, or the struct definition itself.
                         if let Datatype::StructType(TypeInfo::Struct {map: struct_type_map} ) = expr1.evaluate(map)? {
+                            // It expects that the righthand side should be a series of expressions that assign values to fields (that have already been specified in the StructType)
                             if let Ast::VecExpression { expressions: ref assignment_expressions } = **expr2 {
                                 let mut new_struct_map: HashMap<String, Datatype> = HashMap::new();
 
@@ -253,15 +255,16 @@ impl Ast {
                                                 let value_to_be_assigned: Datatype = assignment_expr2.evaluate(map)?;
 
                                                 // check if the value to be assigned matches the expected type
-                                                let to_be_assigned_type: TypeInfo = TypeInfo::from(value_to_be_assigned);
+                                                let to_be_assigned_type: TypeInfo = TypeInfo::from(value_to_be_assigned.clone());
                                                 if expected_type == &to_be_assigned_type {
-                                                    continue; // type checks out
+                                                    new_struct_map.insert(field_identifier.clone(), value_to_be_assigned);
+//                                                    continue; // type checks out
                                                 } else {
                                                     return Err(LangError::TypeError { expected: expected_type.clone(), found: to_be_assigned_type })
                                                 }
 
                                                 // now add the value to the new struct's map
-                                                new_struct_map.insert(field_identifier.clone(), value_to_be_assigned);
+
                                             } else {
                                                 return Err(LangError::ExpectedIdentifier);
                                             }
@@ -272,7 +275,7 @@ impl Ast {
                                         return Err(LangError::NonAssignmentInStructInit);
                                     }
                                 }
-                                return Ok(Datatype::Struct{map: new_struct_map})
+                                return Ok(Datatype::Struct{map: new_struct_map}) // Return the new struct.
                             } else {
                                 return Err(LangError::StructBodyNotSupplied) // not entirely accurate
                             }
@@ -921,5 +924,46 @@ mod test {
         inner_struct_hash_map.insert("Field1".to_string(), TypeInfo::Number);
         expected_map.insert("MyStruct".to_string(), Datatype::StructType(TypeInfo::Struct { map: inner_struct_hash_map }));
         assert_eq!(expected_map, map)
+    }
+
+
+    #[test]
+    fn struct_creation_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let declaration_ast: Ast = Ast::Expression {
+            operator: BinaryOperator::StructDeclaration,
+            expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
+            expr2: Box::new(Ast::VecExpression {
+                expressions: vec![
+                    Ast::Expression {
+                        operator: BinaryOperator::Assignment,
+                        expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+                        expr2: Box::new(Ast::Type(TypeInfo::Number))
+                    }
+                ]
+            })
+        };
+        let _ = declaration_ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
+
+        let creation_ast: Ast = Ast::Expression {
+            operator: BinaryOperator::CreateStruct,
+            expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
+            expr2: Box::new( Ast::VecExpression {
+                expressions: vec![
+                    Ast::Expression {
+                        operator: BinaryOperator::FunctionParameterAssignment,
+                        expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+                        expr2: Box::new(Ast::Literal(Datatype::Number(8))) // assign 8 to field Field1
+                    }
+                ]
+            })
+        };
+
+        let struct_instance = creation_ast.evaluate(&mut map).unwrap();
+
+        let mut inner_struct_hash_map = HashMap::new();
+        inner_struct_hash_map.insert("Field1".to_string(), Datatype::Number(8));
+
+        assert_eq!(Datatype::Struct{ map: inner_struct_hash_map}, struct_instance)
     }
 }

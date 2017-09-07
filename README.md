@@ -1,4 +1,4 @@
-# rust-lisp-thing
+# HLWNPA - Henry's Language With No Pronounceable Acronym
 I figured that I could write a programming language in the timespan of about a week, with 0 thought put into it beforehand, and maybe get a workable result.
 This is that possibly workable result.
 I did this just to see what I could acomplish with no prior experience with language design or compiler theory.

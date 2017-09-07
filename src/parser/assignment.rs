@@ -22,7 +22,7 @@ named!(pub type_assignment<Ast>,
     do_parse!(
         id: identifier >>
         tag!(":") >>
-        type_info: type_signature >>
+        type_info: alt!( complete!(type_signature) | complete!(identifier)) >> // also takes an identifier that will be checked at runtime to verify it is a structure
         (Ast::Expression{ operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(id), expr2: Box::new(type_info) })
     )
 );

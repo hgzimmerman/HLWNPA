@@ -346,6 +346,37 @@ mod test {
     }
 
 
+    #[test]
+    fn program_parse_struct_with_multiple_fields_and_access_fields_in_function() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        struct MyStruct {
+            a : Number
+            b : Number
+        }
+        let instance := new MyStruct {
+            a: 8
+            b: 10
+        }
+
+        fn addContents( s: MyStruct ) -> Number {
+            ((s.a + s.b) * s.b)
+        }
+
+        addContents( instance )
+
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(Datatype::Number(180), ast.evaluate(&mut map).unwrap())
+    }
+
+
+
     mod benches {
         use super::*;
 

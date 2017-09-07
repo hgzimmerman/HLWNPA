@@ -37,6 +37,6 @@ pub enum LangError {
     TriedToAccessNonStruct,
     NonAssignmentInStructInit,
     ExpectedIdentifier,
-    ExpectedExpression
-
+    ExpectedExpression,
+    ExpectedIdentifierToBeStructType{ found: String }
 }

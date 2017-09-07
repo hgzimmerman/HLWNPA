@@ -329,6 +329,18 @@ impl Ast {
                                                         //do run-time type-checking, the supplied value should be of the same type as the specified value
                                                         let expected_type: &TypeInfo = match **expr2 {
                                                             Ast::Type(ref datatype) => datatype,
+                                                            Ast::ValueIdentifier(ref id) => {
+                                                                match map.get(id) { // get what should be a struct out of the stack
+                                                                    Some(datatype) => {
+                                                                        if let Datatype::StructType(ref structTypeInfo) = *datatype {
+                                                                            structTypeInfo
+                                                                        } else {
+                                                                            return Err(LangError::ExpectedIdentifierToBeStructType{ found: id.clone()} )
+                                                                        }
+                                                                    }
+                                                                    None => return Err(LangError::IdentifierDoesntExist)
+                                                                }
+                                                            }
                                                             _ => return Err(LangError::ExpectedDataTypeInfo),
                                                         };
                                                         if expected_type != &TypeInfo::from(d.clone()) {

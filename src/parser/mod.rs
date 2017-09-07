@@ -37,7 +37,7 @@ mod array;
 use self::array::array_access;
 
 mod structure;
-use self::structure::struct_definition;
+use self::structure::{struct_definition, struct_access, create_struct_instance};
 
 
 
@@ -51,12 +51,13 @@ named!(any_ast<Ast>,
         complete!(literal) |
         complete!(identifier) |
         complete!(array_access) |
-        function |
-        any_expression_parens
+        complete!(struct_definition) |
+        complete!(struct_access) |
+        complete!(create_struct_instance) |
+        complete!(function) |
+        complete!(any_expression_parens)
     ) // Order is very important here
 );
-
-
 
 
 
@@ -198,4 +199,56 @@ mod test {
             }]
         }, value)
     }
+
+    #[test]
+    fn parse_program_with_struct_definition() {
+        let input_string = r##"struct MyStruct {
+            a : Number
+        }
+        "##;
+        let (_, value) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+    }
+
+    #[test]
+    fn parse_program_with_struct_creation() {
+        let input_string = r##"new MyStruct {
+            a : 8
+        }
+        "##;
+        let (_, value) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+    }
+
+    #[test]
+    fn parse_program_with_struct_instance_creation_and_assignment() {
+        let input_string = r##"let instance := new MyStruct {
+            a : 8
+        }
+        "##;
+        let (_, value) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+    }
+
+    #[test]
+    fn parse_program_with_struct_access_and_assignment() {
+        let input_string = r##"
+        let outside_value := myStructInstance.field
+        "##;
+        let (_, value) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+    }
+
 }

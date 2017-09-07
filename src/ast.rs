@@ -45,7 +45,8 @@ pub enum BinaryOperator {
     LessThanOrEqual,
     Assignment,
     ExecuteFn,
-    FunctionParameterAssignment,
+    TypeAssignment,
+    FieldAssignment,
     Loop,
     AccessArray,
     StructDeclaration,
@@ -118,18 +119,7 @@ impl Ast {
                             return Ok(Datatype::Bool(false));
                         }
                     }
-                    BinaryOperator::Assignment => {
-                        if let Ast::ValueIdentifier(ref ident) = **expr1 {
-                            let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
-                            let evaluated_right_hand_side = expr2.evaluate(&mut cloned_map)?;
-                            let cloned_evaluated_rhs = evaluated_right_hand_side.clone();
-                            map.insert(ident.clone(), evaluated_right_hand_side);
-                            return Ok(cloned_evaluated_rhs);
-                        } else {
-                            Err(LangError::IdentifierDoesntExist)
-                        }
-                    }
-                    BinaryOperator::FunctionParameterAssignment => {
+                    BinaryOperator::Assignment | BinaryOperator::TypeAssignment | BinaryOperator::FieldAssignment => {
                         // does the same thing as assignment, but I want a separate type for this.
                         if let Ast::ValueIdentifier(ref ident) = **expr1 {
                             let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
@@ -190,7 +180,7 @@ impl Ast {
 
                                 for assignment_expr in expressions {
                                     if let &Ast::Expression {operator: ref assignment_op, expr1: ref field_identifier_expr, expr2: ref field_type_expr} = assignment_expr {
-                                        if let BinaryOperator::FunctionParameterAssignment = *assignment_op {
+                                        if let BinaryOperator::TypeAssignment = *assignment_op {
                                             if let Ast::ValueIdentifier(ref field_id) = **field_identifier_expr {
                                                 if let Ast::Type(ref field_type) = **field_type_expr {
                                                     struct_map.insert(field_id.clone(), field_type.clone());
@@ -243,7 +233,7 @@ impl Ast {
 
                                 for assignment_expression in assignment_expressions {
                                     if let Ast::Expression { operator: ref assignment_operator, expr1: ref assignment_expr1, expr2: ref assignment_expr2 } = *assignment_expression {
-                                        if assignment_operator == &BinaryOperator::FunctionParameterAssignment { // TODO I REALLY dont like this operator's use in this context
+                                        if assignment_operator == &BinaryOperator::FieldAssignment {
                                             if let Ast::ValueIdentifier(ref field_identifier) = **assignment_expr1 {
                                                 // Is the identifier specified in the AST exist in the struct type? check the struct_map
                                                 let expected_type = match struct_type_map.get(field_identifier) {
@@ -350,7 +340,7 @@ impl Ast {
                                                             });
                                                         }
 
-                                                        if operator == BinaryOperator::FunctionParameterAssignment {
+                                                        if operator == BinaryOperator::TypeAssignment {
                                                             return Ok(Ast::Expression {
                                                                 operator: operator,
                                                                 expr1: expr1,
@@ -808,7 +798,7 @@ mod test {
                         parameters: Box::new(Ast::VecExpression {
                             expressions: vec![
                                 Ast::Expression {
-                                    operator: BinaryOperator::FunctionParameterAssignment,
+                                    operator: BinaryOperator::TypeAssignment,
                                     expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
                                     // the value's name is b
                                     expr2: Box::new(Ast::Type(TypeInfo::Number)),
@@ -849,14 +839,14 @@ mod test {
                         parameters: Box::new(Ast::VecExpression {
                             expressions: vec![
                                 Ast::Expression {
-                                    operator: BinaryOperator::FunctionParameterAssignment,
+                                    operator: BinaryOperator::TypeAssignment,
                                     expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
                                     // the value's name is b
                                     expr2: Box::new(Ast::Type(TypeInfo::Number)),
                                     // fn takes a number
                                 },
                                 Ast::Expression {
-                                    operator: BinaryOperator::FunctionParameterAssignment,
+                                    operator: BinaryOperator::TypeAssignment,
                                     expr1: Box::new(Ast::ValueIdentifier("c".to_string())),
                                     // the value's name is b
                                     expr2: Box::new(Ast::Type(TypeInfo::Number)),
@@ -937,7 +927,7 @@ mod test {
             expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
                     Ast::Expression {
-                        operator: BinaryOperator::FunctionParameterAssignment,
+                        operator: BinaryOperator::TypeAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
                         expr2: Box::new(Ast::Type(TypeInfo::Number))
                     }
@@ -963,7 +953,7 @@ mod test {
             expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
                     Ast::Expression {
-                        operator: BinaryOperator::FunctionParameterAssignment,
+                        operator: BinaryOperator::TypeAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
                         expr2: Box::new(Ast::Type(TypeInfo::Number))
                     }
@@ -978,7 +968,7 @@ mod test {
             expr2: Box::new( Ast::VecExpression {
                 expressions: vec![
                     Ast::Expression {
-                        operator: BinaryOperator::FunctionParameterAssignment,
+                        operator: BinaryOperator::FieldAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
                         expr2: Box::new(Ast::Literal(Datatype::Number(8))) // assign 8 to field Field1
                     }

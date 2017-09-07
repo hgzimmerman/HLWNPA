@@ -67,7 +67,7 @@ mod test {
             expr2: Box::new(Ast::VecExpression{
                 expressions: vec![
                     Ast::Expression {
-                        operator: BinaryOperator::FunctionParameterAssignment,
+                        operator: BinaryOperator::TypeAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("a_number".to_string())),
                         expr2: Box::new(Ast::Type(TypeInfo::Number))
                     }
@@ -112,7 +112,7 @@ mod test {
             expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
                     Ast::Expression {
-                        operator: BinaryOperator::FunctionParameterAssignment,
+                        operator: BinaryOperator::FieldAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
                         expr2: Box::new(Ast::Literal(Datatype::Number(8)))
                     }

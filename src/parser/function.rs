@@ -66,7 +66,7 @@ fn parse_whole_function_number_input_returns_number_test() {
         expr2: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
                 expressions: vec![Ast::Expression {
-                        operator: BinaryOperator::FunctionParameterAssignment,
+                        operator: BinaryOperator::TypeAssignment,
                         expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                         expr2: Box::new(Ast::Type ( TypeInfo::Number ))
                     }],
@@ -101,7 +101,7 @@ fn parse_whole_function_identifier_input_returns_number_test() {
         expr2: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
                 expressions: vec![Ast::Expression {
-                    operator: BinaryOperator::FunctionParameterAssignment,
+                    operator: BinaryOperator::TypeAssignment,
                     expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                     expr2: Box::new(Ast::ValueIdentifier("Identifier".to_string()))
                 }],

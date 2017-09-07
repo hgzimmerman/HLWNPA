@@ -120,7 +120,7 @@ mod test {
             expr2: Box::new(Ast::Literal(Datatype::Function {
                 parameters: Box::new(Ast::VecExpression {
                     expressions: vec![Ast::Expression {
-                        operator: BinaryOperator::FunctionParameterAssignment,
+                        operator: BinaryOperator::TypeAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
                         expr2: Box::new(Ast::Type(TypeInfo::Number))
                     }],

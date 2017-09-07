@@ -23,7 +23,7 @@ named!(pub type_assignment<Ast>,
         id: identifier >>
         tag!(":") >>
         type_info: alt!( complete!(type_signature) | complete!(identifier)) >> // also takes an identifier that will be checked at runtime to verify it is a structure
-        (Ast::Expression{ operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(id), expr2: Box::new(type_info) })
+        (Ast::Expression{ operator: BinaryOperator::TypeAssignment, expr1: Box::new(id), expr2: Box::new(type_info) })
     )
 );
 
@@ -33,7 +33,7 @@ named!(pub struct_value_assignment<Ast>,
         id: identifier >>
         tag!(":") >>
         value:  expression_or_literal_or_identifier_or_struct_or_array >>
-        (Ast::Expression{ operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(id), expr2: Box::new(value) })
+        (Ast::Expression{ operator: BinaryOperator::FieldAssignment, expr1: Box::new(id), expr2: Box::new(value) })
     )
 );
 
@@ -70,6 +70,6 @@ mod test {
             IResult::Error(e) => panic!("{:?}", e),
             _ => panic!(),
         };
-        assert_eq!(Ast::Expression {operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(Ast::ValueIdentifier ( "b".to_string())), expr2: Box::new(Ast::Type ( TypeInfo::Number)) }, value)
+        assert_eq!(Ast::Expression {operator: BinaryOperator::TypeAssignment, expr1: Box::new(Ast::ValueIdentifier ( "b".to_string())), expr2: Box::new(Ast::Type ( TypeInfo::Number)) }, value)
     }
 }

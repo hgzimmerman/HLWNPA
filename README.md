@@ -1,4 +1,4 @@
-# rust-lisp-thing
+# HLWNPA - Henry's Language With No Pronounceable Acronym
 I figured that I could write a programming language in the timespan of about a week, with 0 thought put into it beforehand, and maybe get a workable result.
 This is that possibly workable result.
 I did this just to see what I could acomplish with no prior experience with language design or compiler theory.
@@ -19,6 +19,7 @@ I then proceeded to graft things onto the AST and syntax parser once I had a min
 * Statements are delimited by `()`, because the language has no concept of order of operations.
 * Functions and structs must be declared in the order they are used.
 * I don't think I have support for functions returning arrays.
+* No floating point support, only signed 32 bit numbers.
 
 
 # Actual Features

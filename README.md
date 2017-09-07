@@ -11,12 +11,13 @@ I did this just to see what I could acomplish with no prior experience with lang
 # Features
 
 * Nothing to limit reassignment. If you want to assign a number to a function name, there is nothing stopping you.
-* No meaningful parser error messages. If your syntax isn't 100% accurate, there is very little to indicate what you did wrong. Sometimes the program will parse, but may leave out a section of the AST without errors if syntax isn't exact. 
+* No meaningful parser error messages. If your syntax isn't 100% accurate, there is very little to indicate what you did wrong. Sometimes the program will parse, but may leave out a section of the AST without errors if syntax isn't exact. The result is if you define a function incorrectly, that function will not exist, and you won't know until you try to call it.
 * A few runtime error messages.
 * No early return from functions. The last statement in the body of a function, if, or loop block will be returned.
 * Type System. Runtime checking only.
 * Statements are delimited by `()`, because the language has no concept of order of operations.
 * Functions and structs must be declared in the order they are used.
+
 
 # Actual Features
 * REPL.

@@ -225,53 +225,10 @@ impl Ast {
                     }
 
                     BinaryOperator::CreateStruct => {
-                        // This expects the expr1 to be an Identifier that resolves to be a struct definition, or the struct definition itself.
-                        if let Datatype::StructType(TypeInfo::Struct {map: struct_type_map} ) = expr1.evaluate(map)? {
-                            // It expects that the righthand side should be a series of expressions that assign values to fields (that have already been specified in the StructType)
-                            if let Ast::VecExpression { expressions: ref assignment_expressions } = **expr2 {
-                                let mut new_struct_map: HashMap<String, Datatype> = HashMap::new();
-
-                                for assignment_expression in assignment_expressions {
-                                    if let Ast::Expression { operator: ref assignment_operator, expr1: ref assignment_expr1, expr2: ref assignment_expr2 } = *assignment_expression {
-                                        if assignment_operator == &BinaryOperator::FieldAssignment {
-                                            if let Ast::ValueIdentifier(ref field_identifier) = **assignment_expr1 {
-                                                // Is the identifier specified in the AST exist in the struct type? check the struct_map
-                                                let expected_type = match struct_type_map.get(field_identifier) {
-                                                    Some(struct_type) => struct_type,
-                                                    None => return Err(LangError::IdentifierDoesntExist) // todo find better error message
-                                                };
-                                                let value_to_be_assigned: Datatype = assignment_expr2.evaluate(map)?;
-
-                                                // check if the value to be assigned matches the expected type
-                                                let to_be_assigned_type: TypeInfo = TypeInfo::from(value_to_be_assigned.clone());
-                                                if expected_type == &to_be_assigned_type {
-                                                    // now add the value to the new struct's map
-                                                    new_struct_map.insert(field_identifier.clone(), value_to_be_assigned);
-                                                } else {
-                                                    return Err(LangError::TypeError { expected: expected_type.clone(), found: to_be_assigned_type })
-                                                }
-
-                                            } else {
-                                                return Err(LangError::ExpectedIdentifier);
-                                            }
-                                        } else {
-                                            return Err(LangError::NonAssignmentInStructInit);
-                                        }
-                                    } else {
-                                        return Err(LangError::NonAssignmentInStructInit);
-                                    }
-                                }
-                                return Ok(Datatype::Struct{map: new_struct_map}) // Return the new struct.
-                            } else {
-                                return Err(LangError::StructBodyNotSupplied) // not entirely accurate
-                            }
-                        } else {
-                            return Err(LangError::IdentifierDoesntExist) // TODO not implemented
-                        }
+                        return create_struct(expr1, expr2, map)
                     }
 
                     BinaryOperator::ExecuteFn => {
-
                         return execute_function(expr1, expr2, map)
                     }
                 }
@@ -344,6 +301,59 @@ impl Ast {
                 }
             }
         }
+    }
+}
+
+/// Given an Ast that resolves to a struct type,
+/// and a vector of expressions that contains only FieldAssignments.
+/// Grab the map of identifiers to expected Types for fields.
+/// Create a new map of identifiers and Datatypes
+/// Get the expected type for each supplied assignment from the first map and check it against the type of data provided.
+/// Insert the data into the new map.
+/// Create a new struct instance from the new map, and return it.
+fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
+    // This expects the expr1 to be an Identifier that resolves to be a struct definition, or the struct definition itself.
+    if let Datatype::StructType(TypeInfo::Struct {map: struct_type_map} ) = expr1.evaluate(map)? {
+        // It expects that the righthand side should be a series of expressions that assign values to fields (that have already been specified in the StructType)
+        if let Ast::VecExpression { expressions: ref assignment_expressions } = *expr2 {
+            let mut new_struct_map: HashMap<String, Datatype> = HashMap::new();
+
+            for assignment_expression in assignment_expressions {
+                if let Ast::Expression { operator: ref assignment_operator, expr1: ref assignment_expr1, expr2: ref assignment_expr2 } = *assignment_expression {
+                    if assignment_operator == &BinaryOperator::FieldAssignment {
+                        if let Ast::ValueIdentifier(ref field_identifier) = **assignment_expr1 {
+                            // Is the identifier specified in the AST exist in the struct type? check the struct_map
+                            let expected_type = match struct_type_map.get(field_identifier) {
+                                Some(struct_type) => struct_type,
+                                None => return Err(LangError::IdentifierDoesntExist) // todo find better error message
+                            };
+                            let value_to_be_assigned: Datatype = assignment_expr2.evaluate(map)?;
+
+                            // check if the value to be assigned matches the expected type
+                            let to_be_assigned_type: TypeInfo = TypeInfo::from(value_to_be_assigned.clone());
+                            if expected_type == &to_be_assigned_type {
+                                // now add the value to the new struct's map
+                                new_struct_map.insert(field_identifier.clone(), value_to_be_assigned);
+                            } else {
+                                return Err(LangError::TypeError { expected: expected_type.clone(), found: to_be_assigned_type })
+                            }
+
+                        } else {
+                            return Err(LangError::ExpectedIdentifier);
+                        }
+                    } else {
+                        return Err(LangError::NonAssignmentInStructInit);
+                    }
+                } else {
+                    return Err(LangError::NonAssignmentInStructInit);
+                }
+            }
+            return Ok(Datatype::Struct{map: new_struct_map}) // Return the new struct.
+        } else {
+            return Err(LangError::StructBodyNotSupplied) // not entirely accurate
+        }
+    } else {
+        return Err(LangError::ExpectedIdentifier)
     }
 }
 

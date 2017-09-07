@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 use nom::*;
 use ast::{Ast};
-use parser::utilities::expression_or_literal_or_identifier;
+use parser::utilities::expression_or_literal_or_identifier_or_struct_or_array;
 use parser::body::body;
 //use parser::type_signature::type_signature;
 use std::boxed::Box;
@@ -9,7 +9,7 @@ use std::boxed::Box;
 named!(pub if_expression<Ast>,
     do_parse!(
         ws!(tag!("if")) >>
-        if_conditional: ws!(expression_or_literal_or_identifier) >>
+        if_conditional: ws!(expression_or_literal_or_identifier_or_struct_or_array) >>
         if_body: ws!(body) >>
         else_body: opt!(
             complete!(

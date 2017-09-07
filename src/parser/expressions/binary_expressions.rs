@@ -3,13 +3,13 @@ use nom::*;
 use ast::{Ast};
 
 use parser::operators::binary_operator;
-use parser::expression_or_literal_or_identifier;
+use parser::expression_or_literal_or_identifier_or_struct_or_array;
 
 named!(binary_expr<Ast>,
     do_parse!(
-       l1: expression_or_literal_or_identifier >>
+       l1: expression_or_literal_or_identifier_or_struct_or_array >>
        op: binary_operator >>
-       l2: expression_or_literal_or_identifier >>
+       l2: expression_or_literal_or_identifier_or_struct_or_array >>
        (Ast::Expression{ operator: op, expr1: Box::new(l1), expr2: Box::new(l2)})
     )
 );

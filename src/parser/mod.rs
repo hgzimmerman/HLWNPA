@@ -73,7 +73,7 @@ named!(function_execution<Ast>,
         function_name: identifier >>
         arguments: delimited!(
             ws!(char!('(')),
-            many0!(ws!(expression_or_literal_or_identifier)),
+            many0!(ws!(expression_or_literal_or_identifier_or_struct_or_array)),
             ws!(char!(')'))
         )
         >>
@@ -198,6 +198,31 @@ mod test {
                 false_expr: Some(Box::new(Ast::VecExpression { expressions: vec![Ast::Literal(Datatype::Bool(true))] }))
             }]
         }, value)
+    }
+
+
+    #[test]
+    fn parse_program_with_array_assignment() {
+        let input_string = r##"
+         let myArray := [8, 3]
+        "##;
+        let (_, value) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+    }
+
+    #[test]
+    fn parse_program_with_array_access() {
+        let input_string = r##"
+         let value_in_array := existing_array[8]
+        "##;
+        let (_, value) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
     }
 
     #[test]

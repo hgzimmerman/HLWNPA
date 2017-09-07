@@ -20,6 +20,9 @@ named!(pub literal<Ast>,
         complete!(array_literal) |
         complete!(number_literal) |
         complete!(string_literal) |
-        complete!(bool_literal)
+        complete!(bool_literal) |
+        complete!(array_literal)
     )
 );
+
+// TODO create tests for the literal combinator

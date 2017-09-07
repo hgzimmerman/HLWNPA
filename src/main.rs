@@ -1,6 +1,7 @@
 //#![feature(discriminant_value)]
 #![feature(trace_macros)]
 #![feature(test)]
+#![recursion_limit="100"]
 
 #![macro_use]
 extern crate nom;

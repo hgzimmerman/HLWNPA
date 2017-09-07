@@ -2,7 +2,7 @@
 use nom::*;
 use ast::{Ast, BinaryOperator};
 use parser::identifier::identifier;
-use parser::utilities::expression_or_literal_or_identifier;
+use parser::utilities::expression_or_literal_or_identifier_or_struct_or_array;
 use parser::type_signature::type_signature;
 
 // TODO leave the let binding, possibly as a way to declare a const vs mutable structure
@@ -11,7 +11,7 @@ named!(pub assignment<Ast>,
         ws!(tag!("let")) >>
         id: ws!(identifier) >>
         ws!(tag!(":="))>>
-        value: ws!(expression_or_literal_or_identifier) >>
+        value: ws!(expression_or_literal_or_identifier_or_struct_or_array) >>
         (Ast::Expression{ operator: BinaryOperator::Assignment, expr1: Box::new(id), expr2: Box::new(value) })
     )
 );
@@ -32,7 +32,7 @@ named!(pub struct_value_assignment<Ast>,
     do_parse!(
         id: identifier >>
         tag!(":") >>
-        value:  expression_or_literal_or_identifier >>
+        value:  expression_or_literal_or_identifier_or_struct_or_array >>
         (Ast::Expression{ operator: BinaryOperator::FunctionParameterAssignment, expr1: Box::new(id), expr2: Box::new(value) })
     )
 );

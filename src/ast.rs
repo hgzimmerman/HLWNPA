@@ -51,7 +51,7 @@ pub enum BinaryOperator {
     AccessArray,
     StructDeclaration,
     AccessStructField,
-    CreateStruct
+    CreateStruct,
 }
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
@@ -64,8 +64,6 @@ pub enum UnaryOperator {
 
 
 impl Ast {
-
-
     /// Recurse down the AST, evaluating expressions where possible, turning them into Literals that contain Datatypes.
     /// If no errors are encountered, the whole AST should resolve to become a single Datatype, which is then returned.
     pub fn evaluate(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
@@ -123,7 +121,9 @@ impl Ast {
                             return Ok(Datatype::Bool(false));
                         }
                     }
-                    BinaryOperator::Assignment | BinaryOperator::TypeAssignment | BinaryOperator::FieldAssignment => {
+                    BinaryOperator::Assignment |
+                    BinaryOperator::TypeAssignment |
+                    BinaryOperator::FieldAssignment => {
                         if let Ast::ValueIdentifier(ref ident) = **expr1 {
                             let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
                             let evaluated_right_hand_side = expr2.evaluate(&mut cloned_map)?;
@@ -155,40 +155,32 @@ impl Ast {
                     BinaryOperator::AccessArray => {
                         let datatype: Datatype = expr1.evaluate(map)?;
                         match datatype {
-                            Datatype::Array {value, type_} => {
+                            Datatype::Array { value, type_ } => {
                                 let possible_index = expr2.evaluate(map)?;
                                 match possible_index {
                                     Datatype::Number(index) => {
                                         if index >= 0 {
                                             match value.get(index as usize) {
                                                 Some(indexed_result) => Ok(indexed_result.clone()), // cannot mutate the interior of the array.
-                                                None => Err(LangError::OutOfBoundsArrayAccess)
+                                                None => Err(LangError::OutOfBoundsArrayAccess),
                                             }
                                         } else {
                                             Err(LangError::NegativeIndex(index))
                                         }
                                     }
-                                    _ => Err(LangError::InvalidIndexType(possible_index))
+                                    _ => Err(LangError::InvalidIndexType(possible_index)),
                                 }
                             }
-                            _ => return Err(LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype)))
+                            _ => return Err(LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype))),
                         }
                     }
                     // Add an entry for a struct type to the current stack
-                    BinaryOperator::StructDeclaration => {
-                        return declare_struct(expr1, expr2, map)
-                    }
-                    BinaryOperator::AccessStructField => {
-                        return access_struct_field(expr1, expr2, map)
-                    }
+                    BinaryOperator::StructDeclaration => return declare_struct(expr1, expr2, map),
+                    BinaryOperator::AccessStructField => return access_struct_field(expr1, expr2, map),
 
-                    BinaryOperator::CreateStruct => {
-                        return create_struct(expr1, expr2, map)
-                    }
+                    BinaryOperator::CreateStruct => return create_struct(expr1, expr2, map),
 
-                    BinaryOperator::ExecuteFn => {
-                        return execute_function(expr1, expr2, map)
-                    }
+                    BinaryOperator::ExecuteFn => return execute_function(expr1, expr2, map),
                 }
             }
             Ast::UnaryExpression {
@@ -266,19 +258,19 @@ impl Ast {
 /// Resolve the second expression to an identifier.
 /// Check if the second expression's identifier is in the struct's map.
 /// If it is, the get the value associated with that identifier and return it.
-fn access_struct_field (expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
+fn access_struct_field(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
     // if expr1 produces a struct when evaluated
     if let Datatype::Struct { map: struct_map } = expr1.evaluate(map)? {
         if let Ast::ValueIdentifier(ref field_identifier) = *expr2 {
             match struct_map.get(field_identifier) {
                 Some(struct_field_datatype) => return Ok(struct_field_datatype.clone()),
-                None => return Err(LangError::StructFieldDoesntExist)
+                None => return Err(LangError::StructFieldDoesntExist),
             }
         } else {
-            return Err(LangError::IdentifierDoesntExist)
+            return Err(LangError::IdentifierDoesntExist);
         }
     } else {
-        return Err(LangError::TriedToAccessNonStruct)
+        return Err(LangError::TriedToAccessNonStruct);
     }
 }
 
@@ -287,37 +279,42 @@ fn access_struct_field (expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Data
 /// Create a new map that will represent the binding between the fields in the struct and the types they should have when instansiated.
 /// Insert into the map these field-type pairs.
 /// Create a new StructType from the new map and return it.
-fn declare_struct (expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
+fn declare_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
     if let Ast::ValueIdentifier(ref struct_type_identifier) = *expr1 {
-        if let Ast::VecExpression {ref expressions} = *expr2 {
+        if let Ast::VecExpression { ref expressions } = *expr2 {
 
             let mut struct_map: HashMap<String, TypeInfo> = HashMap::new();
 
             for assignment_expr in expressions {
-                if let &Ast::Expression {operator: ref assignment_op, expr1: ref field_identifier_expr, expr2: ref field_type_expr} = assignment_expr {
+                if let &Ast::Expression {
+                    operator: ref assignment_op,
+                    expr1: ref field_identifier_expr,
+                    expr2: ref field_type_expr,
+                } = assignment_expr
+                {
                     if let BinaryOperator::TypeAssignment = *assignment_op {
                         if let Ast::ValueIdentifier(ref field_id) = **field_identifier_expr {
                             if let Ast::Type(ref field_type) = **field_type_expr {
                                 struct_map.insert(field_id.clone(), field_type.clone());
                             } else {
-                                return Err(LangError::FieldTypeNotSupplied)
+                                return Err(LangError::FieldTypeNotSupplied);
                             }
                         } else {
-                            return Err(LangError::FieldIdentifierNotSupplied)
+                            return Err(LangError::FieldIdentifierNotSupplied);
                         }
                     } else {
-                        return Err(LangError::NonAssignmentInStructDeclaration)
+                        return Err(LangError::NonAssignmentInStructDeclaration);
                     }
                 } else {
-                    return Err(LangError::ExpectedExpression)
+                    return Err(LangError::ExpectedExpression);
                 }
             }
-            let new_struct_type = TypeInfo::Struct {map: struct_map};
+            let new_struct_type = TypeInfo::Struct { map: struct_map };
             let retval = Datatype::StructType(new_struct_type);
-            map.insert(struct_type_identifier.clone(), retval.clone() );
-            return Ok(retval)
+            map.insert(struct_type_identifier.clone(), retval.clone());
+            return Ok(retval);
         } else {
-            return Err(LangError::StructBodyNotSupplied)
+            return Err(LangError::StructBodyNotSupplied);
         }
     } else {
         Err(LangError::StructNameNotSupplied)
@@ -333,19 +330,24 @@ fn declare_struct (expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>
 /// Create a new struct instance from the new map, and return it.
 fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
     // This expects the expr1 to be an Identifier that resolves to be a struct definition, or the struct definition itself.
-    if let Datatype::StructType(TypeInfo::Struct {map: struct_type_map} ) = expr1.evaluate(map)? {
+    if let Datatype::StructType(TypeInfo::Struct { map: struct_type_map }) = expr1.evaluate(map)? {
         // It expects that the righthand side should be a series of expressions that assign values to fields (that have already been specified in the StructType)
         if let Ast::VecExpression { expressions: ref assignment_expressions } = *expr2 {
             let mut new_struct_map: HashMap<String, Datatype> = HashMap::new();
 
             for assignment_expression in assignment_expressions {
-                if let Ast::Expression { operator: ref assignment_operator, expr1: ref assignment_expr1, expr2: ref assignment_expr2 } = *assignment_expression {
+                if let Ast::Expression {
+                    operator: ref assignment_operator,
+                    expr1: ref assignment_expr1,
+                    expr2: ref assignment_expr2,
+                } = *assignment_expression
+                {
                     if assignment_operator == &BinaryOperator::FieldAssignment {
                         if let Ast::ValueIdentifier(ref field_identifier) = **assignment_expr1 {
                             // Is the identifier specified in the AST exist in the struct type? check the struct_map
                             let expected_type = match struct_type_map.get(field_identifier) {
                                 Some(struct_type) => struct_type,
-                                None => return Err(LangError::IdentifierDoesntExist) // todo find better error message
+                                None => return Err(LangError::IdentifierDoesntExist), // todo find better error message
                             };
                             let value_to_be_assigned: Datatype = assignment_expr2.evaluate(map)?;
 
@@ -355,7 +357,10 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
                                 // now add the value to the new struct's map
                                 new_struct_map.insert(field_identifier.clone(), value_to_be_assigned);
                             } else {
-                                return Err(LangError::TypeError { expected: expected_type.clone(), found: to_be_assigned_type })
+                                return Err(LangError::TypeError {
+                                    expected: expected_type.clone(),
+                                    found: to_be_assigned_type,
+                                });
                             }
 
                         } else {
@@ -368,12 +373,12 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
                     return Err(LangError::NonAssignmentInStructInit);
                 }
             }
-            return Ok(Datatype::Struct{map: new_struct_map}) // Return the new struct.
+            return Ok(Datatype::Struct { map: new_struct_map }); // Return the new struct.
         } else {
-            return Err(LangError::StructBodyNotSupplied) // not entirely accurate
+            return Err(LangError::StructBodyNotSupplied); // not entirely accurate
         }
     } else {
-        return Err(LangError::ExpectedIdentifier)
+        return Err(LangError::ExpectedIdentifier);
     }
 }
 
@@ -427,44 +432,46 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
                                     ref expr1,
                                     ref expr2,
                                 } = *e
-                                    {
-                                        let operator = operator.clone();
-                                        let expr1 = expr1.clone();
+                                {
+                                    let operator = operator.clone();
+                                    let expr1 = expr1.clone();
 
-                                        //do run-time type-checking, the supplied value should be of the same type as the specified value
-                                        let expected_type: &TypeInfo = match **expr2 {
-                                            Ast::Type(ref datatype) => datatype,
-                                            Ast::ValueIdentifier(ref id) => {
-                                                match map.get(id) { // get what should be a struct out of the stack
-                                                    Some(datatype) => {
-                                                        if let Datatype::StructType(ref struct_type_info) = *datatype {
-                                                            struct_type_info
-                                                        } else {
-                                                            return Err(LangError::ExpectedIdentifierToBeStructType{ found: id.clone()} )
-                                                        }
+                                    //do run-time type-checking, the supplied value should be of the same type as the specified value
+                                    let expected_type: &TypeInfo = match **expr2 {
+                                        Ast::Type(ref datatype) => datatype,
+                                        Ast::ValueIdentifier(ref id) => {
+                                            match map.get(id) { // get what should be a struct out of the stack
+                                                Some(datatype) => {
+                                                    if let Datatype::StructType(ref struct_type_info) = *datatype {
+                                                        struct_type_info
+                                                    } else {
+                                                        return Err(LangError::ExpectedIdentifierToBeStructType {
+                                                            found: id.clone(),
+                                                        });
                                                     }
-                                                    None => return Err(LangError::IdentifierDoesntExist)
                                                 }
+                                                None => return Err(LangError::IdentifierDoesntExist),
                                             }
-                                            _ => return Err(LangError::ExpectedDataTypeInfo),
-                                        };
-                                        if expected_type != &TypeInfo::from(d.clone()) {
-                                            return Err(LangError::TypeError {
-                                                expected: expected_type.clone(),
-                                                found: TypeInfo::from(d),
-                                            });
                                         }
+                                        _ => return Err(LangError::ExpectedDataTypeInfo),
+                                    };
+                                    if expected_type != &TypeInfo::from(d.clone()) {
+                                        return Err(LangError::TypeError {
+                                            expected: expected_type.clone(),
+                                            found: TypeInfo::from(d),
+                                        });
+                                    }
 
-                                        if operator == BinaryOperator::TypeAssignment {
-                                            return Ok(Ast::Expression {
-                                                operator: operator,
-                                                expr1: expr1,
-                                                expr2: Box::new(Ast::Literal(d)),
-                                            }); // return a new FunctionParameterAssignment Expression with a replaced expr2.
-                                        } else {
-                                            return Err(LangError::InvalidFunctionPrototypeFormatting);
-                                        }
+                                    if operator == BinaryOperator::TypeAssignment {
+                                        return Ok(Ast::Expression {
+                                            operator: operator,
+                                            expr1: expr1,
+                                            expr2: Box::new(Ast::Literal(d)),
+                                        }); // return a new FunctionParameterAssignment Expression with a replaced expr2.
                                     } else {
+                                        return Err(LangError::InvalidFunctionPrototypeFormatting);
+                                    }
+                                } else {
                                     return Err(LangError::InvalidFunctionPrototypeFormatting);
                                 }
                             })
@@ -491,15 +498,15 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
                                     if let Datatype::StructType(ref struct_type_info) = *datatype {
                                         struct_type_info.clone()
                                     } else {
-                                        return Err(LangError::ExpectedIdentifierToBeStructType { found: id.clone() })
+                                        return Err(LangError::ExpectedIdentifierToBeStructType {
+                                            found: id.clone(),
+                                        });
                                     }
                                 }
-                                None => return Err(LangError::IdentifierDoesntExist)
+                                None => return Err(LangError::IdentifierDoesntExist),
                             }
                         }
-                        _ => {
-                            return Err(LangError::ExpectedDataTypeInfo)
-                        }
+                        _ => return Err(LangError::ExpectedDataTypeInfo),
                     };
 
                     if TypeInfo::from(output.clone()) == expected_return_type {
@@ -541,8 +548,8 @@ mod test {
             expr2: Box::new(Ast::Literal(Datatype::String(" World!".to_string()))),
         };
         assert_eq!(
-        Datatype::String("Hello World!".to_string()),
-        ast.evaluate(&mut map).unwrap()
+            Datatype::String("Hello World!".to_string()),
+            ast.evaluate(&mut map).unwrap()
         )
     }
 
@@ -610,8 +617,8 @@ mod test {
             expr2: Box::new(Ast::Literal(Datatype::Number(0))),
         };
         assert_eq!(
-        LangError::DivideByZero,
-        ast.evaluate(&mut map).err().unwrap()
+            LangError::DivideByZero,
+            ast.evaluate(&mut map).err().unwrap()
         )
     }
 
@@ -699,7 +706,7 @@ mod test {
     }
 
     /// Assign the value 6 to the identifier "a"
-/// Recall that identifier and add it to 5
+    /// Recall that identifier and add it to 5
     #[test]
     fn assignment_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
@@ -722,8 +729,8 @@ mod test {
 
 
     /// Assign the value 6 to "a".
-/// Copy the value in "a" to "b".
-/// Recall the value in "b" and add it to 5.
+    /// Copy the value in "a" to "b".
+    /// Recall the value in "b" and add it to 5.
     #[test]
     fn variable_copy_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
@@ -750,8 +757,8 @@ mod test {
     }
 
     /// Assign the value 6 to a.
-/// Assign the value 3 to a.
-/// Recall the value in a and add it to 5, the value of a should be 3, equalling 8.
+    /// Assign the value 3 to a.
+    /// Recall the value in a and add it to 5, the value of a should be 3, equalling 8.
     #[test]
     fn reassignment_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
@@ -933,11 +940,11 @@ mod test {
                 value: vec![
                     Datatype::Number(12),
                     Datatype::Number(14),
-                    Datatype::Number(16)
+                    Datatype::Number(16),
                 ],
-                type_: TypeInfo::Number
+                type_: TypeInfo::Number,
             })),
-            expr2: Box::new(Ast::Literal(Datatype::Number(0))) // get the first element
+            expr2: Box::new(Ast::Literal(Datatype::Number(0))), // get the first element
         };
         assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
     }
@@ -951,13 +958,16 @@ mod test {
                 value: vec![
                     Datatype::Number(12),
                     Datatype::Number(14),
-                    Datatype::Number(16)
+                    Datatype::Number(16),
                 ],
-                type_: TypeInfo::Number
+                type_: TypeInfo::Number,
             })),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))) // Array size 3. 0, 1, 2 hold elements. Index 3 doesn't.
+            expr2: Box::new(Ast::Literal(Datatype::Number(3))), // Array size 3. 0, 1, 2 hold elements. Index 3 doesn't.
         };
-        assert_eq!(LangError::OutOfBoundsArrayAccess, ast.evaluate(&mut map).unwrap_err())
+        assert_eq!(
+            LangError::OutOfBoundsArrayAccess,
+            ast.evaluate(&mut map).unwrap_err()
+        )
     }
 
     #[test]
@@ -971,17 +981,20 @@ mod test {
                     Ast::Expression {
                         operator: BinaryOperator::TypeAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        expr2: Box::new(Ast::Type(TypeInfo::Number))
-                    }
-                ]
-            })
+                        expr2: Box::new(Ast::Type(TypeInfo::Number)),
+                    },
+                ],
+            }),
         };
 
         let _ = ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
         let mut expected_map = HashMap::new();
         let mut inner_struct_hash_map = HashMap::new();
         inner_struct_hash_map.insert("Field1".to_string(), TypeInfo::Number);
-        expected_map.insert("MyStruct".to_string(), Datatype::StructType(TypeInfo::Struct { map: inner_struct_hash_map }));
+        expected_map.insert(
+            "MyStruct".to_string(),
+            Datatype::StructType(TypeInfo::Struct { map: inner_struct_hash_map }),
+        );
         assert_eq!(expected_map, map)
     }
 
@@ -997,25 +1010,25 @@ mod test {
                     Ast::Expression {
                         operator: BinaryOperator::TypeAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        expr2: Box::new(Ast::Type(TypeInfo::Number))
-                    }
-                ]
-            })
+                        expr2: Box::new(Ast::Type(TypeInfo::Number)),
+                    },
+                ],
+            }),
         };
         let _ = declaration_ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
 
         let creation_ast: Ast = Ast::Expression {
             operator: BinaryOperator::CreateStruct,
             expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            expr2: Box::new( Ast::VecExpression {
+            expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
                     Ast::Expression {
                         operator: BinaryOperator::FieldAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        expr2: Box::new(Ast::Literal(Datatype::Number(8))) // assign 8 to field Field1
-                    }
-                ]
-            })
+                        expr2: Box::new(Ast::Literal(Datatype::Number(8))), // assign 8 to field Field1
+                    },
+                ],
+            }),
         };
 
         let struct_instance = creation_ast.evaluate(&mut map).unwrap();
@@ -1023,6 +1036,9 @@ mod test {
         let mut inner_struct_hash_map = HashMap::new();
         inner_struct_hash_map.insert("Field1".to_string(), Datatype::Number(8));
 
-        assert_eq!(Datatype::Struct{ map: inner_struct_hash_map}, struct_instance)
+        assert_eq!(
+            Datatype::Struct { map: inner_struct_hash_map },
+            struct_instance
+        )
     }
 }

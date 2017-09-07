@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast};
+use ast::Ast;
 
 use parser::operators::binary_operator;
 use parser::expression_or_literal_or_identifier_or_struct_or_array;

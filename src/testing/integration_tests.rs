@@ -142,7 +142,7 @@ mod test {
 
 
     /// Test the assignment of a string, then passing it into a function that takes a string.
-/// The function should then add a number to the string, creating a new string.
+    /// The function should then add a number to the string, creating a new string.
     #[test]
     fn program_string_coercion_integration_test() {
         use nom::IResult;
@@ -251,7 +251,17 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(Datatype::Array{value: vec![Datatype::Number(23), Datatype::Number(43), Datatype::Number(11)], type_: TypeInfo::Number }, ast.evaluate(&mut map).unwrap());
+        assert_eq!(
+            Datatype::Array {
+                value: vec![
+                    Datatype::Number(23),
+                    Datatype::Number(43),
+                    Datatype::Number(11),
+                ],
+                type_: TypeInfo::Number,
+            },
+            ast.evaluate(&mut map).unwrap()
+        );
     }
 
     #[test]
@@ -401,7 +411,10 @@ mod test {
         let mut struct_map: HashMap<String, Datatype> = HashMap::new();
         struct_map.insert("a".to_string(), Datatype::Number(8));
         struct_map.insert("b".to_string(), Datatype::Number(3));
-        assert_eq!(Datatype::Struct{map: struct_map}, ast.evaluate(&mut map).unwrap())
+        assert_eq!(
+            Datatype::Struct { map: struct_map },
+            ast.evaluate(&mut map).unwrap()
+        )
     }
 
     #[test]
@@ -429,7 +442,10 @@ mod test {
         let mut struct_map: HashMap<String, Datatype> = HashMap::new();
         struct_map.insert("a".to_string(), Datatype::Number(8));
         struct_map.insert("b".to_string(), Datatype::Number(3));
-        assert_eq!(Datatype::Struct{map: struct_map}, ast.evaluate(&mut map).unwrap())
+        assert_eq!(
+            Datatype::Struct { map: struct_map },
+            ast.evaluate(&mut map).unwrap()
+        )
     }
 
     #[test]
@@ -459,7 +475,10 @@ mod test {
         let mut struct_map: HashMap<String, Datatype> = HashMap::new();
         struct_map.insert("a".to_string(), Datatype::Number(8));
         struct_map.insert("b".to_string(), Datatype::Number(3));
-        assert_eq!(Datatype::Struct{map: struct_map}, ast.evaluate(&mut map).unwrap())
+        assert_eq!(
+            Datatype::Struct { map: struct_map },
+            ast.evaluate(&mut map).unwrap()
+        )
     }
 
     #[test]
@@ -489,7 +508,10 @@ mod test {
         let mut struct_map: HashMap<String, Datatype> = HashMap::new();
         struct_map.insert("a".to_string(), Datatype::Number(8));
         struct_map.insert("b".to_string(), Datatype::Number(3));
-        assert_eq!(Datatype::Struct{map: struct_map}, ast.evaluate(&mut map).unwrap())
+        assert_eq!(
+            Datatype::Struct { map: struct_map },
+            ast.evaluate(&mut map).unwrap()
+        )
     }
 
 

@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast};
+use ast::Ast;
 use parser::utilities::expression_or_literal_or_identifier_or_struct_or_array;
 use parser::body::body;
 //use parser::type_signature::type_signature;
@@ -74,7 +74,7 @@ mod test {
                 condition: Box::new(Ast::Expression {
                     operator: BinaryOperator::Equals,
                     expr1: Box::new(Ast::Literal(Datatype::Number(1))),
-                    expr2: Box::new(Ast::Literal(Datatype::Number(1)))
+                    expr2: Box::new(Ast::Literal(Datatype::Number(1))),
                 }),
                 true_expr: Box::new(Ast::VecExpression {
                     expressions: vec![Ast::Literal(Datatype::Bool(true))],

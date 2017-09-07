@@ -3,7 +3,7 @@ use nom::*;
 use ast::{Ast, BinaryOperator};
 use parser::identifier::identifier;
 use parser::body::{type_assignment_body, struct_init_body};
-use datatype::{Datatype};
+use datatype::Datatype;
 
 
 named!(pub struct_definition<Ast>,
@@ -61,21 +61,21 @@ mod test {
             IResult::Error(e) => panic!("{}", e),
             _ => panic!(),
         };
-        let expected_struct_ast = Ast::Expression{
+        let expected_struct_ast = Ast::Expression {
             operator: BinaryOperator::StructDeclaration,
             expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            expr2: Box::new(Ast::VecExpression{
+            expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
                     Ast::Expression {
                         operator: BinaryOperator::TypeAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("a_number".to_string())),
-                        expr2: Box::new(Ast::Type(TypeInfo::Number))
-                    }
-                ]
-            })
+                        expr2: Box::new(Ast::Type(TypeInfo::Number)),
+                    },
+                ],
+            }),
         };
 
-        assert_eq!(expected_struct_ast,value);
+        assert_eq!(expected_struct_ast, value);
     }
 
     #[test]
@@ -90,7 +90,7 @@ mod test {
         let expected_ast = Ast::Expression {
             operator: BinaryOperator::AccessStructField,
             expr1: Box::new(Ast::ValueIdentifier("strucVariable".to_string())),
-            expr2: Box::new(Ast::ValueIdentifier("field".to_string()))
+            expr2: Box::new(Ast::ValueIdentifier("field".to_string())),
         };
         assert_eq!(expected_ast, value)
     }
@@ -114,10 +114,10 @@ mod test {
                     Ast::Expression {
                         operator: BinaryOperator::FieldAssignment,
                         expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                        expr2: Box::new(Ast::Literal(Datatype::Number(8)))
-                    }
-                ]
-            })
+                        expr2: Box::new(Ast::Literal(Datatype::Number(8))),
+                    },
+                ],
+            }),
         };
 
         assert_eq!(expected_ast, value);

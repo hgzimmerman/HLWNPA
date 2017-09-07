@@ -24,7 +24,7 @@ mod repl;
 #[cfg(test)]
 mod testing;
 
-use datatype::{Datatype};
+use datatype::Datatype;
 use ast::*;
 use repl::repl;
 
@@ -42,7 +42,9 @@ fn main() {
         .arg(
             Arg::with_name("file")
                 .value_name("File")
-                .help("The file that you want to interpret. If nothing is provided, you will be dropped into a REPL.")
+                .help(
+                    "The file that you want to interpret. If nothing is provided, you will be dropped into a REPL.",
+                )
                 .takes_value(true),
         )
         .get_matches();
@@ -67,7 +69,7 @@ fn main() {
                             let program_return_value = ast.evaluate(&mut map);
                             match program_return_value {
                                 Ok(ok_value) => println!("{:?}", ok_value),
-                                Err(e) => println!("{:?}", e)
+                                Err(e) => println!("{:?}", e),
                             }
 
                         }
@@ -75,7 +77,7 @@ fn main() {
                         IResult::Incomplete(i) => eprintln!("Couldn't parse all of the file: {:?}", i),
                     }
                 }
-                Err(e) => eprintln!("Couldn't open file because: {}", e)
+                Err(e) => eprintln!("Couldn't open file because: {}", e),
             }
         }
         None => repl(), // If a file to run wasn't provided, drop the user into a REPL

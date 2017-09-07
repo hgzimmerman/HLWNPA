@@ -90,12 +90,12 @@ mod test {
     use super::*;
     use testing::test_constants::SIMPLE_PROGRAM_INPUT_1;
     use nom::IResult;
-    use ast::{BinaryOperator};
+    use ast::BinaryOperator;
     use test::Bencher;
     use datatype::{Datatype, TypeInfo};
     /// assign the value 7 to x
-/// create a function that takes a number
-/// call the function with x
+    /// create a function that takes a number
+    /// call the function with x
     #[test]
     fn parse_simple_program_and_validate_ast_test() {
         let (_, value) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
@@ -110,7 +110,7 @@ mod test {
             expr2: Box::new(Ast::Expression {
                 operator: BinaryOperator::Plus,
                 expr1: Box::new(Ast::Literal(Datatype::Number(3))),
-                expr2: Box::new(Ast::Literal(Datatype::Number(4)))
+                expr2: Box::new(Ast::Literal(Datatype::Number(4))),
             }),
         };
 

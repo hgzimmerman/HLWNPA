@@ -38,11 +38,14 @@ mod test {
             IResult::Error(e) => panic!("{:?}", e),
             _ => panic!(),
         };
-        assert_eq!(Ast::Expression {
-            operator: BinaryOperator::AccessArray,
-            expr1: Box::new(Ast::ValueIdentifier("array_identifier".to_string())),
-            expr2: Box::new(Ast::Literal(Datatype::Number(0)))
-        }, value)
+        assert_eq!(
+            Ast::Expression {
+                operator: BinaryOperator::AccessArray,
+                expr1: Box::new(Ast::ValueIdentifier("array_identifier".to_string())),
+                expr2: Box::new(Ast::Literal(Datatype::Number(0))),
+            },
+            value
+        )
     }
 
     #[test]
@@ -55,11 +58,20 @@ mod test {
             IResult::Error(e) => panic!("{:?}", e),
             _ => panic!(),
         };
-        assert_eq!(Ast::Expression {
-            operator: BinaryOperator::AccessArray,
-            expr1: Box::new(Ast::Literal(Datatype::Array {value: vec!(Datatype::Number(12), Datatype::Number(13), Datatype::Number(14)), type_: TypeInfo::Number})),
-            expr2: Box::new(Ast::Literal(Datatype::Number(0)))
-        }, value)
+        assert_eq!(
+            Ast::Expression {
+                operator: BinaryOperator::AccessArray,
+                expr1: Box::new(Ast::Literal(Datatype::Array {
+                    value: vec![
+                        Datatype::Number(12),
+                        Datatype::Number(13),
+                        Datatype::Number(14),
+                    ],
+                    type_: TypeInfo::Number,
+                })),
+                expr2: Box::new(Ast::Literal(Datatype::Number(0))),
+            },
+            value
+        )
     }
 }
-

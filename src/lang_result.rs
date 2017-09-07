@@ -38,5 +38,5 @@ pub enum LangError {
     NonAssignmentInStructInit,
     ExpectedIdentifier,
     ExpectedExpression,
-    ExpectedIdentifierToBeStructType{ found: String }
+    ExpectedIdentifierToBeStructType { found: String },
 }

@@ -70,6 +70,13 @@ mod test {
             IResult::Error(e) => panic!("{:?}", e),
             _ => panic!(),
         };
-        assert_eq!(Ast::Expression {operator: BinaryOperator::TypeAssignment, expr1: Box::new(Ast::ValueIdentifier ( "b".to_string())), expr2: Box::new(Ast::Type ( TypeInfo::Number)) }, value)
+        assert_eq!(
+            Ast::Expression {
+                operator: BinaryOperator::TypeAssignment,
+                expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
+                expr2: Box::new(Ast::Type(TypeInfo::Number)),
+            },
+            value
+        )
     }
 }

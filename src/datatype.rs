@@ -15,7 +15,6 @@ use std::collections::HashMap;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Datatype {
-
     Number(i32),
     String(String),
     Array {
@@ -29,10 +28,8 @@ pub enum Datatype {
         body: Box<Ast>,
         return_type: Box<Ast>, // This Ast should be shallow and easily resovable to a TypeInfo (either is directly a TypeInfo or an Identifier that can be resolved to a TypeInfo)
     },
-    Struct {
-        map: HashMap<String, Datatype>
-    },
-    StructType(TypeInfo)
+    Struct { map: HashMap<String, Datatype> },
+    StructType(TypeInfo),
 }
 
 
@@ -44,7 +41,7 @@ impl PartialOrd for Datatype {
                 if let Datatype::Number(rhs_number) = *rhs {
                     if lhs < rhs_number {
                         Some(Ordering::Less)
-                    } else if  lhs > rhs_number {
+                    } else if lhs > rhs_number {
                         Some(Ordering::Greater)
                     } else {
                         Some(Ordering::Equal)
@@ -57,7 +54,7 @@ impl PartialOrd for Datatype {
                 if let &Datatype::String(ref rhs_string) = rhs {
                     if lhs < rhs_string {
                         Some(Ordering::Less)
-                    } else if  lhs > rhs_string {
+                    } else if lhs > rhs_string {
                         Some(Ordering::Greater)
                     } else {
                         Some(Ordering::Equal)
@@ -68,7 +65,7 @@ impl PartialOrd for Datatype {
             }
             Datatype::Bool(lhs) => {
                 if let Datatype::Bool(rhs_bool) = *rhs {
-                    if lhs < rhs_bool  {
+                    if lhs < rhs_bool {
                         Some(Ordering::Less)
                     } else if lhs > rhs_bool {
                         Some(Ordering::Greater)
@@ -79,16 +76,27 @@ impl PartialOrd for Datatype {
                     None
                 }
             }
-            Datatype::Array { value: ref lhs_array, type_: ref lhs_type } => {
-                if let &Datatype::Array {value: ref rhs_array, type_: ref rhs_type} = rhs {
+            Datatype::Array {
+                value: ref lhs_array,
+                type_: ref lhs_type,
+            } => {
+                if let &Datatype::Array {
+                    value: ref rhs_array,
+                    type_: ref rhs_type,
+                } = rhs
+                {
                     if lhs_type == rhs_type && lhs_array.len() == rhs_array.len() {
-                        let matches = lhs_array.into_iter().zip(rhs_array.into_iter()).filter(|&(ref lhs, ref rhs)| lhs == rhs).count();
+                        let matches = lhs_array
+                            .into_iter()
+                            .zip(rhs_array.into_iter())
+                            .filter(|&(ref lhs, ref rhs)| lhs == rhs)
+                            .count();
                         if matches == lhs_array.len() {
                             Some(Ordering::Equal)
                         } else {
-                            Some (Ordering::Less)
+                            Some(Ordering::Less)
                         }
-                    } else{
+                    } else {
                         Some(Ordering::Less)
                     }
                 } else {
@@ -97,13 +105,13 @@ impl PartialOrd for Datatype {
             }
             //Datatype::Function
             Datatype::Struct { map: ref lhs_map } => {
-                if let &Datatype::Struct { map: ref rhs_map} = rhs {
+                if let &Datatype::Struct { map: ref rhs_map } = rhs {
                     for (lhs_key, lhs_value) in lhs_map.into_iter() {
                         // clone the rhs value out of the rhs_map so it can be compared.
                         if rhs_map.get(lhs_key) == Some(lhs_value) {
-                            continue
+                            continue;
                         } else {
-                            return Some(Ordering::Less)
+                            return Some(Ordering::Less);
                         }
                     }
                     Some(Ordering::Equal)
@@ -111,7 +119,7 @@ impl PartialOrd for Datatype {
                     Some(Ordering::Less)
                 }
             }
-            _ => { None }
+            _ => None,
         }
     }
 }
@@ -220,13 +228,13 @@ pub enum TypeInfo {
     Bool,
     None,
     Function,
-    Struct{map: HashMap<String, TypeInfo>},
-    StructType
+    Struct { map: HashMap<String, TypeInfo> },
+    StructType,
 }
 
 //TODO, implement this. It is never used, but should be accurate
 impl PartialOrd for TypeInfo {
-    fn partial_cmp(&self, _rhs: &TypeInfo) -> Option<Ordering>{
+    fn partial_cmp(&self, _rhs: &TypeInfo) -> Option<Ordering> {
         Some(Ordering::Equal)
     }
 }
@@ -237,7 +245,10 @@ impl From<Datatype> for TypeInfo {
         match datatype {
             Datatype::Number(_) => TypeInfo::Number,
             Datatype::String(_) => TypeInfo::String,
-            Datatype::Array { value: _value, type_ } => TypeInfo::Array(Box::new(type_)),
+            Datatype::Array {
+                value: _value,
+                type_,
+            } => TypeInfo::Array(Box::new(type_)),
             Datatype::Bool(_) => TypeInfo::Bool,
             Datatype::None => TypeInfo::None,
             Datatype::Function { .. } => TypeInfo::Function,
@@ -247,11 +258,9 @@ impl From<Datatype> for TypeInfo {
                     let (key, value) = tuple;
                     type_map.insert(key, TypeInfo::from(value));
                 }
-                TypeInfo::Struct{
-                    map: type_map
-                }
+                TypeInfo::Struct { map: type_map }
             }
-            Datatype::StructType(_) => TypeInfo::StructType
+            Datatype::StructType(_) => TypeInfo::StructType,
         }
     }
 }
@@ -262,19 +271,58 @@ impl From<Datatype> for TypeInfo {
 fn datatype_equality_tests() {
     assert_eq!(Datatype::Number(30), Datatype::Number(30));
     assert_ne!(Datatype::Number(23), Datatype::Number(30));
-    assert_eq!(Datatype::String("Hello".to_string()), Datatype::String("Hello".to_string()));
+    assert_eq!(
+        Datatype::String("Hello".to_string()),
+        Datatype::String("Hello".to_string())
+    );
     assert_eq!(Datatype::Bool(true), Datatype::Bool(true));
     assert_ne!(Datatype::Bool(false), Datatype::Bool(true));
-    assert_eq!(Datatype::Array {value: vec!(), type_: TypeInfo::Number}, Datatype::Array {value: vec!(), type_: TypeInfo::Number});
-    assert_eq!(Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool}, Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool});
-    assert_ne!(Datatype::Array {value: vec!(Datatype::Bool(true)), type_: TypeInfo::Bool}, Datatype::Array {value: vec!(Datatype::Bool(true), Datatype::Bool(true)), type_: TypeInfo::Number});
-    assert_eq!(Datatype::Struct { map: HashMap::new()}, Datatype::Struct { map: HashMap::new()});
+    assert_eq!(
+        Datatype::Array {
+            value: vec![],
+            type_: TypeInfo::Number,
+        },
+        Datatype::Array {
+            value: vec![],
+            type_: TypeInfo::Number,
+        }
+    );
+    assert_eq!(
+        Datatype::Array {
+            value: vec![Datatype::Bool(true)],
+            type_: TypeInfo::Bool,
+        },
+        Datatype::Array {
+            value: vec![Datatype::Bool(true)],
+            type_: TypeInfo::Bool,
+        }
+    );
+    assert_ne!(
+        Datatype::Array {
+            value: vec![Datatype::Bool(true)],
+            type_: TypeInfo::Bool,
+        },
+        Datatype::Array {
+            value: vec![Datatype::Bool(true), Datatype::Bool(true)],
+            type_: TypeInfo::Number,
+        }
+    );
+    assert_eq!(
+        Datatype::Struct { map: HashMap::new() },
+        Datatype::Struct { map: HashMap::new() }
+    );
 
     let mut map: HashMap<String, Datatype> = HashMap::new();
-    map.insert("field".to_string(), Datatype::Bool(true) );
-    assert_ne!(Datatype::Struct {map: map.clone()}, Datatype::Struct { map: HashMap::new()});
+    map.insert("field".to_string(), Datatype::Bool(true));
+    assert_ne!(
+        Datatype::Struct { map: map.clone() },
+        Datatype::Struct { map: HashMap::new() }
+    );
 
     let mut other_map: HashMap<String, Datatype> = HashMap::new();
     other_map.insert("field".to_string(), Datatype::Bool(true));
-    assert_eq!(Datatype::Struct { map: map}, Datatype::Struct { map: other_map});
+    assert_eq!(
+        Datatype::Struct { map: map },
+        Datatype::Struct { map: other_map }
+    );
 }

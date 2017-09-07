@@ -1,4 +1,4 @@
-use ast::{UnaryOperator};
+use ast::UnaryOperator;
 #[allow(unused_imports)]
 use nom::*;
 

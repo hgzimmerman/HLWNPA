@@ -1,4 +1,4 @@
-use ast::{BinaryOperator};
+use ast::BinaryOperator;
 #[allow(unused_imports)]
 use nom::*;
 

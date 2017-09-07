@@ -7,4 +7,3 @@ pub mod test_constants {
          fn test_function ( a : Number ) -> Number { ( a + 8 ) }
          test_function(x)";
 }
-

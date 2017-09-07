@@ -257,13 +257,11 @@ impl Ast {
                                                 // check if the value to be assigned matches the expected type
                                                 let to_be_assigned_type: TypeInfo = TypeInfo::from(value_to_be_assigned.clone());
                                                 if expected_type == &to_be_assigned_type {
+                                                    // now add the value to the new struct's map
                                                     new_struct_map.insert(field_identifier.clone(), value_to_be_assigned);
-//                                                    continue; // type checks out
                                                 } else {
                                                     return Err(LangError::TypeError { expected: expected_type.clone(), found: to_be_assigned_type })
                                                 }
-
-                                                // now add the value to the new struct's map
 
                                             } else {
                                                 return Err(LangError::ExpectedIdentifier);

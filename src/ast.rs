@@ -190,7 +190,7 @@ impl Ast {
 
                                 for assignment_expr in expressions {
                                     if let &Ast::Expression {operator: ref assignment_op, expr1: ref field_identifier_expr, expr2: ref field_type_expr} = assignment_expr {
-                                        if let BinaryOperator::Assignment = *assignment_op {
+                                        if let BinaryOperator::FunctionParameterAssignment = *assignment_op {
                                             if let Ast::ValueIdentifier(ref field_id) = **field_identifier_expr {
                                                 if let Ast::Type(ref field_type) = **field_type_expr {
                                                     struct_map.insert(field_id.clone(), field_type.clone());
@@ -204,7 +204,7 @@ impl Ast {
                                             return Err(LangError::NonAssignmentInStructDeclaration)
                                         }
                                     } else {
-                                        return Err(LangError::NonAssignmentInStructDeclaration)
+                                        return Err(LangError::ExpectedExpression)
                                     }
                                 }
                                 let new_struct_type = TypeInfo::Struct {map: struct_map};
@@ -232,8 +232,6 @@ impl Ast {
                         } else {
                             return Err(LangError::TriedToAccessNonStruct)
                         }
-
-                        Err(LangError::IdentifierDoesntExist)
                     }
 
                     BinaryOperator::CreateStruct => {

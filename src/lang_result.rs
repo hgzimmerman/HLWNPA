@@ -36,6 +36,7 @@ pub enum LangError {
     StructFieldDoesntExist,
     TriedToAccessNonStruct,
     NonAssignmentInStructInit,
-    ExpectedIdentifier
+    ExpectedIdentifier,
+    ExpectedExpression
 
 }

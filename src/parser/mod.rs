@@ -49,10 +49,10 @@ named!(any_ast<Ast>,
         complete!(if_expression) |
         complete!(while_loop) |
         complete!(literal) |
+        complete!(struct_access) | // Must come before the identifier, as it will match the identifier first
         complete!(identifier) |
         complete!(array_access) |
         complete!(struct_definition) |
-        complete!(struct_access) |
         complete!(create_struct_instance) |
         complete!(function) |
         complete!(any_expression_parens)

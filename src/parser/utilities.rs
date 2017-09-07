@@ -15,9 +15,9 @@ named!(pub expression_or_literal_or_identifier<Ast>,
     alt!(
         complete!(any_expression_parens) |
         complete!(literal) |
+        complete!(struct_access) | // must come before identifier
         complete!(identifier) |
-        complete!(create_struct_instance) |
-        complete!(struct_access)
+        complete!(create_struct_instance)
 //        complete!(array_access)
     )
 );
@@ -29,9 +29,9 @@ named!(pub expression_or_literal_or_identifier_or_struct_or_array<Ast>,
     alt!(
         complete!(any_expression_parens) |
         complete!(literal) |
+        complete!(struct_access) |
         complete!(identifier) |
         complete!(create_struct_instance) | // consider making a combinator without this one, only assignment cares about this.
-        complete!(struct_access) |
         complete!(array_access)
     )
 );

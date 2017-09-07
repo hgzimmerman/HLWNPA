@@ -245,7 +245,6 @@ mod test {
     #[test]
     fn program_parse_and_verify_array_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        // the while body should not execute
         let input_string = r##"
         [23, 43, 11]
         "##;
@@ -256,6 +255,97 @@ mod test {
         };
 
         assert_eq!(Datatype::Array{value: vec![Datatype::Number(23), Datatype::Number(43), Datatype::Number(11)], type_: TypeInfo::Number }, ast.evaluate(&mut map).unwrap());
+    }
+
+    #[test]
+    fn program_parse_struct_and_something_after_it() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        struct MyStruct {
+            a : Number
+        }
+        ( 3 + 3 )
+
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(Datatype::Number(6), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn program_parse_struct_and_access_field() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        struct MyStruct {
+            a : Number
+        }
+        let instance := new MyStruct {
+            a: 8
+        }
+
+        instance.a
+
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(Datatype::Number(8), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn program_parse_struct_and_access_field_via_assignment() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        struct MyStruct {
+            a : Number
+        }
+        let instance := new MyStruct {
+            a: 8
+        }
+
+        let value_from_struct := instance.a
+        value_from_struct
+
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(Datatype::Number(8), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn program_parse_struct_with_multiple_fields_and_access_fields_in_expression() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        struct MyStruct {
+            a : Number
+            b : Number
+        }
+        let instance := new MyStruct {
+            a: 8
+            b: 10
+        }
+
+        (instance.8 + instance.b)
+
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(Datatype::Number(18), ast.evaluate(&mut map).unwrap())
     }
 
     #[bench]

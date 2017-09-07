@@ -401,12 +401,12 @@ mod test {
                 use nom::IResult;
                 let mut map: HashMap<String, Datatype> = HashMap::new();
                 let input_string = r##"
-        let x := 0
-        while (x < 1000) {
-           let x := (x + 1)
-        }
-        x
-        "##;
+                let x := 0
+                while (x < 1000) {
+                   let x := (x + 1)
+                }
+                x
+                "##;
                 let (_, ast) = match program(input_string.as_bytes()) {
                     IResult::Done(rest, v) => (rest, v),
                     IResult::Error(e) => panic!("{}", e),
@@ -426,15 +426,15 @@ mod test {
                 use nom::IResult;
                 let mut map: HashMap<String, Datatype> = HashMap::new();
                 let input_string = r##"
-        let x := 0
-        while (x < 1000) {
-            ( 1 * 3 )
-            ( 1 * 40000 )
-            ( 34234 % 7 )
-            let x := (x + 1)
-        }
-        x
-        "##;
+                let x := 0
+                while (x < 1000) {
+                    ( 1 * 3 )
+                    ( 1 * 40000 )
+                    ( 34234 % 7 )
+                    let x := (x + 1)
+                }
+                x
+                "##;
                 let (_, ast) = match program(input_string.as_bytes()) {
                     IResult::Done(rest, v) => (rest, v),
                     IResult::Error(e) => panic!("{}", e),

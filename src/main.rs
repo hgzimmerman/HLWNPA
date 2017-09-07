@@ -34,8 +34,8 @@ use parser::program;
 
 fn main() {
 
-    let matches = App::new("Toy Language")
-        .version("0.1.0")
+    let matches = App::new("HLWNPA - Henry's Language With No Pronounceable Acronym")
+        .version("0.1.1")
         .author("Henry Zimmerman")
         .about(
             "A toy language I made in a couple of days without thinking about it too much",

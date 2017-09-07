@@ -359,11 +359,11 @@ mod test {
             b: 10
         }
 
-        fn addContents( s: MyStruct ) -> Number {
+        fn addAndMultiplyContents( s: MyStruct ) -> Number {
             ((s.a + s.b) * s.b)
         }
 
-        addContents( instance )
+        addAndMultiplyContents( instance )
 
         "##;
         let (_, ast) = match program(input_string.as_bytes()) {
@@ -430,6 +430,105 @@ mod test {
         struct_map.insert("a".to_string(), Datatype::Number(8));
         struct_map.insert("b".to_string(), Datatype::Number(3));
         assert_eq!(Datatype::Struct{map: struct_map}, ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn program_verify_that_struct_maps_dont_interfere_with_global_stack_map() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        struct MyStruct {
+            a : Number
+            b : Number
+        }
+
+        let a := 3
+
+        fn create_new_MyStruct( value: Number ) -> MyStruct {
+            new MyStruct {
+                a: 8
+                b: value
+            }
+        }
+        create_new_MyStruct( a )
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+        let mut struct_map: HashMap<String, Datatype> = HashMap::new();
+        struct_map.insert("a".to_string(), Datatype::Number(8));
+        struct_map.insert("b".to_string(), Datatype::Number(3));
+        assert_eq!(Datatype::Struct{map: struct_map}, ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn program_verify_that_struct_maps_dont_interfere_with_function_maps() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        struct MyStruct {
+            a : Number
+            b : Number
+        }
+
+        let a := 3
+
+        fn create_new_MyStruct( a: Number ) -> MyStruct {
+            new MyStruct {
+                a: 8
+                b: a
+            }
+        }
+        create_new_MyStruct( a )
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+        let mut struct_map: HashMap<String, Datatype> = HashMap::new();
+        struct_map.insert("a".to_string(), Datatype::Number(8));
+        struct_map.insert("b".to_string(), Datatype::Number(3));
+        assert_eq!(Datatype::Struct{map: struct_map}, ast.evaluate(&mut map).unwrap())
+    }
+
+
+
+    #[test]
+    fn program_with_struct_functions_integration_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        struct MyStruct {
+            a : Number
+            b : Number
+        }
+
+        let a := 3
+
+        fn create_new_MyStruct( value: Number ) -> MyStruct {
+            new MyStruct {
+                a: 8
+                b: value
+            }
+        }
+
+        fn addContents( s: MyStruct ) -> Number {
+            (s.a + s.b)
+        }
+
+        let instance := create_new_MyStruct( a )
+
+        addContents( instance )
+
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+
+        assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
     }
 
     mod benches {

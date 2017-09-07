@@ -8,6 +8,7 @@ use parser::identifier::identifier;
 use parser::assignment::assignment;
 use parser::structure::{create_struct_instance, struct_access};
 use parser::array::array_access;
+use parser::function_execution;
 
 
 //TODO this is misnamed, now that it matches other sequences, fix that
@@ -30,9 +31,11 @@ named!(pub expression_or_literal_or_identifier_or_struct_or_array<Ast>,
         complete!(any_expression_parens) |
         complete!(literal) |
         complete!(struct_access) |
+        complete!(function_execution) |
         complete!(identifier) |
         complete!(create_struct_instance) | // consider making a combinator without this one, only assignment cares about this.
         complete!(array_access)
+
     )
 );
 

@@ -26,6 +26,7 @@ named!(pub expression_or_literal_or_identifier<Ast>,
 /// Because array_access requires something that resolves something to an array, using recursive combinators would overflow the stack.
 /// So don't use this in array_access.
 /// This decision prevents easy access for nested array notation like: array[30][3]
+// TODO: this is misnamed, function execution is missing from the name
 named!(pub expression_or_literal_or_identifier_or_struct_or_array<Ast>,
     alt!(
         complete!(any_expression_parens) |

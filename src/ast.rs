@@ -175,19 +175,7 @@ impl Ast {
                         return declare_struct(expr1, expr2, map)
                     }
                     BinaryOperator::AccessStructField => {
-                        // if expr1 produces a struct when evaluated
-                        if let Datatype::Struct { map: struct_map } = expr1.evaluate(map)? {
-                            if let Ast::ValueIdentifier(ref field_identifier) = **expr2 {
-                                match struct_map.get(field_identifier) {
-                                    Some(struct_field_datatype) => return Ok(struct_field_datatype.clone()),
-                                    None => return Err(LangError::StructFieldDoesntExist)
-                                }
-                            } else {
-                                return Err(LangError::IdentifierDoesntExist)
-                            }
-                        } else {
-                            return Err(LangError::TriedToAccessNonStruct)
-                        }
+                        return access_struct_field(expr1, expr2, map)
                     }
 
                     BinaryOperator::CreateStruct => {
@@ -270,6 +258,25 @@ impl Ast {
     }
 }
 
+/// Resolve the first expression to a struct.
+/// Resolve the second expression to an identifier.
+/// Check if the second expression's identifier is in the struct's map.
+/// If it is, the get the value associated with that identifier and return it.
+fn access_struct_field (expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
+    // if expr1 produces a struct when evaluated
+    if let Datatype::Struct { map: struct_map } = expr1.evaluate(map)? {
+        if let Ast::ValueIdentifier(ref field_identifier) = *expr2 {
+            match struct_map.get(field_identifier) {
+                Some(struct_field_datatype) => return Ok(struct_field_datatype.clone()),
+                None => return Err(LangError::StructFieldDoesntExist)
+            }
+        } else {
+            return Err(LangError::IdentifierDoesntExist)
+        }
+    } else {
+        return Err(LangError::TriedToAccessNonStruct)
+    }
+}
 
 /// Given an Identifier,
 /// and a vector of expressions tha contains only TypeAssignments.

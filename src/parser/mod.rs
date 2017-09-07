@@ -206,7 +206,7 @@ mod test {
         let input_string = r##"
          let myArray := [8, 3]
         "##;
-        let (_, value) = match program(input_string.as_bytes()) {
+        let (_, _) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("Error in parsing: {}", e),
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
@@ -218,7 +218,7 @@ mod test {
         let input_string = r##"
          let value_in_array := existing_array[8]
         "##;
-        let (_, value) = match program(input_string.as_bytes()) {
+        let (_, _) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("Error in parsing: {}", e),
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
@@ -231,7 +231,7 @@ mod test {
             a : Number
         }
         "##;
-        let (_, value) = match program(input_string.as_bytes()) {
+        let (_, _) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("Error in parsing: {}", e),
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
@@ -244,7 +244,7 @@ mod test {
             a : 8
         }
         "##;
-        let (_, value) = match program(input_string.as_bytes()) {
+        let (_, _) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("Error in parsing: {}", e),
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
@@ -257,7 +257,7 @@ mod test {
             a : 8
         }
         "##;
-        let (_, value) = match program(input_string.as_bytes()) {
+        let (_, _) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("Error in parsing: {}", e),
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
@@ -269,7 +269,7 @@ mod test {
         let input_string = r##"
         let outside_value := myStructInstance.field
         "##;
-        let (_, value) = match program(input_string.as_bytes()) {
+        let (_, _) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("Error in parsing: {}", e),
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),

@@ -3,8 +3,7 @@ use nom::*;
 use ast::{Ast, BinaryOperator};
 use parser::identifier::identifier;
 use parser::body::{type_assignment_body, struct_init_body};
-use parser::type_signature::type_signature;
-use datatype::{Datatype, TypeInfo};
+use datatype::{Datatype};
 
 
 named!(pub struct_definition<Ast>,

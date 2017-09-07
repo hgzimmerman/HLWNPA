@@ -332,8 +332,8 @@ impl Ast {
                                                             Ast::ValueIdentifier(ref id) => {
                                                                 match map.get(id) { // get what should be a struct out of the stack
                                                                     Some(datatype) => {
-                                                                        if let Datatype::StructType(ref structTypeInfo) = *datatype {
-                                                                            structTypeInfo
+                                                                        if let Datatype::StructType(ref struct_type_info) = *datatype {
+                                                                            struct_type_info
                                                                         } else {
                                                                             return Err(LangError::ExpectedIdentifierToBeStructType{ found: id.clone()} )
                                                                         }
@@ -383,8 +383,8 @@ impl Ast {
                                             Ast::ValueIdentifier(ref id) => {
                                                 match map.get(id) {
                                                     Some(datatype) => {
-                                                        if let Datatype::StructType(ref structTypeInfo) = *datatype {
-                                                            structTypeInfo.clone()
+                                                        if let Datatype::StructType(ref struct_type_info) = *datatype {
+                                                            struct_type_info.clone()
                                                         } else {
                                                             return Err(LangError::ExpectedIdentifierToBeStructType { found: id.clone() })
                                                         }

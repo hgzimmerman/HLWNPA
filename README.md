@@ -19,6 +19,7 @@ I then proceeded to graft things onto the AST and syntax parser once I had a min
 * Statements are delimited by `()`, because the language has no concept of order of operations.
 * Functions and structs must be declared in the order they are used.
 * I don't think I have support for functions returning arrays.
+* No floating point support, only signed 32 bit numbers.
 
 
 # Actual Features

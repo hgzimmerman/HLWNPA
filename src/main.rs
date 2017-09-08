@@ -21,6 +21,7 @@ mod lang_result;
 mod ast;
 mod parser;
 mod repl;
+mod std_functions;
 #[cfg(test)]
 mod testing;
 
@@ -29,7 +30,7 @@ use ast::*;
 use repl::repl;
 
 use parser::program;
-
+//use std_functions;
 
 fn main() {
 
@@ -66,6 +67,7 @@ fn main() {
                     match program(file_contents.as_bytes()) {
                         IResult::Done(_, ast) => {
                             let mut map: HashMap<String, Datatype> = HashMap::new();
+                            std_functions::add_std_functions(&mut map);
                             let program_return_value = ast.evaluate(&mut map);
                             match program_return_value {
                                 Ok(ok_value) => println!("{:?}", ok_value),

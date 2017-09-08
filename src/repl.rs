@@ -9,6 +9,8 @@ use std::collections::HashMap;
 use std::io;
 use std::io::Write;
 
+use std_functions;
+
 /// Reads and parses
 fn read<'a>(a: &'a str) -> IResult<&'a [u8], Ast> {
     return program(a.as_bytes());
@@ -34,7 +36,7 @@ fn evaluate(possibly_parsed_ast: IResult<&[u8], Ast>, map: &mut HashMap<String, 
 fn print(possibly_evaluated_program: LangResult) {
 
     match possibly_evaluated_program {
-        Ok(datatype) => print!("{:?}\nuser>", datatype), // Todo make datatype formatted
+        Ok(datatype) => print!("{:?}\nuser>", datatype),
         Err(err) => print!("{:?}\nuser>", err),
     }
 
@@ -47,6 +49,7 @@ pub fn repl() {
     let stdin = io::stdin();
 
     let mut map: HashMap<String, Datatype> = HashMap::new();
+    std_functions::add_std_functions(&mut map);
 
     print!("user>");
     let _ = io::stdout().flush();

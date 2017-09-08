@@ -11,6 +11,7 @@ use lang_result::*;
 use Ast;
 
 use std::collections::HashMap;
+use std::fmt;
 
 
 #[derive(PartialEq, Debug, Clone)]
@@ -33,7 +34,38 @@ pub enum Datatype {
 }
 
 
-// TODO: Rust comparisons will auto deref references, so I may be able to avoid cloning everything here, use test below to verify validity.
+impl fmt::Display for Datatype {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Datatype::Number(ref value) => {
+                write!(f, "{}", value)
+            }
+            Datatype::String(ref value) => {
+                write!(f, "{}", value)
+
+            }
+            Datatype::Bool(ref value) => {
+                write!(f, "{}", value)
+            }
+            Datatype::Array {ref value, ref type_} => {
+                write!(f, "[{:?}]{:?}", value, type_)
+            }
+            Datatype::None => {
+                write!(f, "NONE")
+            }
+            Datatype::Function{ ref parameters, ref body, ref return_type} => {
+                write!(f, "{:?} -> {:?}", parameters, return_type)
+            }
+            Datatype::Struct{ref map } => {
+                write!(f, "{{{:?}}}", map)
+            }
+            Datatype::StructType(ref value) => {
+                write!(f, "{:?}", value)
+            }
+        }
+    }
+}
+
 impl PartialOrd for Datatype {
     fn partial_cmp(&self, rhs: &Datatype) -> Option<Ordering> {
         match *self {

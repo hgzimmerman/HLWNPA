@@ -46,3 +46,26 @@ fn parse_string_literal_test() {
     };
     assert_eq!(Ast::Literal ( Datatype::String("Hello World".to_string())), value)
 }
+
+#[test]
+fn parse_string_literal_with_escape_sequences() {
+    let input_string = "\"\n \n\"";
+    let (_, value) = match string_literal(input_string.as_bytes()) {
+        IResult::Done(r, v) => (r, v),
+        IResult::Error(e) => panic!("{:?}", e),
+        _ => panic!(),
+    };
+    assert_eq!(Ast::Literal(Datatype::String("\n \n".to_string())), value)
+}
+
+#[test]
+fn parse_string_literal_with_escape_sequences_2() {
+    let input_string = "\"\n\"";
+    let (_, value) = match string_literal(input_string.as_bytes()) {
+        IResult::Done(r, v) => (r, v),
+        IResult::Error(e) => panic!("{:?}", e),
+        _ => panic!(),
+    };
+    assert_eq!(Ast::Literal(Datatype::String("\n".to_string())), value)
+}
+

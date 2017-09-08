@@ -196,9 +196,10 @@ impl Ast {
                             } else {
                                 print!("{}", datatype_to_print);
                             }
+                        } else {
+                            print!("{}", datatype_to_print);
                         }
-                        print!("{}", datatype_to_print);
-                        Ok(Datatype::None)
+                        Ok(datatype_to_print)
                     }
                     UnaryOperator::Invert => {
                         match expr.evaluate(map)? {

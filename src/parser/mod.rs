@@ -276,4 +276,23 @@ mod test {
         };
     }
 
+    #[test]
+    fn verify_program_with_escapes_in_strings() {
+        let input_string = "
+        \"\nHello\nWorld\n\"
+        ";
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+
+        assert_eq!(Ast::VecExpression{
+            expressions: vec![
+                Ast::Literal(Datatype::String("\nHello\nWorld\n".to_string()))
+            ]
+        }, ast)
+
+    }
+
 }

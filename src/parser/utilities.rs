@@ -46,6 +46,7 @@ named!(pub expression_or_literal_or_identifier_or_assignment<Ast>,
         literal |
         struct_access |
         create_struct_instance |
+        function_execution |
         identifier |
         assignment
     )

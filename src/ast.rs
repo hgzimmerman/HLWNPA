@@ -155,7 +155,7 @@ impl Ast {
                     BinaryOperator::AccessArray => {
                         let datatype: Datatype = expr1.evaluate(map)?;
                         match datatype {
-                            Datatype::Array { value, type_ } => {
+                            Datatype::Array { value, .. } => {
                                 let possible_index = expr2.evaluate(map)?;
                                 match possible_index {
                                     Datatype::Number(index) => {
@@ -189,7 +189,15 @@ impl Ast {
             } => {
                 match *operator {
                     UnaryOperator::Print => {
-                        print!("{:?}", expr.evaluate(map)?); // todo use: std::fmt::Display::fmt instead
+                        let datatype_to_print = expr.evaluate(map)?;
+                        if let Ast::ValueIdentifier(ref identifier) = **expr {
+                            if let Datatype::Struct {..} = datatype_to_print {
+                                print!("{}{}", identifier, datatype_to_print)
+                            } else {
+                                print!("{}", datatype_to_print);
+                            }
+                        }
+                        print!("{}", datatype_to_print);
                         Ok(Datatype::None)
                     }
                     UnaryOperator::Invert => {

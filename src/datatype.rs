@@ -42,7 +42,6 @@ impl fmt::Display for Datatype {
             }
             Datatype::String(ref value) => {
                 write!(f, "{}", value)
-
             }
             Datatype::Bool(ref value) => {
                 write!(f, "{}", value)

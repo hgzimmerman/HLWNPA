@@ -9,6 +9,7 @@ use parser::assignment::assignment;
 use parser::structure::{create_struct_instance, struct_access};
 use parser::array::array_access;
 use parser::function_execution;
+use parser::control_flow::control_flow;
 
 
 //TODO this is misnamed, now that it matches other sequences, fix that
@@ -47,6 +48,7 @@ named!(pub expression_or_literal_or_identifier_or_assignment<Ast>,
         struct_access |
         create_struct_instance |
         function_execution |
+        control_flow |
         identifier |
         assignment
     )

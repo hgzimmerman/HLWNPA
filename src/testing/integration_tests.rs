@@ -581,6 +581,31 @@ mod test {
 
 
 
+    #[test]
+    fn program_with_a_conditional_in_a_function_2_integration_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r##"
+        let a := 2
+
+        fn check_if_three( x: Number ) -> Number {
+            if (x == 3) {
+                3
+            } else {
+                0
+            }
+        }
+
+        check_if_three( a )
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+
+        assert_eq!(Datatype::Number(0), ast.evaluate(&mut map).unwrap())
+    }
 
 
 

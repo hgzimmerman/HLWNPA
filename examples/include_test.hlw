@@ -1,0 +1,3 @@
+include "examples/hoisted_test.hlw"
+
+add_two_to_value(7)

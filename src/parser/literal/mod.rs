@@ -2,7 +2,7 @@ pub mod number; // TODO move number_raw to other file/module so this can remove 
 use self::number::number_literal;
 
 mod string;
-use self::string::string_literal;
+pub use self::string::string_literal;
 
 mod boolean;
 use self::boolean::bool_literal;

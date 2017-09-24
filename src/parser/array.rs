@@ -1,4 +1,4 @@
-use ast::{Ast, BinaryOperator};
+use ast::{Ast, BinaryOperator, SExpression};
 #[allow(unused_imports)]
 use nom::*;
 use std::boxed::Box;
@@ -13,11 +13,10 @@ named!(pub array_access<Ast>,
             number_literal,
             ws!(char!(']'))
         ) >>
-        (Ast::Expression{
-            operator: BinaryOperator::AccessArray,
-            expr1: Box::new(array),
-            expr2: Box::new(index)
-        })
+        (Ast::SExpr(Box::new(SExpression::AccessArray {
+            identifier: Box::new(array),
+            index: Box::new(index)
+        })))
     )
 );
 
@@ -39,11 +38,10 @@ mod test {
             _ => panic!(),
         };
         assert_eq!(
-            Ast::Expression {
-                operator: BinaryOperator::AccessArray,
-                expr1: Box::new(Ast::ValueIdentifier("array_identifier".to_string())),
-                expr2: Box::new(Ast::Literal(Datatype::Number(0))),
-            },
+            Ast::SExpr(Box::new(SExpression::AccessArray {
+                identifier: Box::new(Ast::ValueIdentifier("array_identifier".to_string())),
+                index: Box::new(Ast::Literal(Datatype::Number(0))),
+            })),
             value
         )
     }
@@ -59,9 +57,8 @@ mod test {
             _ => panic!(),
         };
         assert_eq!(
-            Ast::Expression {
-                operator: BinaryOperator::AccessArray,
-                expr1: Box::new(Ast::Literal(Datatype::Array {
+            Ast::SExpr(Box::new(SExpression::AccessArray {
+                identifier: Box::new(Ast::Literal(Datatype::Array {
                     value: vec![
                         Datatype::Number(12),
                         Datatype::Number(13),
@@ -69,8 +66,8 @@ mod test {
                     ],
                     type_: TypeInfo::Number,
                 })),
-                expr2: Box::new(Ast::Literal(Datatype::Number(0))),
-            },
+                index: Box::new(Ast::Literal(Datatype::Number(0))),
+            })),
             value
         )
     }

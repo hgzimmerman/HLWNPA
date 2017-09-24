@@ -53,7 +53,7 @@ named!(pub function<Ast>,
 
 #[test]
 fn parse_whole_function_number_input_returns_number_test() {
-    let input_string = "fn test_function ( a : Number ) -> Number { a + 8  }";
+    let input_string = "fn test_function ( a : Number ) -> Number { a + 8 }";
     let (_, value) = match function(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),

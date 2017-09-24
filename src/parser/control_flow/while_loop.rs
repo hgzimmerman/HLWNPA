@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast, BinaryOperator};
+use ast::{Ast, SExpression, BinaryOperator};
 use parser::body::body;
 use parser::utilities::expression_or_literal_or_identifier_or_struct_or_array;
 use std::boxed::Box;
@@ -14,11 +14,10 @@ named!(pub while_loop<Ast>,
         while_conditional: ws!(expression_or_literal_or_identifier_or_struct_or_array) >>
         while_body: ws!(body) >>
 
-        (Ast::Expression {
-            operator: BinaryOperator::Loop,
-            expr1: Box::new(while_conditional),
-            expr2: Box::new(while_body)
-        })
+        (Ast::SExpr(Box::new(SExpression::Loop{
+            conditional: Box::new(while_conditional),
+            body: Box::new(while_body)
+        })))
     )
 );
 
@@ -37,13 +36,16 @@ mod test {
         };
 
         assert_eq!(
-            Ast::Expression {
-                operator: BinaryOperator::Loop,
-                expr1: Box::new(Ast::Literal(Datatype::Bool(true))),
-                expr2: Box::new(Ast::VecExpression {
-                    expressions: vec![Ast::Literal(Datatype::Bool(true))],
-                }),
-            },
+            Ast::SExpr(Box::new(
+                SExpression::Loop {
+                   conditional: Box::new(Ast::Literal(Datatype::Bool(true))),
+                   body: Box::new(Ast::VecExpression {
+                       expressions: vec![
+                           Ast::Literal(Datatype::Bool(true))
+                       ]
+                   }),
+                }
+            )),
             value
         )
     }

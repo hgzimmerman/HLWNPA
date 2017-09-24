@@ -77,8 +77,6 @@ impl Ast {
                 let mut function_declarations: Vec<Ast> = vec!();
                 // Keep the ordering of everything else, likely constant assignments.
                 let mut everything_else: Vec<Ast> = vec!();
-                // Move the main function to the end
-                let mut main_function: Option<Ast> = None;
 
                 for ast in expressions {
 
@@ -95,13 +93,7 @@ impl Ast {
                                 }
                                 BinaryOperator::CreateFunction => {
                                     let ast = ast.clone();
-                                    if let Ast::ValueIdentifier(ref fn_name) = **expr1 {
-                                        if fn_name.as_str() == MAIN_FUNCTION_NAME {
-                                            main_function = Some(ast); // If the function's identifier is "main", move it to the bottom of the evaluation list, so all of the functions and structs it relies on will be defined first.
-                                        } else {
-                                            function_declarations.push(ast);
-                                        }
-                                    }
+                                    function_declarations.push(ast);
                                 }
                                 _ => {
                                     //If it isn't a creation of a struct or function, put it in the everything else bucket.
@@ -123,9 +115,6 @@ impl Ast {
                 eval_list_with_hoists.append(&mut function_declarations);
                 eval_list_with_hoists.append(&mut everything_else);
 
-                if let Some(main_fn) = main_function {
-                    eval_list_with_hoists.push(main_fn);
-                }
 
                 Ast::VecExpression {
                     expressions: eval_list_with_hoists

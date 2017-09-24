@@ -810,85 +810,77 @@ mod test {
         ));
         assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
     }
-//
-//    /// Assign the value 6 to the identifier "a"
-//    /// Recall that identifier and add it to 5
-//    #[test]
-//    fn assignment_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::VecExpression {
-//            expressions: vec![
-//                Ast::Expression {
-//                    operator: BinaryOperator::Assignment,
-//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-//                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-//                },
-//                Ast::Expression {
-//                    operator: BinaryOperator::Plus,
-//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-//                    expr2: Box::new(Ast::Literal(Datatype::Number(5))),
-//                },
-//            ],
-//        };
-//        assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//
-//    /// Assign the value 6 to "a".
-//    /// Copy the value in "a" to "b".
-//    /// Recall the value in "b" and add it to 5.
-//    #[test]
-//    fn variable_copy_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::VecExpression {
-//            expressions: vec![
-//                Ast::Expression {
-//                    operator: BinaryOperator::Assignment,
-//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-//                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-//                },
-//                Ast::Expression {
-//                    operator: BinaryOperator::Assignment,
-//                    expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
-//                    expr2: Box::new(Ast::ValueIdentifier("a".to_string())),
-//                },
-//                Ast::Expression {
-//                    operator: BinaryOperator::Plus,
-//                    expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
-//                    expr2: Box::new(Ast::Literal(Datatype::Number(5))),
-//                },
-//            ],
-//        };
-//        assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    /// Assign the value 6 to a.
-//    /// Assign the value 3 to a.
-//    /// Recall the value in a and add it to 5, the value of a should be 3, equalling 8.
-//    #[test]
-//    fn reassignment_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::VecExpression {
-//            expressions: vec![
-//                Ast::Expression {
-//                    operator: BinaryOperator::Assignment,
-//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-//                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-//                },
-//                Ast::Expression {
-//                    operator: BinaryOperator::Assignment,
-//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-//                    expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-//                },
-//                Ast::Expression {
-//                    operator: BinaryOperator::Plus,
-//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-//                    expr2: Box::new(Ast::Literal(Datatype::Number(5))),
-//                },
-//            ],
-//        };
-//        assert_eq!(Datatype::Number(8), ast.evaluate(&mut map).unwrap())
-//    }
+
+    /// Assign the value 6 to the identifier "a"
+    /// Recall that identifier and add it to 5
+    #[test]
+    fn assignment_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::VecExpression {
+            expressions: vec![
+                Ast::SExpr(SExpression::Assignment{
+                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                    ast: Box::new(Ast::Literal(Datatype::Number(6))),
+                }),
+                Ast::SExpr(SExpression::Add(
+                    Box::new(Ast::ValueIdentifier("a".to_string())),
+                    Box::new(Ast::Literal(Datatype::Number(5))),
+                )),
+            ],
+        };
+        assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
+    }
+
+
+    /// Assign the value 6 to "a".
+    /// Copy the value in "a" to "b".
+    /// Recall the value in "b" and add it to 5.
+    #[test]
+    fn variable_copy_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::VecExpression {
+            expressions: vec![
+                Ast::SExpr(SExpression::Assignment{
+                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                    ast: Box::new(Ast::Literal(Datatype::Number(6))),
+                }),
+                Ast::SExpr(SExpression::Assignment {
+                    identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
+                    ast: Box::new(Ast::ValueIdentifier("a".to_string())),
+                }),
+                Ast::SExpr(SExpression::Add(
+                    Box::new(Ast::ValueIdentifier("b".to_string())),
+                    Box::new(Ast::Literal(Datatype::Number(5))),
+                )),
+            ],
+        };
+        assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
+    }
+
+    /// Assign the value 6 to a.
+    /// Assign the value 3 to a.
+    /// Recall the value in a and add it to 5, the value of a should be 3, equalling 8.
+    #[test]
+    fn reassignment_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::VecExpression {
+            expressions: vec![
+                Ast::SExpr(SExpression::Assignment{
+                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                    ast: Box::new(Ast::Literal(Datatype::Number(6))),
+                }),
+                Ast::SExpr(SExpression::Assignment {
+                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                    ast: Box::new(Ast::Literal(Datatype::Number(3))),
+                }),
+                Ast::SExpr(SExpression::Add(
+                    Box::new(Ast::ValueIdentifier("a".to_string())),
+                    Box::new(Ast::Literal(Datatype::Number(5))),
+                )),
+            ],
+        };
+        assert_eq!(Datatype::Number(8), ast.evaluate(&mut map).unwrap())
+    }
 //
 //    #[test]
 //    fn conditional_test() {

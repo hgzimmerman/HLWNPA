@@ -1,4 +1,4 @@
-use ast::{Ast, BinaryOperator};
+use ast::{Ast, SExpression, BinaryOperator};
 
 #[allow(unused_imports)]
 use nom::*;
@@ -10,6 +10,7 @@ mod operators;
 
 mod expressions;
 use self::expressions::any_expression_parens;
+use self::expressions::sexpr;
 
 mod identifier;
 use self::identifier::identifier;
@@ -45,6 +46,7 @@ use self::include::include;
 ///Anything that generates an AST node.
 named!(any_ast<Ast>,
     alt!(
+        complete!(sexpr) |
         complete!(include) |
         complete!(function_execution) | // the complete! is necessary, as it causes the function execution parser to return an error instead of an incomplete, allowing the next values to evaluate.
         complete!(assignment) |
@@ -109,11 +111,18 @@ mod test {
         let expected_assignment: Ast = Ast::Expression {
             operator: BinaryOperator::Assignment,
             expr1: Box::new(Ast::ValueIdentifier("x".to_string())),
-            expr2: Box::new(Ast::Expression {
-                operator: BinaryOperator::Plus,
-                expr1: Box::new(Ast::Literal(Datatype::Number(3))),
-                expr2: Box::new(Ast::Literal(Datatype::Number(4))),
-            }),
+//            expr2: Box::new(Ast::Expression {
+//                operator: BinaryOperator::Plus,
+//                expr1: Box::new(Ast::Literal(Datatype::Number(3))),
+//                expr2: Box::new(Ast::Literal(Datatype::Number(4))),
+//            }),
+
+            expr2: Box::new(Ast::SExpr(Box::new(
+                SExpression::Add(
+                    Box::new(Ast::Literal(Datatype::Number(3))),
+                    Box::new(Ast::Literal ( Datatype::Number(4))),
+                )
+            )))
         };
 
         let expected_fn: Ast = Ast::Expression {
@@ -129,11 +138,13 @@ mod test {
                 }),
                 body: Box::new(Ast::VecExpression {
                     expressions: vec![
-                        Ast::Expression {
-                            operator: BinaryOperator::Plus,
-                            expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                            expr2: Box::new(Ast::Literal(Datatype::Number(8))),
-                        }],
+                        Ast::SExpr(Box::new(
+                            SExpression::Add(
+                                Box::new(Ast::ValueIdentifier ( "a".to_string() )),
+                                Box::new(Ast::Literal ( Datatype::Number(8))),
+                            )
+                        ))
+                    ],
                 }),
                 return_type: Box::new(Ast::Type(TypeInfo::Number)),
             })),

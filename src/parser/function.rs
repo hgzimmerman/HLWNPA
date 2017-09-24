@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast, BinaryOperator};
+use ast::{Ast, BinaryOperator, SExpression};
 use parser::identifier::identifier;
 use parser::body::body;
 use parser::type_signature::type_signature;
@@ -53,7 +53,7 @@ named!(pub function<Ast>,
 
 #[test]
 fn parse_whole_function_number_input_returns_number_test() {
-    let input_string = "fn test_function ( a : Number ) -> Number { ( a + 8 ) }";
+    let input_string = "fn test_function ( a : Number ) -> Number { a + 8  }";
     let (_, value) = match function(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
@@ -73,11 +73,13 @@ fn parse_whole_function_number_input_returns_number_test() {
             }),
             body: Box::new(Ast::VecExpression {
                 expressions: vec![
-                        Ast::Expression {
-                            operator: BinaryOperator::Plus,
-                            expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
-                            expr2: Box::new(Ast::Literal ( Datatype::Number(8))),
-                        }],
+                    Ast::SExpr(Box::new(
+                    SExpression::Add(
+                            Box::new(Ast::ValueIdentifier ( "a".to_string() )),
+                            Box::new(Ast::Literal ( Datatype::Number(8))),
+                        )
+                    ))
+                ],
             }),
             return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),
@@ -88,7 +90,7 @@ fn parse_whole_function_number_input_returns_number_test() {
 
 #[test]
 fn parse_whole_function_identifier_input_returns_number_test() {
-    let input_string = "fn test_function ( a : Identifier ) -> Number { ( a + 8 ) }";
+    let input_string = "fn test_function ( a : Identifier ) -> Number { a + 8 }";
     let (_, value) = match function(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),
@@ -108,11 +110,13 @@ fn parse_whole_function_identifier_input_returns_number_test() {
             }),
             body: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::Expression {
-                        operator: BinaryOperator::Plus,
-                        expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
-                        expr2: Box::new(Ast::Literal ( Datatype::Number(8))),
-                    }],
+                    Ast::SExpr(Box::new(
+                        SExpression::Add(
+                            Box::new(Ast::ValueIdentifier ( "a".to_string() )),
+                            Box::new(Ast::Literal ( Datatype::Number(8))),
+                        )
+                    ))
+                ],
             }),
             return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),

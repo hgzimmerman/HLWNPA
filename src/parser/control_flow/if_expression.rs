@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::Ast;
+use ast::{Ast, SExpression};
 use parser::utilities::expression_or_literal_or_identifier_or_struct_or_array;
 use parser::body::body;
 //use parser::type_signature::type_signature;
@@ -63,7 +63,7 @@ mod test {
 
     #[test]
     fn parse_if_statement_with_expression_test() {
-        let input_string = "if (1 == 1) { true }";
+        let input_string = "if 1 == 1 { true }";
         let (_, value) = match if_expression(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("Error in parsing: {}", e),
@@ -71,11 +71,12 @@ mod test {
         };
         assert_eq!(
             Ast::Conditional {
-                condition: Box::new(Ast::Expression {
-                    operator: BinaryOperator::Equals,
-                    expr1: Box::new(Ast::Literal(Datatype::Number(1))),
-                    expr2: Box::new(Ast::Literal(Datatype::Number(1))),
-                }),
+                condition: Box::new(Ast::SExpr(
+                    Box::new(SExpression::Equals(
+                        Box::new(Ast::Literal(Datatype::Number(1))),
+                        Box::new(Ast::Literal(Datatype::Number(1)))
+                    ))
+                )),
                 true_expr: Box::new(Ast::VecExpression {
                     expressions: vec![Ast::Literal(Datatype::Bool(true))],
                 }),

@@ -40,7 +40,7 @@ mod test {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let input_string = "
      let x := 7
-     fn test_function ( a : Number ) -> Number { ( a + 8 ) }
+     fn test_function ( a : Number ) -> Number {  a + 8  }
      test_function(x)";
         let (_, ast) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
@@ -56,7 +56,7 @@ mod test {
     fn program_parse_and_execute_integration_test_2() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let input_string = "
-     fn test_function ( a : Number ) -> Number { ( a + 8 ) }
+     fn test_function ( a : Number ) -> Number { a + 8  }
      test_function(8)";
         let (_, ast) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
@@ -71,8 +71,8 @@ mod test {
     fn program_parse_and_execute_integration_test_3() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let input_string = "
-     fn test_function ( a : Number ) -> Number { ( a + 8 ) }
-     test_function( ( 6 + 2) )";
+     fn test_function ( a : Number ) -> Number { a + 8 }
+     test_function( 6 + 2 )";
         let (_, ast) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("{}", e),
@@ -88,7 +88,7 @@ mod test {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let input_string = "
      fn test_function ( a : Number ) -> Number {
-        ( a + 8 )
+         a + 8
      }
      test_function(8)";
         let (_, ast) = match program(input_string.as_bytes()) {
@@ -106,7 +106,7 @@ mod test {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let input_string = "
      fn add_two_numbers ( a : Number b : Number) -> Number {
-        ( a + b )
+         a + b
      }
      add_two_numbers(8 3)";
         let (_, ast) = match program(input_string.as_bytes()) {
@@ -126,7 +126,7 @@ mod test {
         let input_string = "
      let a := 2
      fn add_two_numbers ( a : Number b : Number) -> Number {
-        ( a +  b )
+        a +  b
      }
      add_two_numbers(8 3)
      a
@@ -149,7 +149,7 @@ mod test {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let input_string = r##"
      let x := "Hi "
-     fn test_function ( a : String ) -> String { ( a + 5 ) }
+     fn test_function ( a : String ) -> String {  a + 5  }
      test_function(x)"##;
         let (_, ast) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
@@ -171,7 +171,7 @@ mod test {
         // the while loop should increment the x once
         let input_string = r##"
      let x := 3
-     if ( x == 3) {
+     if x == 3 {
         let x := 40
      }
      x"##;
@@ -191,7 +191,7 @@ mod test {
         // the while loop should reassign x to be something else;
         let input_string = r##"
      let x := 3
-     while (x == 3) {
+     while x == 3 {
         let x := 40
      }
      x"##;
@@ -210,8 +210,8 @@ mod test {
         // the while body should not execute
         let input_string = r##"
         let x := 42
-        while (x == 3) {
-           let x := (x + 1)
+        while x == 3 {
+           let x := x + 1
         }
         x"##;
         let (_, ast) = match program(input_string.as_bytes()) {
@@ -271,7 +271,7 @@ mod test {
         struct MyStruct {
             a : Number
         }
-        ( 3 + 3 )
+        3 + 3
 
         "##;
         let (_, ast) = match program(input_string.as_bytes()) {
@@ -343,7 +343,7 @@ mod test {
             b: 10
         }
 
-        ((instance.a + instance.b) * instance.b)
+        instance.a + instance.b * instance.b
 
         "##;
         let (_, ast) = match program(input_string.as_bytes()) {
@@ -352,7 +352,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(Datatype::Number(180), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(108), ast.evaluate(&mut map).unwrap())
     }
 
 
@@ -369,11 +369,11 @@ mod test {
             b: 10
         }
 
-        fn addAndMultiplyContents( s: MyStruct ) -> Number {
-            ((s.a + s.b) * s.b)
+        fn addContents( s: MyStruct ) -> Number {
+            s.a + s.b
         }
 
-        addAndMultiplyContents( instance )
+        addContents( instance )
 
         "##;
         let (_, ast) = match program(input_string.as_bytes()) {
@@ -382,7 +382,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(Datatype::Number(180), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(18), ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
@@ -535,7 +535,7 @@ mod test {
         }
 
         fn addContents( s: MyStruct ) -> Number {
-            (s.a + s.b)
+            s.a + s.b
         }
 
         let instance := create_new_MyStruct( a )
@@ -560,7 +560,7 @@ mod test {
         let a := 3
 
         fn check_if_three( x: Number ) -> Number {
-            if (x == 3) {
+            if x == 3 {
                 3
             } else {
                 0
@@ -588,7 +588,7 @@ mod test {
         let a := 2
 
         fn check_if_three( x: Number ) -> Number {
-            if (x == 3) {
+            if x == 3 {
                 3
             } else {
                 0
@@ -649,8 +649,8 @@ mod test {
                 let mut map: HashMap<String, Datatype> = HashMap::new();
                 let input_string = r##"
                 let x := 0
-                while (x < 1000) {
-                   let x := (x + 1)
+                while x < 1000 {
+                   let x := x + 1
                 }
                 x
                 "##;
@@ -674,11 +674,11 @@ mod test {
                 let mut map: HashMap<String, Datatype> = HashMap::new();
                 let input_string = r##"
                 let x := 0
-                while (x < 1000) {
-                    ( 1 * 3 )
-                    ( 1 * 40000 )
-                    ( 34234 % 7 )
-                    let x := (x + 1)
+                while x < 1000 {
+                    1 * 3
+                    1 * 40000
+                    34234 % 7
+                    let x := x + 1
                 }
                 x
                 "##;

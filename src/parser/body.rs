@@ -58,7 +58,7 @@ named!(pub struct_init_body<Ast>,
 
 #[test]
 fn parse_body_nocheck_test() {
-    let input_string = "{ ( a + 8 ) }";
+    let input_string = "{ a + 8 }";
     let (_, _) = match body(input_string.as_bytes()) {
         IResult::Done(rest, v) => (rest, v),
         IResult::Error(e) => panic!("{}", e),

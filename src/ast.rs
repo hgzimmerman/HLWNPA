@@ -66,6 +66,22 @@ pub enum UnaryOperator {
     Decrement,
 }
 
+pub enum ArithmeticOperator {
+    Increment,
+    Decrement,
+    Negate,
+    Plus,
+    Minus,
+    Times,
+    Divide,
+    Modulo,
+    Equals,
+    NotEquals,
+    GreaterThan,
+    LessThan,
+    GreaterThanOrEqual,
+    LessThanOrEqual
+}
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum SExpression {

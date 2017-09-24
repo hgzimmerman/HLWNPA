@@ -31,17 +31,16 @@ named!(pub function<Ast>,
         ) >>
         return_type: function_return_type >>
         body_expressions: body >>
-        (Ast::Expression{
-            operator: BinaryOperator::CreateFunction,
-            expr1: Box::new(function_name),
-            expr2: Box::new(Ast::Literal (
+        (Ast::SExpr(Box::new(SExpression::CreateFunction {
+            identifier: Box::new(function_name),
+            fn_parameters_body_and_return_type: Box::new(Ast::Literal (
                 Datatype::Function {
                     parameters: Box::new(Ast::VecExpression{expressions: arguments}),
                     body: Box::new(body_expressions),
                     return_type: Box::new(return_type)
                 }
             ) )
-        })
+        })))
     )
 );
 
@@ -60,10 +59,9 @@ fn parse_whole_function_number_input_returns_number_test() {
         _ => panic!(),
     };
 
-    let expected_fn: Ast = Ast::Expression {
-        operator: BinaryOperator::CreateFunction,
-        expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
-        expr2: Box::new(Ast::Literal(Datatype::Function {
+    let expected_fn: Ast = Ast::SExpr(Box::new(SExpression::CreateFunction {
+        identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
+        fn_parameters_body_and_return_type: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
                 expressions: vec![Ast::SExpr(Box::new(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
@@ -82,7 +80,7 @@ fn parse_whole_function_number_input_returns_number_test() {
             }),
             return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),
-    };
+    }));
     assert_eq!(expected_fn, value)
 }
 
@@ -96,10 +94,9 @@ fn parse_whole_function_identifier_input_returns_number_test() {
         _ => panic!(),
     };
 
-    let expected_fn: Ast = Ast::Expression {
-        operator: BinaryOperator::CreateFunction,
-        expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
-        expr2: Box::new(Ast::Literal(Datatype::Function {
+    let expected_fn: Ast = Ast::SExpr(Box::new(SExpression::CreateFunction {
+        identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
+        fn_parameters_body_and_return_type: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
                 expressions: vec![
                     Ast::SExpr(Box::new(SExpression::TypeAssignment{
@@ -120,6 +117,6 @@ fn parse_whole_function_identifier_input_returns_number_test() {
             }),
             return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),
-    };
+    }));
     assert_eq!(expected_fn, value)
 }

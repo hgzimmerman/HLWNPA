@@ -118,10 +118,9 @@ mod test {
             )))
         }));
 
-        let expected_fn: Ast = Ast::Expression {
-            operator: BinaryOperator::CreateFunction,
-            expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
-            expr2: Box::new(Ast::Literal(Datatype::Function {
+        let expected_fn: Ast = Ast::SExpr(Box::new(SExpression::CreateFunction {
+            identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
+            fn_parameters_body_and_return_type: Box::new(Ast::Literal(Datatype::Function {
                 parameters: Box::new(Ast::VecExpression {
                     expressions: vec![Ast::SExpr(Box::new(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -140,7 +139,7 @@ mod test {
                 }),
                 return_type: Box::new(Ast::Type(TypeInfo::Number)),
             })),
-        };
+        }));
         let expected_fn_call: Ast = Ast::Expression {
             operator: BinaryOperator::ExecuteFn,
             expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),

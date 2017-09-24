@@ -10,6 +10,7 @@ use include::read_file_into_ast;
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum Ast {
+    SExpr(Box<SExpression>),
     Expression {
         operator: BinaryOperator,
         expr1: Box<Ast>,
@@ -63,6 +64,39 @@ pub enum UnaryOperator {
     Invert,
     Increment,
     Decrement,
+}
+
+
+#[derive(PartialEq, PartialOrd, Debug, Clone)]
+pub enum SExpression {
+    //BinaryOperators
+    Add(Box<Ast>, Box<Ast>),
+    Subtract(Box<Ast>, Box<Ast>),
+    Multiply(Box<Ast>, Box<Ast>),
+    Divide(Box<Ast>, Box<Ast>),
+    Modulo(Box<Ast>, Box<Ast>),
+    Equals(Box<Ast>, Box<Ast>),
+    NotEquals(Box<Ast>, Box<Ast>),
+    GreaterThan(Box<Ast>, Box<Ast>),
+    LessThan(Box<Ast>, Box<Ast>),
+    GreaterThanOrEqual(Box<Ast>, Box<Ast>),
+    LessThanOrEqual(Box<Ast>, Box<Ast>),
+    Assignment{ identifier: Box<Ast>, ast: Box<Ast>},
+    TypeAssignment{ identifier: Box<Ast>, typeInfo: Box<Ast>},
+    FieldAssignment{ identifier: Box<Ast>, ast: Box<Ast>},
+    CreateFunction{identifier: Box<Ast>, fn_parameters_body_and_return_type: Box<Ast>}, //TODO: Consider breaking this into multiple types instead of keeping the body, parameters and return type in one node.
+    CreateStruct(Box<Ast>, Box<Ast>),
+    Loop{ conditional: Box<Ast>, body: Box<Ast>},
+    AccessArray{ identifier: Box<Ast>, index: Box<Ast>},
+    StructDeclaration(Box<Ast>, Box<Ast>),
+    AccessStructField(Box<Ast>, Box<Ast>),
+    ExecuteFn{ identifier: Box<Ast>, parameters: Box<Ast>},
+    //Unary Operators
+    Print(Box<Ast>),
+    Include(Box<Ast>),
+    Invert(Box<Ast>),
+    Increment(Box<Ast>),
+    Decrement(Box<Ast>)
 }
 
 const MAIN_FUNCTION_NAME: &'static str = "main";
@@ -176,6 +210,164 @@ impl Ast {
     /// If no errors are encountered, the whole AST should resolve to become a single Datatype, which is then returned.
     pub fn evaluate(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
         match *self {
+            Ast::SExpr(ref sexpr) => {
+                match **sexpr {
+                    SExpression::Add(ref lhs, ref rhs) => lhs.evaluate(map)? + rhs.evaluate(map)?,
+                    SExpression::Subtract(ref lhs, ref rhs) => lhs.evaluate(map)? - rhs.evaluate(map)?,
+                    SExpression::Multiply(ref lhs, ref rhs) => lhs.evaluate(map)? * rhs.evaluate(map)?,
+                    SExpression::Divide(ref lhs, ref rhs) => lhs.evaluate(map)? / rhs.evaluate(map)?,
+                    SExpression::Modulo(ref lhs, ref rhs) => lhs.evaluate(map)? % rhs.evaluate(map)?,
+                    SExpression::Equals(ref lhs, ref rhs) => {
+                        if lhs.evaluate(map)? == rhs.evaluate(map)? {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    },
+                    SExpression::Equals(ref lhs, ref rhs) => {
+                        if lhs.evaluate(map)? == rhs.evaluate(map)? {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    },
+                    SExpression::NotEquals(ref lhs, ref rhs) => {
+                        if lhs.evaluate(map)? != rhs.evaluate(map)? {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    },
+                    SExpression::GreaterThan(ref lhs, ref rhs) => {
+                        if lhs.evaluate(map)? > rhs.evaluate(map)? {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    },
+                    SExpression::LessThan(ref lhs, ref rhs) => {
+                        if lhs.evaluate(map)? < rhs.evaluate(map)? {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    },
+                    SExpression::GreaterThanOrEqual(ref lhs, ref rhs) => {
+                        if lhs.evaluate(map)? >= rhs.evaluate(map)? {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    },
+                    SExpression::LessThanOrEqual(ref lhs, ref rhs) => {
+                        if lhs.evaluate(map)? <= rhs.evaluate(map)? {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    },
+                    SExpression::Assignment {identifier: ref lhs, ast: ref rhs} |
+                    SExpression::TypeAssignment {identifier: ref lhs, typeInfo: ref rhs} |
+                    SExpression::FieldAssignment {identifier: ref lhs, ast: ref rhs} |
+                    SExpression::CreateFunction{identifier: ref lhs, fn_parameters_body_and_return_type: ref rhs}
+                    => {
+                        if let Ast::ValueIdentifier(ref ident) = **lhs {
+                            let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
+                            let evaluated_right_hand_side = rhs.evaluate(&mut cloned_map)?;
+                            let cloned_evaluated_rhs = evaluated_right_hand_side.clone();
+                            map.insert(ident.clone(), evaluated_right_hand_side);
+                            return Ok(cloned_evaluated_rhs);
+                        } else {
+                            Err(LangError::IdentifierDoesntExist)
+                        }
+                    }
+                    SExpression::Loop {ref conditional, ref body } => {
+                        let mut evaluated_loop: Datatype = Datatype::None;
+                        let cloned_conditional = *conditional.clone();
+                        loop {
+                            let condition: Datatype = cloned_conditional.evaluate(map)?;
+                            match condition {
+                                Datatype::Bool(b) => {
+                                    if b {
+                                        evaluated_loop = body.evaluate(map)?; // This doesn't clone the map, so it can mutate the "stack" of its context
+                                    } else {
+                                        break;
+                                    }
+                                }
+                                _ => return Err(LangError::ConditionalNotBoolean(TypeInfo::from(condition))),
+                            }
+                        }
+                        return Ok(evaluated_loop); // leave block
+                    },
+                    SExpression::AccessArray{ref identifier, ref index}=> {
+                        let datatype: Datatype = identifier.evaluate(map)?;
+                        match datatype {
+                            Datatype::Array { value, .. } => {
+                                let possible_index = index.evaluate(map)?;
+                                match possible_index {
+                                    Datatype::Number(resolved_index) => {
+                                        if resolved_index >= 0 {
+                                            match value.get(resolved_index as usize) {
+                                                Some(indexed_result) => Ok(indexed_result.clone()), // cannot mutate the interior of the array.
+                                                None => Err(LangError::OutOfBoundsArrayAccess),
+                                            }
+                                        } else {
+                                            Err(LangError::NegativeIndex(resolved_index))
+                                        }
+                                    }
+                                    _ => Err(LangError::InvalidIndexType(possible_index)),
+                                }
+                            }
+                            _ => return Err(LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype))),
+                        }
+                    }
+
+                    SExpression::StructDeclaration(ref lhs, ref rhs) => return declare_struct(lhs, rhs, map),
+                    SExpression::AccessStructField(ref lhs, ref rhs) => return access_struct_field(lhs, rhs, map),
+                    SExpression::CreateStruct(ref lhs, ref rhs) =>  return create_struct(lhs, rhs, map),
+                    SExpression::ExecuteFn {ref identifier, ref parameters} => return execute_function(identifier, parameters, map),
+                    SExpression::Print(ref expr) => {
+                        let datatype_to_print = expr.evaluate(map)?;
+                        if let Ast::ValueIdentifier(ref identifier) = **expr {
+                            if let Datatype::Struct {..} = datatype_to_print {
+                                print!("{}{}", identifier, datatype_to_print)
+                            } else {
+                                print!("{}", datatype_to_print);
+                            }
+                        } else {
+                            print!("{}", datatype_to_print);
+                        }
+                        Ok(datatype_to_print)
+                    }
+                    SExpression::Include(ref expr) => {
+                        match expr.evaluate(map)? {
+                            Datatype::String(filename) => {
+                                let new_ast: Ast = read_file_into_ast(filename)?;
+                                new_ast.evaluate(map) // move the new AST into the current AST
+                            }
+                            _ => Err(LangError::CouldNotReadFile {filename: "Not provided".to_string(), reason: "File name was not a string.".to_string()})
+                        }
+                    }
+                    SExpression::Invert(ref expr) => {
+                        match expr.evaluate(map)? {
+                            Datatype::Bool(bool) => Ok(Datatype::Bool(!bool)),
+                            _ => Err(LangError::InvertNonBoolean),
+                        }
+                    }
+                    SExpression::Increment(ref expr) => {
+                        match expr.evaluate(map)? {
+                            Datatype::Number(number) => Ok(Datatype::Number(number + 1)),
+                            _ => Err(LangError::IncrementNonNumber),
+                        }
+                    }
+                    SExpression::Decrement(ref expr) => {
+                        match expr.evaluate(map)? {
+                            Datatype::Number(number) => Ok(Datatype::Number(number - 1)),
+                            _ => Err(LangError::DecrementNonNumber),
+                        }
+                    }
+                }
+            },
             Ast::Expression {
                 ref operator,
                 ref expr1,

@@ -72,7 +72,7 @@ Returns: `Number(11)`
 * Investigate Nom's custom error messages. 
 * Figure out how to display a line number for a parser error and highlight the part of syntax that failed.
 * Flesh out the runtime error messages, give them more data related to the error, and implement Display for them so they are printed out nicely when an error ocurrs.
-* When executing a file, hoist the functions and struct declarations, search for a main function, evaluate it if found, otherwise, evaluate AST nodes that exist outside of functions. If the file only contains functions and structs and no main function, throw an error.
+* ~~When executing a file, hoist the functions and struct declarations, search for a main function, evaluate it if found, otherwise, evaluate AST nodes that exist outside of functions. If the file only contains functions and structs and no main function, throw an error.~~ Hoisting and main() execution implemented.
 * Allow the REPL to read a file at startup and access its functions, structs, and variables.
 * Implement an `Include <filename>` keyword that will parse another file and alter the AST accordingly.
 * Possibly implement loop unrolling inside of functions, as well as precomputation of S-Expressions with literals. So code that looks like `let a := 3 + 8` would be optimized to `let a := 11` if it exists within a function.

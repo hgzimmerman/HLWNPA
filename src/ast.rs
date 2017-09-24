@@ -4,6 +4,7 @@ use datatype::{Datatype, TypeInfo};
 
 use std::boxed::Box;
 use std::collections::HashMap;
+use include::read_file_into_ast;
 
 
 
@@ -58,6 +59,7 @@ pub enum BinaryOperator {
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum UnaryOperator {
     Print,
+    Include,
     Invert,
     Increment,
     Decrement,
@@ -308,6 +310,15 @@ impl Ast {
                         }
                         Ok(datatype_to_print)
                     }
+                    UnaryOperator::Include => {
+                        match expr.evaluate(map)? {
+                            Datatype::String(filename) => {
+                                let new_ast: Ast = read_file_into_ast(filename)?;
+                                new_ast.evaluate(map) // move the new AST into the current AST
+                            }
+                            _ => Err(LangError::CouldNotReadFile {filename: "Not provided".to_string(), reason: "File name was not a string.".to_string()})
+                        }
+                    }
                     UnaryOperator::Invert => {
                         match expr.evaluate(map)? {
                             Datatype::Bool(bool) => Ok(Datatype::Bool(!bool)),
@@ -330,7 +341,7 @@ impl Ast {
             }
             //Evaluate multiple expressions and return the result of the last one.
             Ast::VecExpression { ref expressions } => {
-                let mut val: Datatype = Datatype::None; // TODO, consider maxing this return an error if the expressions vector is empty
+                let mut val: Datatype = Datatype::None; // TODO, consider making this return an error if the expressions vector is empty
                 for e in expressions {
                     val = e.evaluate(map)?;
                 }

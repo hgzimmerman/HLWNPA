@@ -24,6 +24,7 @@ mod repl;
 mod std_functions;
 #[cfg(test)]
 mod testing;
+mod include;
 
 use datatype::Datatype;
 use ast::*;

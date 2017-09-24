@@ -648,184 +648,168 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
 #[cfg(test)]
 mod test {
 
-//    use super::*;
-//
-//    #[test]
-//    fn plus_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::Plus,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(3))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-//        };
-//        assert_eq!(Datatype::Number(9), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    #[test]
-//    fn string_plus_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::Plus,
-//            expr1: Box::new(Ast::Literal(Datatype::String("Hello".to_string()))),
-//            expr2: Box::new(Ast::Literal(Datatype::String(" World!".to_string()))),
-//        };
-//        assert_eq!(
-//            Datatype::String("Hello World!".to_string()),
-//            ast.evaluate(&mut map).unwrap()
-//        )
-//    }
-//
-//    #[test]
-//    fn minus_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::Minus,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(6))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-//        };
-//        assert_eq!(Datatype::Number(3), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    #[test]
-//    fn minus_negative_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::Minus,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(3))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-//        };
-//        assert_eq!(Datatype::Number(-3), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    #[test]
-//    fn multiplication_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::Multiply,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(6))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-//        };
-//        assert_eq!(Datatype::Number(18), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    #[test]
-//    fn division_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::Divide,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(6))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-//        };
-//        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    #[test]
-//    fn integer_division_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::Divide,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-//        };
-//        assert_eq!(Datatype::Number(1), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    #[test]
-//    fn division_by_zero_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::Divide,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(0))),
-//        };
-//        assert_eq!(
-//            LangError::DivideByZero,
-//            ast.evaluate(&mut map).err().unwrap()
-//        )
-//    }
-//
-//
-//    #[test]
-//    fn modulo_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::Modulo,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(8))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-//        };
-//        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    #[test]
-//    fn equality_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::Equals,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(3))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-//        };
-//        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    #[test]
-//    fn greater_than_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::GreaterThan,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(4))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-//        };
-//        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    #[test]
-//    fn less_than_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::LessThan,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(2))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-//        };
-//        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    #[test]
-//    fn greater_than_or_equal_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::GreaterThanOrEqual,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(4))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-//        };
-//        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
-//
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let equals_ast = Ast::Expression {
-//            operator: BinaryOperator::GreaterThanOrEqual,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(5))),
-//        };
-//        assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
-//    }
-//
-//    #[test]
-//    fn less_than_or_equal_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Expression {
-//            operator: BinaryOperator::LessThanOrEqual,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(2))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-//        };
-//        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
-//
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let equals_ast = Ast::Expression {
-//            operator: BinaryOperator::LessThanOrEqual,
-//            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
-//            expr2: Box::new(Ast::Literal(Datatype::Number(5))),
-//        };
-//        assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
-//    }
+    use super::*;
+
+    #[test]
+    fn plus_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::Add(
+            Box::new(Ast::Literal(Datatype::Number(3))),
+            Box::new(Ast::Literal(Datatype::Number(6))),
+        ));
+        assert_eq!(Datatype::Number(9), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn string_plus_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::Add(
+            Box::new(Ast::Literal(Datatype::String("Hello".to_string()))),
+            Box::new(Ast::Literal(Datatype::String(" World!".to_string()))),
+        ));
+        assert_eq!(
+            Datatype::String("Hello World!".to_string()),
+            ast.evaluate(&mut map).unwrap()
+        )
+    }
+
+    #[test]
+    fn minus_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::Subtract(
+            Box::new(Ast::Literal(Datatype::Number(6))),
+            Box::new(Ast::Literal(Datatype::Number(3))),
+        ));
+        assert_eq!(Datatype::Number(3), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn minus_negative_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::Subtract(
+            Box::new(Ast::Literal(Datatype::Number(3))),
+            Box::new(Ast::Literal(Datatype::Number(6))),
+        ));
+        assert_eq!(Datatype::Number(-3), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn multiplication_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::Multiply(
+            Box::new(Ast::Literal(Datatype::Number(6))),
+            Box::new(Ast::Literal(Datatype::Number(3))),
+        ));
+        assert_eq!(Datatype::Number(18), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn division_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::Divide(
+            Box::new(Ast::Literal(Datatype::Number(6))),
+            Box::new(Ast::Literal(Datatype::Number(3))),
+        ));
+        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn integer_division_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::Divide(
+            Box::new(Ast::Literal(Datatype::Number(5))),
+            Box::new(Ast::Literal(Datatype::Number(3))),
+        ));
+        assert_eq!(Datatype::Number(1), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn division_by_zero_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::Divide(
+            Box::new(Ast::Literal(Datatype::Number(5))),
+            Box::new(Ast::Literal(Datatype::Number(0))),
+        ));
+        assert_eq!(
+            LangError::DivideByZero,
+            ast.evaluate(&mut map).err().unwrap()
+        )
+    }
+
+
+    #[test]
+    fn modulo_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::Modulo(
+            Box::new(Ast::Literal(Datatype::Number(8))),
+            Box::new(Ast::Literal(Datatype::Number(3))),
+        ));
+        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn equality_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::Equals(
+            Box::new(Ast::Literal(Datatype::Number(3))),
+            Box::new(Ast::Literal(Datatype::Number(3))),
+        ));
+        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn greater_than_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::GreaterThan(
+            Box::new(Ast::Literal(Datatype::Number(4))),
+            Box::new(Ast::Literal(Datatype::Number(3))),
+        ));
+        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn less_than_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::LessThan(
+            Box::new(Ast::Literal(Datatype::Number(2))),
+            Box::new(Ast::Literal(Datatype::Number(3))),
+        ));
+        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn greater_than_or_equal_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::GreaterThanOrEqual(
+            Box::new(Ast::Literal(Datatype::Number(4))),
+            Box::new(Ast::Literal(Datatype::Number(3))),
+        ));
+        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
+
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let equals_ast = Ast::SExpr(SExpression::GreaterThanOrEqual(
+            Box::new(Ast::Literal(Datatype::Number(5))),
+            Box::new(Ast::Literal(Datatype::Number(5))),
+        ));
+        assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
+    }
+
+    #[test]
+    fn less_than_or_equal_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::SExpr(SExpression::LessThanOrEqual(
+            Box::new(Ast::Literal(Datatype::Number(2))),
+            Box::new(Ast::Literal(Datatype::Number(3))),
+        ));
+        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
+
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let equals_ast = Ast::SExpr(SExpression::LessThanOrEqual(
+            Box::new(Ast::Literal(Datatype::Number(5))),
+            Box::new(Ast::Literal(Datatype::Number(5))),
+        ));
+        assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
+    }
 //
 //    /// Assign the value 6 to the identifier "a"
 //    /// Recall that identifier and add it to 5

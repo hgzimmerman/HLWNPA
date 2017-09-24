@@ -81,11 +81,10 @@ named!(function_execution<Ast>,
             ws!(char!(')'))
         )
         >>
-        (Ast::Expression {
-            operator: BinaryOperator::ExecuteFn,
-            expr1: Box::new(function_name), // and identifier
-            expr2: Box::new(Ast::VecExpression{expressions: arguments})
-        })
+        (Ast::SExpr(Box::new(SExpression::ExecuteFn {
+            identifier: Box::new(function_name), // and identifier
+            parameters: Box::new(Ast::VecExpression{expressions: arguments})
+        })))
     )
 );
 
@@ -140,13 +139,12 @@ mod test {
                 return_type: Box::new(Ast::Type(TypeInfo::Number)),
             })),
         }));
-        let expected_fn_call: Ast = Ast::Expression {
-            operator: BinaryOperator::ExecuteFn,
-            expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
-            expr2: Box::new(Ast::VecExpression {
+        let expected_fn_call: Ast = Ast::SExpr(Box::new(SExpression::ExecuteFn {
+            identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
+            parameters: Box::new(Ast::VecExpression {
                 expressions: vec![Ast::ValueIdentifier("x".to_string())],
             }),
-        };
+        }));
 
         let expected_program_ast: Ast = Ast::VecExpression {
             expressions: vec![

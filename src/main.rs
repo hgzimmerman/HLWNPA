@@ -68,6 +68,10 @@ fn main() {
                         IResult::Done(_, ast) => {
                             let mut map: HashMap<String, Datatype> = HashMap::new();
                             std_functions::add_std_functions(&mut map);
+
+                            let ast = ast.hoist_functions_and_structs();
+                            // TODO: Check to see if main() is defined. If it is, call main() after the rest of the program has executed (the setup).
+
                             let program_return_value = ast.evaluate(&mut map);
                             match program_return_value {
                                 Ok(ok_value) => println!("{:?}", ok_value),

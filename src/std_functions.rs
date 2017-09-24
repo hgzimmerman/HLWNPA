@@ -58,8 +58,8 @@ fn add_println_function(map: &mut HashMap<String, Datatype>) {
         IResult::Done(_, ast) => {
             ast.evaluate(map);
         }
-        IResult::Error(e) => panic!("Language internals do not support the syntax used to define the function", e),
-        IResult::Incomplete(i) => panic!("Parser does not support the syntax used to define the function", i),
+        IResult::Error(e) => panic!("Language internals do not support the syntax used to define the function. Error: {}", e),
+        IResult::Incomplete(i) => panic!("Parser does not support the syntax used to define the function. Incomplete Parse: {:?}", i),
     }
 }
 

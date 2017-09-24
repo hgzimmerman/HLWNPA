@@ -66,7 +66,7 @@ pub enum UnaryOperator {
 const MAIN_FUNCTION_NAME: &'static str = "main";
 impl Ast {
 
-    fn hoist_functions_and_structs(&self) -> Ast {
+    pub fn hoist_functions_and_structs(&self) -> Ast {
         match *self {
             Ast::VecExpression {
                 ref expressions

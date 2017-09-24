@@ -115,7 +115,7 @@ mod test {
         };
 
         let expected_fn: Ast = Ast::Expression {
-            operator: BinaryOperator::Assignment,
+            operator: BinaryOperator::CreateFunction,
             expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
             expr2: Box::new(Ast::Literal(Datatype::Function {
                 parameters: Box::new(Ast::VecExpression {

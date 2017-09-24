@@ -52,6 +52,7 @@ pub enum BinaryOperator {
     StructDeclaration,
     AccessStructField,
     CreateStruct,
+    CreateFunction
 }
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
@@ -62,8 +63,80 @@ pub enum UnaryOperator {
     Decrement,
 }
 
-
+const MAIN_FUNCTION_NAME: &'static str = "main";
 impl Ast {
+
+    fn hoist_functions_and_structs(&self) -> Ast {
+        match *self {
+            Ast::VecExpression {
+                ref expressions
+            } => {
+                // Capture struct declarations and hoist them to the top of the AST
+                let mut struct_declarations: Vec<Ast> = vec!();
+                // Capture the functions as well and move them to the top of the evaluation list.
+                let mut function_declarations: Vec<Ast> = vec!();
+                // Keep the ordering of everything else, likely constant assignments.
+                let mut everything_else: Vec<Ast> = vec!();
+                // Move the main function to the end
+                let mut main_function: Option<Ast> = None;
+
+                for ast in expressions {
+
+                    match *ast {
+                        Ast::Expression {
+                            ref operator,
+                            ref expr1,
+                            ref expr2
+                        } => {
+                            match *operator {
+                                BinaryOperator::CreateStruct => {
+                                    let ast = ast.clone();
+                                    struct_declarations.push(ast);
+                                }
+                                BinaryOperator::CreateFunction => {
+                                    let ast = ast.clone();
+                                    if let Ast::ValueIdentifier(ref fn_name) = **expr1 {
+                                        if fn_name.as_str() == MAIN_FUNCTION_NAME {
+                                            main_function = Some(ast); // If the function's identifier is "main", move it to the bottom of the evaluation list, so all of the functions and structs it relies on will be defined first.
+                                        } else {
+                                            function_declarations.push(ast);
+                                        }
+                                    }
+                                }
+                                _ => {
+                                    //If it isn't a creation of a struct or function, put it in the everything else bucket.
+                                    let ast = ast.clone();
+                                    everything_else.push(ast)
+                                }
+                            }
+                        }
+                        _ => {
+                            // If it isn't an expression, put it in the everything else bucket.
+                            let ast = ast.clone();
+                            everything_else.push(ast)
+                        }
+                    }
+                }
+                // Rearrange the order in which the top level AST node is evaluated
+                let mut eval_list_with_hoists: Vec<Ast> = vec!();
+                eval_list_with_hoists.append(&mut struct_declarations);
+                eval_list_with_hoists.append(&mut function_declarations);
+                eval_list_with_hoists.append(&mut everything_else);
+
+                if let Some(main_fn) = main_function {
+                    eval_list_with_hoists.push(main_fn);
+                }
+
+                Ast::VecExpression {
+                    expressions: eval_list_with_hoists
+                }
+
+            }
+            _ => panic!("Tried to hoist a non list of expressions.")
+        }
+    }
+
+
     /// Recurse down the AST, evaluating expressions where possible, turning them into Literals that contain Datatypes.
     /// If no errors are encountered, the whole AST should resolve to become a single Datatype, which is then returned.
     pub fn evaluate(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
@@ -123,7 +196,8 @@ impl Ast {
                     }
                     BinaryOperator::Assignment |
                     BinaryOperator::TypeAssignment |
-                    BinaryOperator::FieldAssignment => {
+                    BinaryOperator::FieldAssignment |
+                    BinaryOperator:: CreateFunction => {
                         if let Ast::ValueIdentifier(ref ident) = **expr1 {
                             let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
                             let evaluated_right_hand_side = expr2.evaluate(&mut cloned_map)?;
@@ -530,6 +604,8 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
         _ => Err(LangError::ExecuteNonFunction),
     }
 }
+
+
 
 
 #[cfg(test)]
@@ -1050,4 +1126,74 @@ mod test {
             struct_instance
         )
     }
+
+
+    #[test]
+    fn function_hoisting_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::VecExpression {
+            expressions: vec![
+                Ast::Expression {
+                    operator: BinaryOperator::Assignment,
+                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
+                },
+                Ast::Expression {
+                    operator: BinaryOperator::CreateFunction,
+                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
+                    expr2: Box::new(Ast::Literal(Datatype::Function {
+                        parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
+                        // empty parameters
+                        body: (Box::new(Ast::Literal(Datatype::Number(32)))),
+                        // just return a number
+                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+                        // expect a number
+                    })),
+                },
+                Ast::Expression {
+                    operator: BinaryOperator::ExecuteFn,
+                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
+                    // get the identifier for a
+                    expr2: Box::new(Ast::VecExpression { expressions: vec![] }),
+                    // provide the function parameters
+                },
+            ],
+        };
+
+        let hoisted_ast: Ast = ast.hoist_functions_and_structs();
+
+        let expected_hoisted_ast: Ast = Ast::VecExpression {
+            expressions: vec![
+                Ast::Expression {
+                    operator: BinaryOperator::CreateFunction,
+                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
+                    expr2: Box::new(Ast::Literal(Datatype::Function {
+                        parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
+                        // empty parameters
+                        body: (Box::new(Ast::Literal(Datatype::Number(32)))),
+                        // just return a number
+                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+                        // expect a number
+                    })),
+                },
+                Ast::Expression {
+                    operator: BinaryOperator::Assignment,
+                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
+                },
+                Ast::Expression {
+                    operator: BinaryOperator::ExecuteFn,
+                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
+                    // get the identifier for a
+                    expr2: Box::new(Ast::VecExpression { expressions: vec![] }),
+                    // provide the function parameters
+                },
+            ],
+        };
+
+        assert_eq!(hoisted_ast, expected_hoisted_ast);
+        assert_eq!(Datatype::Number(32), hoisted_ast.evaluate(&mut map).unwrap());
+    }
+
+
 }

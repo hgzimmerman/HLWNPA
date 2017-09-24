@@ -32,7 +32,7 @@ named!(pub function<Ast>,
         return_type: function_return_type >>
         body_expressions: body >>
         (Ast::Expression{
-            operator: BinaryOperator::Assignment,
+            operator: BinaryOperator::CreateFunction,
             expr1: Box::new(function_name),
             expr2: Box::new(Ast::Literal (
                 Datatype::Function {
@@ -61,7 +61,7 @@ fn parse_whole_function_number_input_returns_number_test() {
     };
 
     let expected_fn: Ast = Ast::Expression {
-        operator: BinaryOperator::Assignment,
+        operator: BinaryOperator::CreateFunction,
         expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         expr2: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
@@ -96,7 +96,7 @@ fn parse_whole_function_identifier_input_returns_number_test() {
     };
 
     let expected_fn: Ast = Ast::Expression {
-        operator: BinaryOperator::Assignment,
+        operator: BinaryOperator::CreateFunction,
         expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         expr2: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {

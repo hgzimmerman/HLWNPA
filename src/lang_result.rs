@@ -39,4 +39,5 @@ pub enum LangError {
     ExpectedIdentifier,
     ExpectedExpression,
     ExpectedIdentifierToBeStructType { found: String },
+    InitState
 }

@@ -136,6 +136,50 @@ impl Ast {
         }
     }
 
+    pub fn main_fn_exists(&self) -> bool {
+        match *self {
+            Ast::VecExpression {
+                ref expressions
+            } => {
+                for ast in expressions {
+                    match *ast {
+                        Ast::Expression {
+                            ref operator,
+                            ref expr1,
+                            ref expr2
+                        } => {
+                            match *operator {
+                                BinaryOperator::CreateFunction => {
+                                    if let Ast::ValueIdentifier(ref fn_name) = **expr1 {
+                                        if fn_name.as_str() == MAIN_FUNCTION_NAME {
+                                            return false
+                                        }
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            _ => {}
+        }
+        true
+    }
+
+    pub fn execute_main(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
+        let executing_ast = Ast::Expression {
+            operator: BinaryOperator::ExecuteFn,
+            expr1: Box::new(Ast::ValueIdentifier("main".to_string())),
+            // get the identifier for a
+            expr2: Box::new(Ast::VecExpression { expressions: vec![] }),
+            // provide the function parameters
+        };
+
+        executing_ast.evaluate(map)
+    }
+
 
     /// Recurse down the AST, evaluating expressions where possible, turning them into Literals that contain Datatypes.
     /// If no errors are encountered, the whole AST should resolve to become a single Datatype, which is then returned.

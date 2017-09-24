@@ -43,20 +43,25 @@ fn print(possibly_evaluated_program: LangResult) {
     let _ = io::stdout().flush(); // print immediately
 }
 
-pub fn repl() {
+/// It is expected that the incoming map already has the std_functions added.
+pub fn repl(mut map: &mut HashMap<String, Datatype>) {
     use std::io;
     use std::io::prelude::*;
     let stdin = io::stdin();
-
-    let mut map: HashMap<String, Datatype> = HashMap::new();
-    std_functions::add_std_functions(&mut map);
 
     print!("user>");
     let _ = io::stdout().flush();
     for line in stdin.lock().lines() {
         rep(line.unwrap(), &mut map)
     }
+}
 
+/// Creates the map, adds standard functions to it and runs the repl with it.
+pub fn create_repl() {
+    let mut map: HashMap<String, Datatype> = HashMap::new();
+    std_functions::add_std_functions(&mut map);
+
+    repl(&mut map)
 }
 
 

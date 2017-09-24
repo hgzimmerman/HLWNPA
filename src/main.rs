@@ -27,7 +27,7 @@ mod testing;
 
 use datatype::Datatype;
 use ast::*;
-use repl::repl;
+use repl::{repl, create_repl};
 use lang_result::{LangResult,LangError};
 
 use parser::program;
@@ -49,8 +49,19 @@ fn main() {
                 )
                 .takes_value(true),
         )
+        .arg(
+            Arg::with_name("repl")
+                .value_name("REPL")
+                .long("repl")
+                .help(
+                    "Drops you into a REPL after reading the provided file."
+                )
+                .requires("file")
+                .takes_value(false)
+        )
         .get_matches();
 
+    let repl_after_parse: bool = matches.is_present("repl");
 
     match matches.value_of("file") {
         Some(filename) => {
@@ -69,22 +80,28 @@ fn main() {
                         IResult::Done(_, ast) => {
                             let mut map: HashMap<String, Datatype> = HashMap::new();
                             std_functions::add_std_functions(&mut map);
-
                             let ast = ast.hoist_functions_and_structs();
 
-                            let mut program_return_value: LangResult = Err(LangError::InitState);
-                            if ast.main_fn_exists() {
+                            // Drop the user into a repl
+                            if repl_after_parse {
                                 ast.evaluate(&mut map);
-                                program_return_value = ast.execute_main(&mut map);
+                                repl(&mut map);
                             } else {
-                                // main() isn't found, just execute the statements found in the program.
-                                program_return_value = ast.evaluate(&mut map);
+                                let mut program_return_value: LangResult = Err(LangError::InitState);
+                                if ast.main_fn_exists() {
+                                    ast.evaluate(&mut map);
+                                    program_return_value = ast.execute_main(&mut map);
+                                } else {
+                                    // main() isn't found, just execute the statements found in the program.
+                                    program_return_value = ast.evaluate(&mut map);
+                                }
+
+                                match program_return_value {
+                                    Ok(ok_value) => println!("{:?}", ok_value),
+                                    Err(e) => println!("{:?}", e),
+                                }
                             }
 
-                            match program_return_value {
-                                Ok(ok_value) => println!("{:?}", ok_value),
-                                Err(e) => println!("{:?}", e),
-                            }
                         }
                         IResult::Error(e) => eprintln!("encountered an error while parsing the file: {:?}", e),
                         IResult::Incomplete(i) => eprintln!("Couldn't parse all of the file: {:?}", i),
@@ -93,6 +110,6 @@ fn main() {
                 Err(e) => eprintln!("Couldn't open file because: {}", e),
             }
         }
-        None => repl(), // If a file to run wasn't provided, drop the user into a REPL
+        None => create_repl(), // If a file to run wasn't provided, drop the user into a REPL
     }
 }

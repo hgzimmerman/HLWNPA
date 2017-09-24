@@ -9,7 +9,6 @@ use std::boxed::Box;
 mod operators;
 
 mod expressions;
-use self::expressions::any_expression_parens;
 use self::expressions::sexpr;
 
 mod identifier;
@@ -58,8 +57,7 @@ named!(any_ast<Ast>,
         complete!(array_access) |
         complete!(struct_definition) |
         complete!(create_struct_instance) |
-        complete!(function) |
-        complete!(any_expression_parens)
+        complete!(function)
     ) // Order is very important here
 );
 

@@ -2,7 +2,6 @@
 use nom::*;
 use ast::Ast;
 
-use parser::expressions::any_expression_parens;
 use parser::literal::literal;
 use parser::identifier::identifier;
 use parser::assignment::assignment;
@@ -16,7 +15,7 @@ use parser::expressions::sexpr;
 //TODO this is misnamed, now that it matches other sequences, fix that
 named!(pub expression_or_literal_or_identifier<Ast>,
     alt!(
-        complete!(any_expression_parens) |
+        complete!(sexpr) |
         complete!(literal) |
         complete!(struct_access) | // must come before identifier
         complete!(create_struct_instance) |

@@ -11,15 +11,6 @@ use include::read_file_into_ast;
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum Ast {
     SExpr(Box<SExpression>),
-    Expression {
-        operator: BinaryOperator,
-        expr1: Box<Ast>,
-        expr2: Box<Ast>,
-    },
-    UnaryExpression {
-        operator: UnaryOperator,
-        expr: Box<Ast>,
-    },
     VecExpression { expressions: Vec<Ast> }, // uesd for structuring execution of the AST.
     Conditional {
         condition: Box<Ast>,
@@ -133,17 +124,13 @@ impl Ast {
                 for ast in expressions {
 
                     match *ast {
-                        Ast::Expression {
-                            ref operator,
-                            ref expr1,
-                            ref expr2
-                        } => {
-                            match *operator {
-                                BinaryOperator::CreateStruct => {
+                        Ast::SExpr(ref sexpr)  => {
+                            match **sexpr {
+                                SExpression::CreateStruct{..} => {
                                     let ast = ast.clone();
                                     struct_declarations.push(ast);
                                 }
-                                BinaryOperator::CreateFunction => {
+                                SExpression::CreateFunction{..} => {
                                     let ast = ast.clone();
                                     function_declarations.push(ast);
                                 }
@@ -184,20 +171,16 @@ impl Ast {
             } => {
                 for ast in expressions {
                     match *ast {
-                        Ast::Expression {
-                            ref operator,
-                            ref expr1,
-                            ref expr2
-                        } => {
-                            match *operator {
-                                BinaryOperator::CreateFunction => {
-                                    if let Ast::ValueIdentifier(ref fn_name) = **expr1 {
-                                        if fn_name.as_str() == MAIN_FUNCTION_NAME {
-                                            return true
-                                        }
+                        Ast::SExpr(ref sexpr)  => {
+                            if let SExpression::CreateFunction {
+                                ref identifier,
+                                ref fn_parameters_body_and_return_type
+                            } = **sexpr {
+                                if let Ast::ValueIdentifier(ref fn_name) = **identifier {
+                                    if fn_name.as_str() == MAIN_FUNCTION_NAME {
+                                        return true
                                     }
                                 }
-                                _ => {}
                             }
                         }
                         _ => {}
@@ -210,13 +193,12 @@ impl Ast {
     }
 
     pub fn execute_main(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
-        let executing_ast = Ast::Expression {
-            operator: BinaryOperator::ExecuteFn,
-            expr1: Box::new(Ast::ValueIdentifier("main".to_string())),
+        let executing_ast = Ast::SExpr(Box::new(SExpression::ExecuteFn {
+            identifier: Box::new(Ast::ValueIdentifier("main".to_string())),
             // get the identifier for a
-            expr2: Box::new(Ast::VecExpression { expressions: vec![] }),
+            parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
             // provide the function parameters
-        };
+        }));
 
         executing_ast.evaluate(map)
     }
@@ -384,169 +366,7 @@ impl Ast {
                     }
                 }
             },
-            Ast::Expression {
-                ref operator,
-                ref expr1,
-                ref expr2,
-            } => {
-                match *operator {
-                    BinaryOperator::Plus => expr1.evaluate(map)? + expr2.evaluate(map)?,
-                    BinaryOperator::Minus => expr1.evaluate(map)? - expr2.evaluate(map)?,
-                    BinaryOperator::Multiply => expr1.evaluate(map)? * expr2.evaluate(map)?,
-                    BinaryOperator::Divide => expr1.evaluate(map)? / expr2.evaluate(map)?,
-                    BinaryOperator::Modulo => expr1.evaluate(map)? % expr2.evaluate(map)?,
-                    BinaryOperator::Equals => {
-                        if expr1.evaluate(map)? == expr2.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
-                        } else {
-                            return Ok(Datatype::Bool(false));
-                        }
-                    }
-                    BinaryOperator::NotEquals => {
-                        if expr1.evaluate(map)? != expr2.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
-                        } else {
-                            return Ok(Datatype::Bool(false));
-                        }
-                    }
-                    BinaryOperator::GreaterThan => {
-                        if expr1.evaluate(map)? > expr2.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
-                        } else {
-                            return Ok(Datatype::Bool(false));
-                        }
-                    }
-                    BinaryOperator::LessThan => {
-                        if expr1.evaluate(map)? < expr2.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
-                        } else {
-                            return Ok(Datatype::Bool(false));
-                        }
-                    }
-                    BinaryOperator::GreaterThanOrEqual => {
-                        if expr1.evaluate(map)? >= expr2.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
-                        } else {
-                            return Ok(Datatype::Bool(false));
-                        }
-                    }
-                    BinaryOperator::LessThanOrEqual => {
-                        if expr1.evaluate(map)? <= expr2.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
-                        } else {
-                            return Ok(Datatype::Bool(false));
-                        }
-                    }
-                    BinaryOperator::Assignment |
-                    BinaryOperator::TypeAssignment |
-                    BinaryOperator::FieldAssignment |
-                    BinaryOperator:: CreateFunction => {
-                        if let Ast::ValueIdentifier(ref ident) = **expr1 {
-                            let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
-                            let evaluated_right_hand_side = expr2.evaluate(&mut cloned_map)?;
-                            let cloned_evaluated_rhs = evaluated_right_hand_side.clone();
-                            map.insert(ident.clone(), evaluated_right_hand_side);
-                            return Ok(cloned_evaluated_rhs);
-                        } else {
-                            Err(LangError::IdentifierDoesntExist)
-                        }
-                    }
-                    BinaryOperator::Loop => {
-                        let mut evaluated_loop: Datatype = Datatype::None;
-                        let cloned_expr1 = *expr1.clone();
-                        loop {
-                            let condition: Datatype = cloned_expr1.evaluate(map)?;
-                            match condition {
-                                Datatype::Bool(b) => {
-                                    if b {
-                                        evaluated_loop = expr2.evaluate(map)?; // This doesn't clone the map, so it can mutate the "stack" of its context
-                                    } else {
-                                        break;
-                                    }
-                                }
-                                _ => return Err(LangError::ConditionalNotBoolean(TypeInfo::from(condition))),
-                            }
-                        }
-                        return Ok(evaluated_loop); // leave block
-                    }
-                    BinaryOperator::AccessArray => {
-                        let datatype: Datatype = expr1.evaluate(map)?;
-                        match datatype {
-                            Datatype::Array { value, .. } => {
-                                let possible_index = expr2.evaluate(map)?;
-                                match possible_index {
-                                    Datatype::Number(index) => {
-                                        if index >= 0 {
-                                            match value.get(index as usize) {
-                                                Some(indexed_result) => Ok(indexed_result.clone()), // cannot mutate the interior of the array.
-                                                None => Err(LangError::OutOfBoundsArrayAccess),
-                                            }
-                                        } else {
-                                            Err(LangError::NegativeIndex(index))
-                                        }
-                                    }
-                                    _ => Err(LangError::InvalidIndexType(possible_index)),
-                                }
-                            }
-                            _ => return Err(LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype))),
-                        }
-                    }
-                    // Add an entry for a struct type to the current stack
-                    BinaryOperator::StructDeclaration => return declare_struct(expr1, expr2, map),
-                    BinaryOperator::AccessStructField => return access_struct_field(expr1, expr2, map),
 
-                    BinaryOperator::CreateStruct => return create_struct(expr1, expr2, map),
-
-                    BinaryOperator::ExecuteFn => return execute_function(expr1, expr2, map),
-                }
-            }
-            Ast::UnaryExpression {
-                ref operator,
-                ref expr,
-            } => {
-                match *operator {
-                    UnaryOperator::Print => {
-                        let datatype_to_print = expr.evaluate(map)?;
-                        if let Ast::ValueIdentifier(ref identifier) = **expr {
-                            if let Datatype::Struct {..} = datatype_to_print {
-                                print!("{}{}", identifier, datatype_to_print)
-                            } else {
-                                print!("{}", datatype_to_print);
-                            }
-                        } else {
-                            print!("{}", datatype_to_print);
-                        }
-                        Ok(datatype_to_print)
-                    }
-                    UnaryOperator::Include => {
-                        match expr.evaluate(map)? {
-                            Datatype::String(filename) => {
-                                let new_ast: Ast = read_file_into_ast(filename)?;
-                                new_ast.evaluate(map) // move the new AST into the current AST
-                            }
-                            _ => Err(LangError::CouldNotReadFile {filename: "Not provided".to_string(), reason: "File name was not a string.".to_string()})
-                        }
-                    }
-                    UnaryOperator::Invert => {
-                        match expr.evaluate(map)? {
-                            Datatype::Bool(bool) => Ok(Datatype::Bool(!bool)),
-                            _ => Err(LangError::InvertNonBoolean),
-                        }
-                    }
-                    UnaryOperator::Increment => {
-                        match expr.evaluate(map)? {
-                            Datatype::Number(number) => Ok(Datatype::Number(number + 1)),
-                            _ => Err(LangError::IncrementNonNumber),
-                        }
-                    }
-                    UnaryOperator::Decrement => {
-                        match expr.evaluate(map)? {
-                            Datatype::Number(number) => Ok(Datatype::Number(number - 1)),
-                            _ => Err(LangError::DecrementNonNumber),
-                        }
-                    }
-                }
-            }
             //Evaluate multiple expressions and return the result of the last one.
             Ast::VecExpression { ref expressions } => {
                 let mut val: Datatype = Datatype::None; // TODO, consider making this return an error if the expressions vector is empty
@@ -862,577 +682,577 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
 #[cfg(test)]
 mod test {
 
-    use super::*;
-
-    #[test]
-    fn plus_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::Plus,
-            expr1: Box::new(Ast::Literal(Datatype::Number(3))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-        };
-        assert_eq!(Datatype::Number(9), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn string_plus_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::Plus,
-            expr1: Box::new(Ast::Literal(Datatype::String("Hello".to_string()))),
-            expr2: Box::new(Ast::Literal(Datatype::String(" World!".to_string()))),
-        };
-        assert_eq!(
-            Datatype::String("Hello World!".to_string()),
-            ast.evaluate(&mut map).unwrap()
-        )
-    }
-
-    #[test]
-    fn minus_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::Minus,
-            expr1: Box::new(Ast::Literal(Datatype::Number(6))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-        };
-        assert_eq!(Datatype::Number(3), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn minus_negative_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::Minus,
-            expr1: Box::new(Ast::Literal(Datatype::Number(3))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-        };
-        assert_eq!(Datatype::Number(-3), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn multiplication_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::Multiply,
-            expr1: Box::new(Ast::Literal(Datatype::Number(6))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-        };
-        assert_eq!(Datatype::Number(18), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn division_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::Divide,
-            expr1: Box::new(Ast::Literal(Datatype::Number(6))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-        };
-        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn integer_division_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::Divide,
-            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-        };
-        assert_eq!(Datatype::Number(1), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn division_by_zero_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::Divide,
-            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(0))),
-        };
-        assert_eq!(
-            LangError::DivideByZero,
-            ast.evaluate(&mut map).err().unwrap()
-        )
-    }
-
-
-    #[test]
-    fn modulo_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::Modulo,
-            expr1: Box::new(Ast::Literal(Datatype::Number(8))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-        };
-        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn equality_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::Equals,
-            expr1: Box::new(Ast::Literal(Datatype::Number(3))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-        };
-        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn greater_than_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::GreaterThan,
-            expr1: Box::new(Ast::Literal(Datatype::Number(4))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-        };
-        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn less_than_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::LessThan,
-            expr1: Box::new(Ast::Literal(Datatype::Number(2))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-        };
-        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn greater_than_or_equal_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::GreaterThanOrEqual,
-            expr1: Box::new(Ast::Literal(Datatype::Number(4))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-        };
-        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
-
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let equals_ast = Ast::Expression {
-            operator: BinaryOperator::GreaterThanOrEqual,
-            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(5))),
-        };
-        assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
-    }
-
-    #[test]
-    fn less_than_or_equal_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Expression {
-            operator: BinaryOperator::LessThanOrEqual,
-            expr1: Box::new(Ast::Literal(Datatype::Number(2))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-        };
-        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
-
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let equals_ast = Ast::Expression {
-            operator: BinaryOperator::LessThanOrEqual,
-            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
-            expr2: Box::new(Ast::Literal(Datatype::Number(5))),
-        };
-        assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
-    }
-
-    /// Assign the value 6 to the identifier "a"
-    /// Recall that identifier and add it to 5
-    #[test]
-    fn assignment_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::VecExpression {
-            expressions: vec![
-                Ast::Expression {
-                    operator: BinaryOperator::Assignment,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::Plus,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Number(5))),
-                },
-            ],
-        };
-        assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
-    }
-
-
-    /// Assign the value 6 to "a".
-    /// Copy the value in "a" to "b".
-    /// Recall the value in "b" and add it to 5.
-    #[test]
-    fn variable_copy_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::VecExpression {
-            expressions: vec![
-                Ast::Expression {
-                    operator: BinaryOperator::Assignment,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::Assignment,
-                    expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
-                    expr2: Box::new(Ast::ValueIdentifier("a".to_string())),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::Plus,
-                    expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Number(5))),
-                },
-            ],
-        };
-        assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
-    }
-
-    /// Assign the value 6 to a.
-    /// Assign the value 3 to a.
-    /// Recall the value in a and add it to 5, the value of a should be 3, equalling 8.
-    #[test]
-    fn reassignment_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::VecExpression {
-            expressions: vec![
-                Ast::Expression {
-                    operator: BinaryOperator::Assignment,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::Assignment,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Number(3))),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::Plus,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Number(5))),
-                },
-            ],
-        };
-        assert_eq!(Datatype::Number(8), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn conditional_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Conditional {
-            condition: Box::new(Ast::Literal(Datatype::Bool(true))),
-            true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
-            false_expr: None,
-        };
-        assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn conditional_with_else_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::Conditional {
-            condition: Box::new(Ast::Literal(Datatype::Bool(false))),
-            true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
-            false_expr: Some(Box::new(Ast::Literal(Datatype::Number(2)))),
-        };
-        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn basic_function_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::VecExpression {
-            expressions: vec![
-                Ast::Expression {
-                    operator: BinaryOperator::Assignment,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Function {
-                        parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
-                        // empty parameters
-                        body: (Box::new(Ast::Literal(Datatype::Number(32)))),
-                        // just return a number
-                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
-                        // expect a number
-                    })),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::ExecuteFn,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    // get the identifier for a
-                    expr2: Box::new(Ast::VecExpression { expressions: vec![] }),
-                    // provide the function parameters
-                },
-            ],
-        };
-        assert_eq!(Datatype::Number(32), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn function_with_parameter_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::VecExpression {
-            expressions: vec![
-                Ast::SExpr(Box::new(SExpression::Assignment{
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    ast: Box::new(Ast::Literal(Datatype::Function {
-                        parameters: Box::new(Ast::VecExpression {
-                            expressions: vec![
-                                Ast::SExpr(Box::new(SExpression::TypeAssignment {
-                                    identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
-                                    // the value's name is b
-                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
-                                    // fn takes a number
-                                })),
-                            ],
-                        }),
-                        body: (Box::new(Ast::ValueIdentifier("b".to_string()))),
-                        // just return the number passed in.
-                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
-                        // expect a number to be returned
-                    }))
-                })),
-                Ast::SExpr(Box::new(SExpression::ExecuteFn {
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    // get the identifier for a
-                    parameters: Box::new(Ast::VecExpression {
-                        expressions: vec![Ast::Literal(Datatype::Number(7))],
-                    }),
-                }))
-            ],
-        };
-        assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
-    }
-
-
-    #[test]
-    fn function_with_two_parameters_addition_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::VecExpression {
-            expressions: vec![
-                Ast::SExpr(Box::new(SExpression::Assignment{
-                    identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
-                    ast: Box::new(Ast::Literal(Datatype::Function {
-                        parameters: Box::new(Ast::VecExpression {
-                            expressions: vec![
-                                Ast::SExpr(Box::new(SExpression::TypeAssignment {
-                                    identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
-                                    // the value's name is b
-                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
-                                    // fn takes a number
-                                })),
-                                Ast::SExpr(Box::new(SExpression::TypeAssignment {
-                                    identifier: Box::new(Ast::ValueIdentifier("c".to_string())),
-                                    // the value's name is b
-                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
-                                    // fn takes a number
-                                }))
-                            ],
-                        }),
-                        body: (Box::new(
-                            Ast::SExpr(Box::new(SExpression::Add(
-                                Box::new(Ast::ValueIdentifier("b".to_string())),
-                                Box::new(Ast::ValueIdentifier("c".to_string()))
-                            )))
-                        )),
-                        // just return the number passed in.
-                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
-                        // expect a number to be returned
-                    }))
-                })),
-                Ast::SExpr(Box::new(SExpression::ExecuteFn {
-                    identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
-                    // get the identifier for a
-                    parameters: Box::new(Ast::VecExpression {
-                        expressions: vec![
-                            Ast::Literal(Datatype::Number(7)),
-                            Ast::Literal(Datatype::Number(5))
-                        ],
-                    }),
-                }))
-            ],
-        };
-        assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn array_access_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast: Ast = Ast::Expression {
-            operator: BinaryOperator::AccessArray,
-            expr1: Box::new(Ast::Literal(Datatype::Array {
-                value: vec![
-                    Datatype::Number(12),
-                    Datatype::Number(14),
-                    Datatype::Number(16),
-                ],
-                type_: TypeInfo::Number,
-            })),
-            expr2: Box::new(Ast::Literal(Datatype::Number(0))), // get the first element
-        };
-        assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
-    }
-
-    #[test]
-    fn array_incorrect_access_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast: Ast = Ast::Expression {
-            operator: BinaryOperator::AccessArray,
-            expr1: Box::new(Ast::Literal(Datatype::Array {
-                value: vec![
-                    Datatype::Number(12),
-                    Datatype::Number(14),
-                    Datatype::Number(16),
-                ],
-                type_: TypeInfo::Number,
-            })),
-            expr2: Box::new(Ast::Literal(Datatype::Number(3))), // Array size 3. 0, 1, 2 hold elements. Index 3 doesn't.
-        };
-        assert_eq!(
-            LangError::OutOfBoundsArrayAccess,
-            ast.evaluate(&mut map).unwrap_err()
-        )
-    }
-
-    #[test]
-    fn struct_declaration_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast: Ast = Ast::Expression {
-            operator: BinaryOperator::StructDeclaration,
-            expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            expr2: Box::new(Ast::VecExpression {
-                expressions: vec![
-                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
-                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
-                    })),
-                ],
-            }),
-        };
-
-        let _ = ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
-        let mut expected_map = HashMap::new();
-        let mut inner_struct_hash_map = HashMap::new();
-        inner_struct_hash_map.insert("Field1".to_string(), TypeInfo::Number);
-        expected_map.insert(
-            "MyStruct".to_string(),
-            Datatype::StructType(TypeInfo::Struct { map: inner_struct_hash_map }),
-        );
-        assert_eq!(expected_map, map)
-    }
-
-
-    #[test]
-    fn struct_creation_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let declaration_ast: Ast = Ast::Expression {
-            operator: BinaryOperator::StructDeclaration,
-            expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            expr2: Box::new(Ast::VecExpression {
-                expressions: vec![
-                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
-                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
-                    })),
-                ],
-            }),
-        };
-        let _ = declaration_ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
-
-        let creation_ast: Ast = Ast::Expression {
-            operator: BinaryOperator::CreateStruct,
-            expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            expr2: Box::new(Ast::VecExpression {
-                expressions: vec![
-                    Ast::SExpr(Box::new(SExpression::FieldAssignment{
-                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        ast: Box::new(Ast::Literal(Datatype::Number(8))), // assign 8 to field Field1
-                    })),
-                ],
-            }),
-        };
-
-        let struct_instance = creation_ast.evaluate(&mut map).unwrap();
-
-        let mut inner_struct_hash_map = HashMap::new();
-        inner_struct_hash_map.insert("Field1".to_string(), Datatype::Number(8));
-
-        assert_eq!(
-            Datatype::Struct { map: inner_struct_hash_map },
-            struct_instance
-        )
-    }
-
-
-    #[test]
-    fn function_hoisting_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::VecExpression {
-            expressions: vec![
-                Ast::Expression {
-                    operator: BinaryOperator::Assignment,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::CreateFunction,
-                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Function {
-                        parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
-                        // empty parameters
-                        body: (Box::new(Ast::Literal(Datatype::Number(32)))),
-                        // just return a number
-                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
-                        // expect a number
-                    })),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::ExecuteFn,
-                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
-                    // get the identifier for a
-                    expr2: Box::new(Ast::VecExpression { expressions: vec![] }),
-                    // provide the function parameters
-                },
-            ],
-        };
-
-        let hoisted_ast: Ast = ast.hoist_functions_and_structs();
-
-        let expected_hoisted_ast: Ast = Ast::VecExpression {
-            expressions: vec![
-                Ast::Expression {
-                    operator: BinaryOperator::CreateFunction,
-                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Function {
-                        parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
-                        // empty parameters
-                        body: (Box::new(Ast::Literal(Datatype::Number(32)))),
-                        // just return a number
-                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
-                        // expect a number
-                    })),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::Assignment,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::ExecuteFn,
-                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
-                    // get the identifier for a
-                    expr2: Box::new(Ast::VecExpression { expressions: vec![] }),
-                    // provide the function parameters
-                },
-            ],
-        };
-
-        assert_eq!(hoisted_ast, expected_hoisted_ast);
-        assert_eq!(Datatype::Number(32), hoisted_ast.evaluate(&mut map).unwrap());
-    }
+//    use super::*;
+//
+//    #[test]
+//    fn plus_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::Plus,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(3))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(6))),
+//        };
+//        assert_eq!(Datatype::Number(9), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn string_plus_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::Plus,
+//            expr1: Box::new(Ast::Literal(Datatype::String("Hello".to_string()))),
+//            expr2: Box::new(Ast::Literal(Datatype::String(" World!".to_string()))),
+//        };
+//        assert_eq!(
+//            Datatype::String("Hello World!".to_string()),
+//            ast.evaluate(&mut map).unwrap()
+//        )
+//    }
+//
+//    #[test]
+//    fn minus_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::Minus,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(6))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
+//        };
+//        assert_eq!(Datatype::Number(3), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn minus_negative_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::Minus,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(3))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(6))),
+//        };
+//        assert_eq!(Datatype::Number(-3), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn multiplication_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::Multiply,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(6))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
+//        };
+//        assert_eq!(Datatype::Number(18), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn division_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::Divide,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(6))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
+//        };
+//        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn integer_division_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::Divide,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
+//        };
+//        assert_eq!(Datatype::Number(1), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn division_by_zero_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::Divide,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(0))),
+//        };
+//        assert_eq!(
+//            LangError::DivideByZero,
+//            ast.evaluate(&mut map).err().unwrap()
+//        )
+//    }
+//
+//
+//    #[test]
+//    fn modulo_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::Modulo,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(8))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
+//        };
+//        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn equality_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::Equals,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(3))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
+//        };
+//        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn greater_than_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::GreaterThan,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(4))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
+//        };
+//        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn less_than_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::LessThan,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(2))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
+//        };
+//        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn greater_than_or_equal_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::GreaterThanOrEqual,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(4))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
+//        };
+//        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
+//
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let equals_ast = Ast::Expression {
+//            operator: BinaryOperator::GreaterThanOrEqual,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(5))),
+//        };
+//        assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
+//    }
+//
+//    #[test]
+//    fn less_than_or_equal_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Expression {
+//            operator: BinaryOperator::LessThanOrEqual,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(2))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(3))),
+//        };
+//        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
+//
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let equals_ast = Ast::Expression {
+//            operator: BinaryOperator::LessThanOrEqual,
+//            expr1: Box::new(Ast::Literal(Datatype::Number(5))),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(5))),
+//        };
+//        assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
+//    }
+//
+//    /// Assign the value 6 to the identifier "a"
+//    /// Recall that identifier and add it to 5
+//    #[test]
+//    fn assignment_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::VecExpression {
+//            expressions: vec![
+//                Ast::Expression {
+//                    operator: BinaryOperator::Assignment,
+//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
+//                },
+//                Ast::Expression {
+//                    operator: BinaryOperator::Plus,
+//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Number(5))),
+//                },
+//            ],
+//        };
+//        assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//
+//    /// Assign the value 6 to "a".
+//    /// Copy the value in "a" to "b".
+//    /// Recall the value in "b" and add it to 5.
+//    #[test]
+//    fn variable_copy_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::VecExpression {
+//            expressions: vec![
+//                Ast::Expression {
+//                    operator: BinaryOperator::Assignment,
+//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
+//                },
+//                Ast::Expression {
+//                    operator: BinaryOperator::Assignment,
+//                    expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
+//                    expr2: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                },
+//                Ast::Expression {
+//                    operator: BinaryOperator::Plus,
+//                    expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Number(5))),
+//                },
+//            ],
+//        };
+//        assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    /// Assign the value 6 to a.
+//    /// Assign the value 3 to a.
+//    /// Recall the value in a and add it to 5, the value of a should be 3, equalling 8.
+//    #[test]
+//    fn reassignment_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::VecExpression {
+//            expressions: vec![
+//                Ast::Expression {
+//                    operator: BinaryOperator::Assignment,
+//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
+//                },
+//                Ast::Expression {
+//                    operator: BinaryOperator::Assignment,
+//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Number(3))),
+//                },
+//                Ast::Expression {
+//                    operator: BinaryOperator::Plus,
+//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Number(5))),
+//                },
+//            ],
+//        };
+//        assert_eq!(Datatype::Number(8), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn conditional_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Conditional {
+//            condition: Box::new(Ast::Literal(Datatype::Bool(true))),
+//            true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
+//            false_expr: None,
+//        };
+//        assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn conditional_with_else_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::Conditional {
+//            condition: Box::new(Ast::Literal(Datatype::Bool(false))),
+//            true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
+//            false_expr: Some(Box::new(Ast::Literal(Datatype::Number(2)))),
+//        };
+//        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn basic_function_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::VecExpression {
+//            expressions: vec![
+//                Ast::Expression {
+//                    operator: BinaryOperator::Assignment,
+//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Function {
+//                        parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
+//                        // empty parameters
+//                        body: (Box::new(Ast::Literal(Datatype::Number(32)))),
+//                        // just return a number
+//                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+//                        // expect a number
+//                    })),
+//                },
+//                Ast::Expression {
+//                    operator: BinaryOperator::ExecuteFn,
+//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    // get the identifier for a
+//                    expr2: Box::new(Ast::VecExpression { expressions: vec![] }),
+//                    // provide the function parameters
+//                },
+//            ],
+//        };
+//        assert_eq!(Datatype::Number(32), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn function_with_parameter_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::VecExpression {
+//            expressions: vec![
+//                Ast::SExpr(Box::new(SExpression::Assignment{
+//                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    ast: Box::new(Ast::Literal(Datatype::Function {
+//                        parameters: Box::new(Ast::VecExpression {
+//                            expressions: vec![
+//                                Ast::SExpr(Box::new(SExpression::TypeAssignment {
+//                                    identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
+//                                    // the value's name is b
+//                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+//                                    // fn takes a number
+//                                })),
+//                            ],
+//                        }),
+//                        body: (Box::new(Ast::ValueIdentifier("b".to_string()))),
+//                        // just return the number passed in.
+//                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+//                        // expect a number to be returned
+//                    }))
+//                })),
+//                Ast::SExpr(Box::new(SExpression::ExecuteFn {
+//                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    // get the identifier for a
+//                    parameters: Box::new(Ast::VecExpression {
+//                        expressions: vec![Ast::Literal(Datatype::Number(7))],
+//                    }),
+//                }))
+//            ],
+//        };
+//        assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//
+//    #[test]
+//    fn function_with_two_parameters_addition_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::VecExpression {
+//            expressions: vec![
+//                Ast::SExpr(Box::new(SExpression::Assignment{
+//                    identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
+//                    ast: Box::new(Ast::Literal(Datatype::Function {
+//                        parameters: Box::new(Ast::VecExpression {
+//                            expressions: vec![
+//                                Ast::SExpr(Box::new(SExpression::TypeAssignment {
+//                                    identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
+//                                    // the value's name is b
+//                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+//                                    // fn takes a number
+//                                })),
+//                                Ast::SExpr(Box::new(SExpression::TypeAssignment {
+//                                    identifier: Box::new(Ast::ValueIdentifier("c".to_string())),
+//                                    // the value's name is b
+//                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+//                                    // fn takes a number
+//                                }))
+//                            ],
+//                        }),
+//                        body: (Box::new(
+//                            Ast::SExpr(Box::new(SExpression::Add(
+//                                Box::new(Ast::ValueIdentifier("b".to_string())),
+//                                Box::new(Ast::ValueIdentifier("c".to_string()))
+//                            )))
+//                        )),
+//                        // just return the number passed in.
+//                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+//                        // expect a number to be returned
+//                    }))
+//                })),
+//                Ast::SExpr(Box::new(SExpression::ExecuteFn {
+//                    identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
+//                    // get the identifier for a
+//                    parameters: Box::new(Ast::VecExpression {
+//                        expressions: vec![
+//                            Ast::Literal(Datatype::Number(7)),
+//                            Ast::Literal(Datatype::Number(5))
+//                        ],
+//                    }),
+//                }))
+//            ],
+//        };
+//        assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn array_access_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast: Ast = Ast::Expression {
+//            operator: BinaryOperator::AccessArray,
+//            expr1: Box::new(Ast::Literal(Datatype::Array {
+//                value: vec![
+//                    Datatype::Number(12),
+//                    Datatype::Number(14),
+//                    Datatype::Number(16),
+//                ],
+//                type_: TypeInfo::Number,
+//            })),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(0))), // get the first element
+//        };
+//        assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
+//    }
+//
+//    #[test]
+//    fn array_incorrect_access_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast: Ast = Ast::Expression {
+//            operator: BinaryOperator::AccessArray,
+//            expr1: Box::new(Ast::Literal(Datatype::Array {
+//                value: vec![
+//                    Datatype::Number(12),
+//                    Datatype::Number(14),
+//                    Datatype::Number(16),
+//                ],
+//                type_: TypeInfo::Number,
+//            })),
+//            expr2: Box::new(Ast::Literal(Datatype::Number(3))), // Array size 3. 0, 1, 2 hold elements. Index 3 doesn't.
+//        };
+//        assert_eq!(
+//            LangError::OutOfBoundsArrayAccess,
+//            ast.evaluate(&mut map).unwrap_err()
+//        )
+//    }
+//
+//    #[test]
+//    fn struct_declaration_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast: Ast = Ast::Expression {
+//            operator: BinaryOperator::StructDeclaration,
+//            expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
+//            expr2: Box::new(Ast::VecExpression {
+//                expressions: vec![
+//                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
+//                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+//                        typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+//                    })),
+//                ],
+//            }),
+//        };
+//
+//        let _ = ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
+//        let mut expected_map = HashMap::new();
+//        let mut inner_struct_hash_map = HashMap::new();
+//        inner_struct_hash_map.insert("Field1".to_string(), TypeInfo::Number);
+//        expected_map.insert(
+//            "MyStruct".to_string(),
+//            Datatype::StructType(TypeInfo::Struct { map: inner_struct_hash_map }),
+//        );
+//        assert_eq!(expected_map, map)
+//    }
+//
+//
+//    #[test]
+//    fn struct_creation_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let declaration_ast: Ast = Ast::Expression {
+//            operator: BinaryOperator::StructDeclaration,
+//            expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
+//            expr2: Box::new(Ast::VecExpression {
+//                expressions: vec![
+//                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
+//                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+//                        typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+//                    })),
+//                ],
+//            }),
+//        };
+//        let _ = declaration_ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
+//
+//        let creation_ast: Ast = Ast::Expression {
+//            operator: BinaryOperator::CreateStruct,
+//            expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
+//            expr2: Box::new(Ast::VecExpression {
+//                expressions: vec![
+//                    Ast::SExpr(Box::new(SExpression::FieldAssignment{
+//                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+//                        ast: Box::new(Ast::Literal(Datatype::Number(8))), // assign 8 to field Field1
+//                    })),
+//                ],
+//            }),
+//        };
+//
+//        let struct_instance = creation_ast.evaluate(&mut map).unwrap();
+//
+//        let mut inner_struct_hash_map = HashMap::new();
+//        inner_struct_hash_map.insert("Field1".to_string(), Datatype::Number(8));
+//
+//        assert_eq!(
+//            Datatype::Struct { map: inner_struct_hash_map },
+//            struct_instance
+//        )
+//    }
+//
+//
+//    #[test]
+//    fn function_hoisting_test() {
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        let ast = Ast::VecExpression {
+//            expressions: vec![
+//                Ast::Expression {
+//                    operator: BinaryOperator::Assignment,
+//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
+//                },
+//                Ast::Expression {
+//                    operator: BinaryOperator::CreateFunction,
+//                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Function {
+//                        parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
+//                        // empty parameters
+//                        body: (Box::new(Ast::Literal(Datatype::Number(32)))),
+//                        // just return a number
+//                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+//                        // expect a number
+//                    })),
+//                },
+//                Ast::Expression {
+//                    operator: BinaryOperator::ExecuteFn,
+//                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
+//                    // get the identifier for a
+//                    expr2: Box::new(Ast::VecExpression { expressions: vec![] }),
+//                    // provide the function parameters
+//                },
+//            ],
+//        };
+//
+//        let hoisted_ast: Ast = ast.hoist_functions_and_structs();
+//
+//        let expected_hoisted_ast: Ast = Ast::VecExpression {
+//            expressions: vec![
+//                Ast::Expression {
+//                    operator: BinaryOperator::CreateFunction,
+//                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Function {
+//                        parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
+//                        // empty parameters
+//                        body: (Box::new(Ast::Literal(Datatype::Number(32)))),
+//                        // just return a number
+//                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+//                        // expect a number
+//                    })),
+//                },
+//                Ast::Expression {
+//                    operator: BinaryOperator::Assignment,
+//                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+//                    expr2: Box::new(Ast::Literal(Datatype::Number(6))),
+//                },
+//                Ast::Expression {
+//                    operator: BinaryOperator::ExecuteFn,
+//                    expr1: Box::new(Ast::ValueIdentifier("fn".to_string())),
+//                    // get the identifier for a
+//                    expr2: Box::new(Ast::VecExpression { expressions: vec![] }),
+//                    // provide the function parameters
+//                },
+//            ],
+//        };
+//
+//        assert_eq!(hoisted_ast, expected_hoisted_ast);
+//        assert_eq!(Datatype::Number(32), hoisted_ast.evaluate(&mut map).unwrap());
+//    }
 
 
 }

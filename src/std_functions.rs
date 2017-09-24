@@ -1,7 +1,7 @@
 
 use datatype::{Datatype, TypeInfo};
 use std::collections::HashMap;
-use ast::{Ast, UnaryOperator, BinaryOperator};
+use ast::{Ast, UnaryOperator, BinaryOperator, SExpression, ArithmeticOperator};
 use parser::program;
 
 use nom::IResult;
@@ -11,37 +11,27 @@ pub fn add_std_functions(map: &mut HashMap<String, Datatype>) {
     add_println_function(map);
 }
 
-fn add_test_constant(map: &mut HashMap<String, Datatype>) {
-    let ast: Ast = Ast::Expression {
-        operator: BinaryOperator::Assignment,
-        expr1: Box::new(Ast::ValueIdentifier("aaa".to_string())),
-        expr2: Box::new(Ast::Literal(Datatype::Number(3)))
-    };
-    ast.evaluate(map);
-}
 
 fn add_print_function(map: &mut HashMap<String, Datatype>) {
-    let ast: Ast = Ast::Expression {
-        operator: BinaryOperator::CreateFunction,
-        expr1: Box::new(Ast::ValueIdentifier("print".to_string())),
-        expr2: Box::new(Ast::Literal(Datatype::Function {
+    let ast: Ast = Ast::SExpr(Box::new(SExpression::CreateFunction {
+        identifier: Box::new(Ast::ValueIdentifier("print".to_string())),
+        fn_parameters_body_and_return_type: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::Expression {
-                    operator: BinaryOperator::TypeAssignment,
-                    expr1: Box::new(Ast::ValueIdentifier("to_print".to_string())),
-                    expr2: Box::new(Ast::Type(TypeInfo::String))
-                }],
+                expressions: vec![Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                    identifier: Box::new(Ast::ValueIdentifier("to_print".to_string())),
+                    typeInfo: Box::new(Ast::Type(TypeInfo::String))
+                }))],
             }),
             body: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::UnaryExpression {
-                        operator: UnaryOperator::Print,
-                        expr: Box::new(Ast::ValueIdentifier("to_print".to_string()))
-                    }],
+                    Ast::SExpr(Box::new(SExpression::Print(
+                        Box::new(Ast::ValueIdentifier("to_print".to_string()))
+                    )))
+                ],
             }),
             return_type: Box::new(Ast::Type(TypeInfo::String)),
         })),
-    };
+    }));
     ast.evaluate(map);
 }
 
@@ -73,21 +63,19 @@ fn expect_print_function_to_be_added_to_global_map() {
         parameters: (Box::new(
             Ast::VecExpression {
                 expressions: vec![
-                    Ast::Expression {
-                        operator: BinaryOperator::TypeAssignment,
-                        expr1: Box::new(Ast::ValueIdentifier("to_print".to_string())),
-                        expr2: Box::new(Ast::Type(TypeInfo::String))
-                    }
+                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                        identifier: Box::new(Ast::ValueIdentifier("to_print".to_string())),
+                        typeInfo: Box::new(Ast::Type(TypeInfo::String))
+                    }))
                 ]
             }
         )),
         body: (Box::new(
             Ast::VecExpression {
                 expressions: vec![
-                    Ast::UnaryExpression {
-                        operator: UnaryOperator::Print,
-                        expr: Box::new(Ast::ValueIdentifier("to_print".to_string()))
-                    }
+                    Ast::SExpr(Box::new(SExpression::Print(
+                        Box::new(Ast::ValueIdentifier("to_print".to_string()))
+                    )))
                 ]
             }
         )),

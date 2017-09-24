@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast, BinaryOperator};
+use ast::{Ast, BinaryOperator, SExpression};
 use parser::identifier::identifier;
 use parser::body::{type_assignment_body, struct_init_body};
 use datatype::Datatype;
@@ -66,11 +66,10 @@ mod test {
             expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::Expression {
-                        operator: BinaryOperator::TypeAssignment,
-                        expr1: Box::new(Ast::ValueIdentifier("a_number".to_string())),
-                        expr2: Box::new(Ast::Type(TypeInfo::Number)),
-                    },
+                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                        identifier: Box::new(Ast::ValueIdentifier("a_number".to_string())),
+                        typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                    })),
                 ],
             }),
         };
@@ -111,11 +110,10 @@ mod test {
             expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::Expression {
-                        operator: BinaryOperator::FieldAssignment,
-                        expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                        expr2: Box::new(Ast::Literal(Datatype::Number(8))),
-                    },
+                    Ast::SExpr(Box::new(SExpression::FieldAssignment{
+                        identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                        ast: Box::new(Ast::Literal(Datatype::Number(8))),
+                    })),
                 ],
             }),
         };

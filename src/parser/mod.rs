@@ -108,33 +108,25 @@ mod test {
             _ => panic!(),
         };
 
-        let expected_assignment: Ast = Ast::Expression {
-            operator: BinaryOperator::Assignment,
-            expr1: Box::new(Ast::ValueIdentifier("x".to_string())),
-//            expr2: Box::new(Ast::Expression {
-//                operator: BinaryOperator::Plus,
-//                expr1: Box::new(Ast::Literal(Datatype::Number(3))),
-//                expr2: Box::new(Ast::Literal(Datatype::Number(4))),
-//            }),
-
-            expr2: Box::new(Ast::SExpr(Box::new(
+        let expected_assignment: Ast = Ast::SExpr(Box::new(SExpression::Assignment {
+            identifier: Box::new(Ast::ValueIdentifier("x".to_string())),
+            ast: Box::new(Ast::SExpr(Box::new(
                 SExpression::Add(
                     Box::new(Ast::Literal(Datatype::Number(3))),
                     Box::new(Ast::Literal ( Datatype::Number(4))),
                 )
             )))
-        };
+        }));
 
         let expected_fn: Ast = Ast::Expression {
             operator: BinaryOperator::CreateFunction,
             expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
             expr2: Box::new(Ast::Literal(Datatype::Function {
                 parameters: Box::new(Ast::VecExpression {
-                    expressions: vec![Ast::Expression {
-                        operator: BinaryOperator::TypeAssignment,
-                        expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                        expr2: Box::new(Ast::Type(TypeInfo::Number))
-                    }],
+                    expressions: vec![Ast::SExpr(Box::new(SExpression::TypeAssignment {
+                        identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                        typeInfo: Box::new(Ast::Type(TypeInfo::Number))
+                    }))],
                 }),
                 body: Box::new(Ast::VecExpression {
                     expressions: vec![

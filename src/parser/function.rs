@@ -65,11 +65,10 @@ fn parse_whole_function_number_input_returns_number_test() {
         expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         expr2: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::Expression {
-                        operator: BinaryOperator::TypeAssignment,
-                        expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
-                        expr2: Box::new(Ast::Type ( TypeInfo::Number ))
-                    }],
+                expressions: vec![Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                        identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
+                        typeInfo: Box::new(Ast::Type ( TypeInfo::Number ))
+                    }))],
             }),
             body: Box::new(Ast::VecExpression {
                 expressions: vec![
@@ -102,11 +101,12 @@ fn parse_whole_function_identifier_input_returns_number_test() {
         expr1: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         expr2: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::Expression {
-                    operator: BinaryOperator::TypeAssignment,
-                    expr1: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
-                    expr2: Box::new(Ast::ValueIdentifier("Identifier".to_string()))
-                }],
+                expressions: vec![
+                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                        identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
+                        typeInfo: Box::new(Ast::ValueIdentifier("Identifier".to_string()))
+                    }))
+                ],
             }),
             body: Box::new(Ast::VecExpression {
                 expressions: vec![

@@ -621,13 +621,12 @@ fn declare_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>)
             let mut struct_map: HashMap<String, TypeInfo> = HashMap::new();
 
             for assignment_expr in expressions {
-                if let &Ast::Expression {
-                    operator: ref assignment_op,
-                    expr1: ref field_identifier_expr,
-                    expr2: ref field_type_expr,
-                } = assignment_expr
+                if let &Ast::SExpr(ref sexpr) = assignment_expr
                 {
-                    if let BinaryOperator::TypeAssignment = *assignment_op {
+                    if let SExpression::TypeAssignment {
+                        identifier: ref field_identifier_expr,
+                        typeInfo: ref field_type_expr
+                    } = **sexpr{
                         if let Ast::ValueIdentifier(ref field_id) = **field_identifier_expr {
                             if let Ast::Type(ref field_type) = **field_type_expr {
                                 struct_map.insert(field_id.clone(), field_type.clone());
@@ -671,13 +670,11 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
             let mut new_struct_map: HashMap<String, Datatype> = HashMap::new();
 
             for assignment_expression in assignment_expressions {
-                if let Ast::Expression {
-                    operator: ref assignment_operator,
-                    expr1: ref assignment_expr1,
-                    expr2: ref assignment_expr2,
-                } = *assignment_expression
-                {
-                    if assignment_operator == &BinaryOperator::FieldAssignment {
+                if let Ast::SExpr(ref sexpr)  = *assignment_expression {
+                    if let SExpression::FieldAssignment {
+                        identifier: ref assignment_expr1,
+                        ast: ref assignment_expr2
+                    } = **sexpr {
                         if let Ast::ValueIdentifier(ref field_identifier) = **assignment_expr1 {
                             // Is the identifier specified in the AST exist in the struct type? check the struct_map
                             let expected_type = match struct_type_map.get(field_identifier) {
@@ -762,53 +759,55 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
                             .zip(evaluated_parameters)
                             .map(|expressions_with_parameters: (&Ast, Datatype)| {
                                 let (e, d) = expressions_with_parameters; // assign out of tuple.
-                                if let Ast::Expression {
-                                    ref operator,
-                                    ref expr1,
-                                    ref expr2,
-                                } = *e
-                                {
-                                    let operator = operator.clone();
-                                    let expr1 = expr1.clone();
+                                if let Ast::SExpr(
+                                    ref sexpr
+                                ) = *e
+                                    {
+                                        if let SExpression::TypeAssignment {
+                                            identifier: ref expr1,
+                                            typeInfo: ref expr2
+                                        } = **sexpr {
+                                            let expr1 = expr1.clone();
 
-                                    //do run-time type-checking, the supplied value should be of the same type as the specified value
-                                    let expected_type: &TypeInfo = match **expr2 {
-                                        Ast::Type(ref datatype) => datatype,
-                                        Ast::ValueIdentifier(ref id) => {
-                                            match map.get(id) { // get what should be a struct out of the stack
-                                                Some(datatype) => {
-                                                    if let Datatype::StructType(ref struct_type_info) = *datatype {
-                                                        struct_type_info
-                                                    } else {
-                                                        return Err(LangError::ExpectedIdentifierToBeStructType {
-                                                            found: id.clone(),
-                                                        });
+                                            //do run-time type-checking, the supplied value should be of the same type as the specified value
+                                            let expected_type: &TypeInfo = match **expr2 {
+                                                Ast::Type(ref datatype) => datatype,
+                                                Ast::ValueIdentifier(ref id) => {
+                                                    match map.get(id) {
+                                                        // get what should be a struct out of the stack
+                                                        Some(datatype) => {
+                                                            if let Datatype::StructType(ref struct_type_info) = *datatype {
+                                                                struct_type_info
+                                                            } else {
+                                                                return Err(LangError::ExpectedIdentifierToBeStructType {
+                                                                    found: id.clone(),
+                                                                });
+                                                            }
+                                                        }
+                                                        None => return Err(LangError::IdentifierDoesntExist),
                                                     }
                                                 }
-                                                None => return Err(LangError::IdentifierDoesntExist),
+                                                _ => return Err(LangError::ExpectedDataTypeInfo),
+                                            };
+                                            if expected_type != &TypeInfo::from(d.clone()) {
+                                                return Err(LangError::TypeError {
+                                                    expected: expected_type.clone(),
+                                                    found: TypeInfo::from(d),
+                                                });
                                             }
-                                        }
-                                        _ => return Err(LangError::ExpectedDataTypeInfo),
-                                    };
-                                    if expected_type != &TypeInfo::from(d.clone()) {
-                                        return Err(LangError::TypeError {
-                                            expected: expected_type.clone(),
-                                            found: TypeInfo::from(d),
-                                        });
-                                    }
 
-                                    if operator == BinaryOperator::TypeAssignment {
-                                        return Ok(Ast::Expression {
-                                            operator: operator,
-                                            expr1: expr1,
-                                            expr2: Box::new(Ast::Literal(d)),
-                                        }); // return a new FunctionParameterAssignment Expression with a replaced expr2.
+                                            return Ok(Ast::SExpr(Box::new(SExpression::FieldAssignment {
+                                                identifier: expr1,
+                                                ast: Box::new(Ast::Literal(d))
+                                            })))
+                                                // return a new FunctionParameterAssignment Expression with a replaced expr2.
+                                        } else {
+                                            return Err(LangError::InvalidFunctionPrototypeFormatting);
+                                        }
                                     } else {
-                                        return Err(LangError::InvalidFunctionPrototypeFormatting);
-                                    }
-                                } else {
-                                    return Err(LangError::InvalidFunctionPrototypeFormatting);
+                                    return Err(LangError::InvalidFunctionPrototypeFormatting)
                                 }
+
                             })
                             .collect();
 
@@ -1177,36 +1176,32 @@ mod test {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let ast = Ast::VecExpression {
             expressions: vec![
-                Ast::Expression {
-                    operator: BinaryOperator::Assignment,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Function {
+                Ast::SExpr(Box::new(SExpression::Assignment{
+                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                    ast: Box::new(Ast::Literal(Datatype::Function {
                         parameters: Box::new(Ast::VecExpression {
                             expressions: vec![
-                                Ast::Expression {
-                                    operator: BinaryOperator::TypeAssignment,
-                                    expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
+                                Ast::SExpr(Box::new(SExpression::TypeAssignment {
+                                    identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
                                     // the value's name is b
-                                    expr2: Box::new(Ast::Type(TypeInfo::Number)),
+                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
                                     // fn takes a number
-                                },
+                                })),
                             ],
                         }),
                         body: (Box::new(Ast::ValueIdentifier("b".to_string()))),
                         // just return the number passed in.
                         return_type: Box::new(Ast::Type(TypeInfo::Number)),
                         // expect a number to be returned
-                    })),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::ExecuteFn,
-                    expr1: Box::new(Ast::ValueIdentifier("a".to_string())),
+                    }))
+                })),
+                Ast::SExpr(Box::new(SExpression::ExecuteFn {
+                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
                     // get the identifier for a
-                    expr2: Box::new(Ast::VecExpression {
+                    parameters: Box::new(Ast::VecExpression {
                         expressions: vec![Ast::Literal(Datatype::Number(7))],
                     }),
-                    // provide the function parameters
-                },
+                }))
             ],
         };
         assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
@@ -1218,51 +1213,46 @@ mod test {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let ast = Ast::VecExpression {
             expressions: vec![
-                Ast::Expression {
-                    operator: BinaryOperator::Assignment,
-                    expr1: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
-                    expr2: Box::new(Ast::Literal(Datatype::Function {
+                Ast::SExpr(Box::new(SExpression::Assignment{
+                    identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
+                    ast: Box::new(Ast::Literal(Datatype::Function {
                         parameters: Box::new(Ast::VecExpression {
                             expressions: vec![
-                                Ast::Expression {
-                                    operator: BinaryOperator::TypeAssignment,
-                                    expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
+                                Ast::SExpr(Box::new(SExpression::TypeAssignment {
+                                    identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
                                     // the value's name is b
-                                    expr2: Box::new(Ast::Type(TypeInfo::Number)),
+                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
                                     // fn takes a number
-                                },
-                                Ast::Expression {
-                                    operator: BinaryOperator::TypeAssignment,
-                                    expr1: Box::new(Ast::ValueIdentifier("c".to_string())),
+                                })),
+                                Ast::SExpr(Box::new(SExpression::TypeAssignment {
+                                    identifier: Box::new(Ast::ValueIdentifier("c".to_string())),
                                     // the value's name is b
-                                    expr2: Box::new(Ast::Type(TypeInfo::Number)),
+                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
                                     // fn takes a number
-                                },
+                                }))
                             ],
                         }),
-                        body: (Box::new(Ast::Expression {
-                            // the body of the function will add the two passed in values together
-                            operator: BinaryOperator::Plus,
-                            expr1: Box::new(Ast::ValueIdentifier("b".to_string())),
-                            expr2: Box::new(Ast::ValueIdentifier("c".to_string())),
-                        })),
-
+                        body: (Box::new(
+                            Ast::SExpr(Box::new(SExpression::Add(
+                                Box::new(Ast::ValueIdentifier("b".to_string())),
+                                Box::new(Ast::ValueIdentifier("c".to_string()))
+                            )))
+                        )),
+                        // just return the number passed in.
                         return_type: Box::new(Ast::Type(TypeInfo::Number)),
                         // expect a number to be returned
-                    })),
-                },
-                Ast::Expression {
-                    operator: BinaryOperator::ExecuteFn,
-                    expr1: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
+                    }))
+                })),
+                Ast::SExpr(Box::new(SExpression::ExecuteFn {
+                    identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
                     // get the identifier for a
-                    expr2: Box::new(Ast::VecExpression {
+                    parameters: Box::new(Ast::VecExpression {
                         expressions: vec![
                             Ast::Literal(Datatype::Number(7)),
-                            Ast::Literal(Datatype::Number(5)),
+                            Ast::Literal(Datatype::Number(5))
                         ],
                     }),
-                    // provide the function parameters
-                },
+                }))
             ],
         };
         assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
@@ -1315,11 +1305,10 @@ mod test {
             expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::Expression {
-                        operator: BinaryOperator::TypeAssignment,
-                        expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        expr2: Box::new(Ast::Type(TypeInfo::Number)),
-                    },
+                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+                        typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                    })),
                 ],
             }),
         };
@@ -1344,11 +1333,10 @@ mod test {
             expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::Expression {
-                        operator: BinaryOperator::TypeAssignment,
-                        expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        expr2: Box::new(Ast::Type(TypeInfo::Number)),
-                    },
+                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+                        typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                    })),
                 ],
             }),
         };
@@ -1359,11 +1347,10 @@ mod test {
             expr1: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             expr2: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::Expression {
-                        operator: BinaryOperator::FieldAssignment,
-                        expr1: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        expr2: Box::new(Ast::Literal(Datatype::Number(8))), // assign 8 to field Field1
-                    },
+                    Ast::SExpr(Box::new(SExpression::FieldAssignment{
+                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+                        ast: Box::new(Ast::Literal(Datatype::Number(8))), // assign 8 to field Field1
+                    })),
                 ],
             }),
         };

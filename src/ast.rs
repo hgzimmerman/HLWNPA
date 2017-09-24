@@ -141,7 +141,7 @@ impl Ast {
                                 BinaryOperator::CreateFunction => {
                                     if let Ast::ValueIdentifier(ref fn_name) = **expr1 {
                                         if fn_name.as_str() == MAIN_FUNCTION_NAME {
-                                            return false
+                                            return true
                                         }
                                     }
                                 }
@@ -154,7 +154,7 @@ impl Ast {
             }
             _ => {}
         }
-        true
+        false
     }
 
     pub fn execute_main(&self, map: &mut HashMap<String, Datatype>) -> LangResult {

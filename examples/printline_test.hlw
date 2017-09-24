@@ -1,1 +1,3 @@
 print("\nHello\nWorld\n")
+println("Hello")
+println("World")

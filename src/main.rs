@@ -71,7 +71,6 @@ fn main() {
                             std_functions::add_std_functions(&mut map);
 
                             let ast = ast.hoist_functions_and_structs();
-                            // TODO: Check to see if main() is defined. If it is, call main() after the rest of the program has executed (the setup).
 
                             let mut program_return_value: LangResult = Err(LangError::InitState);
                             if ast.main_fn_exists() {
@@ -79,7 +78,7 @@ fn main() {
                                 program_return_value = ast.execute_main(&mut map);
                             } else {
                                 // main() isn't found, just execute the statements found in the program.
-                                let program_return_value = ast.evaluate(&mut map);
+                                program_return_value = ast.evaluate(&mut map);
                             }
 
                             match program_return_value {

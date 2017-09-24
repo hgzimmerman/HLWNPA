@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast, BinaryOperator, SExpression};
+use ast::{Ast, SExpression};
 use parser::identifier::identifier;
 use parser::body::body;
 use parser::type_signature::type_signature;

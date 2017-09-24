@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast, SExpression, BinaryOperator};
+use ast::{Ast, SExpression};
 use parser::body::body;
 use parser::utilities::expression_or_literal_or_identifier_or_struct_or_array;
 use std::boxed::Box;

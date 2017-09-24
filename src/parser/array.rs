@@ -1,4 +1,4 @@
-use ast::{Ast, BinaryOperator, SExpression};
+use ast::{Ast, SExpression};
 #[allow(unused_imports)]
 use nom::*;
 use std::boxed::Box;

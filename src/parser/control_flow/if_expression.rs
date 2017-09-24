@@ -38,7 +38,6 @@ named!(pub if_expression<Ast>,
 mod test {
     use super::*;
     use datatype::Datatype;
-    use ast::BinaryOperator;
 
     #[test]
     fn parse_if_statement_test() {

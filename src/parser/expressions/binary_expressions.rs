@@ -57,7 +57,6 @@ fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast
 mod test {
     use super::*;
     use datatype::Datatype;
-    use ast::BinaryOperator;
 
     #[test]
     fn sexpr_parse_addition_test() {

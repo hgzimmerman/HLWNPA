@@ -1,7 +1,7 @@
 
 use datatype::{Datatype, TypeInfo};
 use std::collections::HashMap;
-use ast::{Ast, UnaryOperator, BinaryOperator, SExpression, ArithmeticOperator};
+use ast::{Ast, SExpression, ArithmeticOperator};
 use parser::program;
 
 use nom::IResult;

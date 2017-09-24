@@ -1,4 +1,4 @@
-use ast::{Ast, SExpression, BinaryOperator};
+use ast::{Ast, SExpression };
 
 #[allow(unused_imports)]
 use nom::*;
@@ -91,7 +91,6 @@ mod test {
     use super::*;
     use testing::test_constants::SIMPLE_PROGRAM_INPUT_1;
     use nom::IResult;
-    use ast::BinaryOperator;
     use test::Bencher;
     use datatype::{Datatype, TypeInfo};
     /// assign the value 7 to x

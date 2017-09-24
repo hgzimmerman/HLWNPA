@@ -23,39 +23,7 @@ pub enum Ast {
 }
 
 
-#[derive(PartialEq, PartialOrd, Debug, Clone)]
-pub enum BinaryOperator {
-    Plus,
-    Minus,
-    Multiply,
-    Divide,
-    Modulo,
-    Equals,
-    NotEquals,
-    GreaterThan,
-    LessThan,
-    GreaterThanOrEqual,
-    LessThanOrEqual,
-    Assignment,
-    ExecuteFn,
-    TypeAssignment,
-    FieldAssignment,
-    Loop,
-    AccessArray,
-    StructDeclaration,
-    AccessStructField,
-    CreateStruct,
-    CreateFunction
-}
 
-#[derive(PartialEq, PartialOrd, Debug, Clone)]
-pub enum UnaryOperator {
-    Print,
-    Include,
-    Invert,
-    Increment,
-    Decrement,
-}
 
 pub enum ArithmeticOperator {
     Increment,

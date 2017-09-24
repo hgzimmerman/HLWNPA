@@ -96,6 +96,31 @@ fn expect_print_function_to_be_added_to_global_map() {
     let mut map: HashMap<String, Datatype> = HashMap::new();
     add_print_function(&mut map);
     let mut expected_map: HashMap<String, Datatype> = HashMap::new();
+    let print_fn: Datatype = Datatype::Function {
+        parameters: (Box::new(
+            Ast::VecExpression {
+                expressions: vec![
+                    Ast::Expression {
+                        operator: BinaryOperator::TypeAssignment,
+                        expr1: Box::new(Ast::ValueIdentifier("to_print".to_string())),
+                        expr2: Box::new(Ast::Type(TypeInfo::String))
+                    }
+                ]
+            }
+        )),
+        body: (Box::new(
+            Ast::VecExpression {
+                expressions: vec![
+                    Ast::UnaryExpression {
+                        operator: UnaryOperator::Print,
+                        expr: Box::new(Ast::ValueIdentifier("to_print".to_string()))
+                    }
+                ]
+            }
+        )),
+        return_type: (Box::new(Ast::Type(TypeInfo::String))),
+    };
+    expected_map.insert("print".to_string(), print_fn);
     assert_eq!(expected_map, map);
 }
 

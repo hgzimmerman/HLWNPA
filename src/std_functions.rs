@@ -22,7 +22,7 @@ fn add_test_constant(map: &mut HashMap<String, Datatype>) {
 
 fn add_print_function(map: &mut HashMap<String, Datatype>) {
     let ast: Ast = Ast::Expression {
-        operator: BinaryOperator::Assignment,
+        operator: BinaryOperator::CreateFunction,
         expr1: Box::new(Ast::ValueIdentifier("print".to_string())),
         expr2: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
@@ -46,34 +46,8 @@ fn add_print_function(map: &mut HashMap<String, Datatype>) {
 }
 
 fn add_println_function(map: &mut HashMap<String, Datatype>) {
-//    let ast: Ast = Ast::Expression {
-//        operator: BinaryOperator::Assignment,
-//        expr1: Box::new(Ast::ValueIdentifier("print".to_string())),
-//        expr2: Box::new(Ast::Literal(Datatype::Function {
-//            parameters: Box::new(Ast::VecExpression {
-//                expressions: vec![Ast::Expression {
-//                    operator: BinaryOperator::TypeAssignment,
-//                    expr1: Box::new(Ast::ValueIdentifier("to_print".to_string())),
-//                    expr2: Box::new(Ast::Type(TypeInfo::String))
-//                }],
-//            }),
-//            body: Box::new(Ast::VecExpression {
-//                expressions: vec![
-//                    Ast::UnaryExpression {
-//                        operator: UnaryOperator::Print,
-//                        expr: Box::new(Ast::Expression)
-//
-//
-//                        Box::new(Ast::ValueIdentifier("to_print".to_string()))
-//                    }],
-//            }),
-//            return_type: Box::new(Ast::Type(TypeInfo::String)),
-//        })),
-//    };
 
-
-
-
+    // implement the println using the print function.
     let input_function = "
         fn println(x: String) -> String {
             let str := (x + \"\n\")
@@ -84,10 +58,9 @@ fn add_println_function(map: &mut HashMap<String, Datatype>) {
         IResult::Done(_, ast) => {
             ast.evaluate(map);
         }
-        IResult::Error(e) => panic!("encountered an error while parsing the file: {:?}", e),
-        IResult::Incomplete(i) => panic!("Couldn't parse all of the file: {:?}", i),
+        IResult::Error(e) => panic!("Language internals do not support the syntax used to define the function", e),
+        IResult::Incomplete(i) => panic!("Parser does not support the syntax used to define the function", i),
     }
-
 }
 
 

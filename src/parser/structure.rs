@@ -11,10 +11,10 @@ named!(pub struct_definition<Ast>,
         ws!(tag!("struct")) >>
         struct_name: ws!(identifier) >>
         struct_body: ws!(type_assignment_body) >> // todo, create a parser that only accepts bodies with function parameter assignments
-        (Ast::SExpr(Box::new(SExpression::StructDeclaration(
+        (Ast::SExpr(SExpression::StructDeclaration(
             Box::new(struct_name),
             Box::new(struct_body)
-        ))))
+        )))
     )
 );
 
@@ -23,10 +23,10 @@ named!(pub struct_access<Ast>,
         struct_name: ws!(identifier) >>
         ws!(tag!(".")) >>
         struct_field_name: ws!(identifier) >>
-        (Ast::SExpr(Box::new(SExpression::AccessStructField(
+        (Ast::SExpr(SExpression::AccessStructField(
             Box::new(struct_name),
             Box::new(struct_field_name)
-        ))))
+        )))
     )
 );
 
@@ -35,10 +35,10 @@ named!(pub create_struct_instance<Ast>,
         ws!(tag!("new")) >>
         struct_type: ws!(identifier) >>
         body: ws!(struct_init_body) >>
-        (Ast::SExpr(Box::new(SExpression::CreateStruct(
+        (Ast::SExpr(SExpression::CreateStruct(
             Box::new(struct_type),
             Box::new(body)
-        ))))
+        )))
 
 
     )
@@ -58,17 +58,17 @@ mod test {
             IResult::Error(e) => panic!("{}", e),
             _ => panic!(),
         };
-        let expected_struct_ast = Ast::SExpr(Box::new(SExpression::StructDeclaration(
+        let expected_struct_ast = Ast::SExpr(SExpression::StructDeclaration(
             Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                    Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier("a_number".to_string())),
                         typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
-                    })),
+                    }),
                 ],
             }),
-        )));
+        ));
 
         assert_eq!(expected_struct_ast, value);
     }
@@ -82,10 +82,10 @@ mod test {
             IResult::Error(e) => panic!("{}", e),
             _ => panic!(),
         };
-        let expected_ast = Ast::SExpr(Box::new(SExpression::AccessStructField(
+        let expected_ast = Ast::SExpr(SExpression::AccessStructField(
             Box::new(Ast::ValueIdentifier("strucVariable".to_string())),
             Box::new(Ast::ValueIdentifier("field".to_string())),
-        )));
+        ));
         assert_eq!(expected_ast, value)
     }
 
@@ -100,17 +100,17 @@ mod test {
             IResult::Error(e) => panic!("{}", e),
             _ => panic!(),
         };
-        let expected_ast = Ast::SExpr(Box::new(SExpression::CreateStruct(
+        let expected_ast = Ast::SExpr(SExpression::CreateStruct(
             Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::SExpr(Box::new(SExpression::FieldAssignment{
+                    Ast::SExpr(SExpression::FieldAssignment{
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
                         ast: Box::new(Ast::Literal(Datatype::Number(8))),
-                    })),
+                    }),
                 ],
             }),
-        )));
+        ));
 
         assert_eq!(expected_ast, value);
 

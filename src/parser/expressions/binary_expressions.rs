@@ -35,21 +35,21 @@ named!(pub sexpr<Ast>,
 /// This isn't exactly perfect.
 fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast {
     match operator {
-        ArithmeticOperator::Increment => Ast::SExpr(Box::new(SExpression::Increment(Box::new(lhs)))),
-        ArithmeticOperator::Decrement => Ast::SExpr(Box::new(SExpression::Decrement(Box::new(lhs)))),
-        ArithmeticOperator::Negate => Ast::SExpr(Box::new(SExpression::Invert(Box::new(lhs)))),
+        ArithmeticOperator::Increment => Ast::SExpr(SExpression::Increment(Box::new(lhs))),
+        ArithmeticOperator::Decrement => Ast::SExpr(SExpression::Decrement(Box::new(lhs))),
+        ArithmeticOperator::Negate => Ast::SExpr(SExpression::Invert(Box::new(lhs))),
 
-        ArithmeticOperator::Plus => Ast::SExpr(Box::new(SExpression::Add(Box::new(lhs), Box::new(rhs.expect("rhs should be present"))))),
-        ArithmeticOperator::Minus => Ast::SExpr(Box::new(SExpression::Subtract(Box::new(lhs), Box::new(rhs.expect("rhs should be present"))))),
-        ArithmeticOperator::Times => Ast::SExpr(Box::new(SExpression::Multiply(Box::new(lhs), Box::new(rhs.expect("rhs should be present"))))),
-        ArithmeticOperator::Divide => Ast::SExpr(Box::new(SExpression::Divide(Box::new(lhs), Box::new(rhs.expect("rhs should be present"))))),
-        ArithmeticOperator::Modulo => Ast::SExpr(Box::new(SExpression::Modulo(Box::new(lhs), Box::new(rhs.expect("rhs should be present"))))),
-        ArithmeticOperator::Equals => Ast::SExpr(Box::new(SExpression::Equals(Box::new(lhs), Box::new(rhs.expect("rhs should be present"))))),
-        ArithmeticOperator::NotEquals => Ast::SExpr(Box::new(SExpression::NotEquals(Box::new(lhs), Box::new(rhs.expect("rhs should be present"))))),
-        ArithmeticOperator::GreaterThan => Ast::SExpr(Box::new(SExpression::GreaterThan(Box::new(lhs), Box::new(rhs.expect("rhs should be present"))))),
-        ArithmeticOperator::LessThan => Ast::SExpr(Box::new(SExpression::LessThan(Box::new(lhs), Box::new(rhs.expect("rhs should be present"))))),
-        ArithmeticOperator::GreaterThanOrEqual => Ast::SExpr(Box::new(SExpression::GreaterThanOrEqual(Box::new(lhs), Box::new(rhs.expect("rhs should be present"))))),
-        ArithmeticOperator::LessThanOrEqual => Ast::SExpr(Box::new(SExpression::LessThanOrEqual(Box::new(lhs), Box::new(rhs.expect("rhs should be present"))))),
+        ArithmeticOperator::Plus => Ast::SExpr(SExpression::Add(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
+        ArithmeticOperator::Minus => Ast::SExpr(SExpression::Subtract(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
+        ArithmeticOperator::Times => Ast::SExpr(SExpression::Multiply(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
+        ArithmeticOperator::Divide => Ast::SExpr(SExpression::Divide(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
+        ArithmeticOperator::Modulo => Ast::SExpr(SExpression::Modulo(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
+        ArithmeticOperator::Equals => Ast::SExpr(SExpression::Equals(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
+        ArithmeticOperator::NotEquals => Ast::SExpr(SExpression::NotEquals(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
+        ArithmeticOperator::GreaterThan => Ast::SExpr(SExpression::GreaterThan(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
+        ArithmeticOperator::LessThan => Ast::SExpr(SExpression::LessThan(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
+        ArithmeticOperator::GreaterThanOrEqual => Ast::SExpr(SExpression::GreaterThanOrEqual(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
+        ArithmeticOperator::LessThanOrEqual => Ast::SExpr(SExpression::LessThanOrEqual(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
     }
 }
 
@@ -65,7 +65,7 @@ mod test {
             IResult::Error(e) => panic!("{:?}", e),
             _ => panic!(),
         };
-        assert_eq!(Ast::SExpr(Box::new(SExpression::Add(Box::new(Ast::Literal(Datatype::Number(3))), Box::new(Ast::Literal(Datatype::Number(4)))))), value);
+        assert_eq!(Ast::SExpr(SExpression::Add(Box::new(Ast::Literal(Datatype::Number(3))), Box::new(Ast::Literal(Datatype::Number(4))))), value);
     }
 
 
@@ -76,7 +76,7 @@ mod test {
             IResult::Error(e) => panic!("{:?}", e),
             _ => panic!(),
         };
-        assert_eq!(Ast::SExpr(Box::new(SExpression::Increment(Box::new(Ast::Literal(Datatype::Number(3)))))), value);
+        assert_eq!(Ast::SExpr(SExpression::Increment(Box::new(Ast::Literal(Datatype::Number(3))))), value);
     }
 
     #[test]
@@ -86,7 +86,7 @@ mod test {
             IResult::Error(e) => panic!("{:?}", e),
             _ => panic!(),
         };
-        assert_eq!(Ast::SExpr(Box::new(SExpression::Invert(Box::new(Ast::Literal(Datatype::Bool(true)))))), value);
+        assert_eq!(Ast::SExpr(SExpression::Invert(Box::new(Ast::Literal(Datatype::Bool(true))))), value);
     }
 
     #[test]
@@ -97,13 +97,13 @@ mod test {
             _ => panic!(),
         };
         assert_eq!(Ast::SExpr(
-            Box::new(SExpression::Add(
+            SExpression::Add(
                 Box::new(Ast::Literal(Datatype::Number(3))),
-                Box::new(Ast::SExpr(Box::new(SExpression::Add(
+                Box::new(Ast::SExpr(SExpression::Add(
                     Box::new(Ast::Literal(Datatype::Number(4))),
                     Box::new(Ast::Literal(Datatype::Number(5)))
-                ))))
-            ))
+                )))
+            )
         ), value);
     }
 }

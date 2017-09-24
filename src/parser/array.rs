@@ -13,10 +13,10 @@ named!(pub array_access<Ast>,
             number_literal,
             ws!(char!(']'))
         ) >>
-        (Ast::SExpr(Box::new(SExpression::AccessArray {
+        (Ast::SExpr(SExpression::AccessArray {
             identifier: Box::new(array),
             index: Box::new(index)
-        })))
+        }))
     )
 );
 
@@ -38,10 +38,10 @@ mod test {
             _ => panic!(),
         };
         assert_eq!(
-            Ast::SExpr(Box::new(SExpression::AccessArray {
+            Ast::SExpr(SExpression::AccessArray {
                 identifier: Box::new(Ast::ValueIdentifier("array_identifier".to_string())),
                 index: Box::new(Ast::Literal(Datatype::Number(0))),
-            })),
+            }),
             value
         )
     }
@@ -57,7 +57,7 @@ mod test {
             _ => panic!(),
         };
         assert_eq!(
-            Ast::SExpr(Box::new(SExpression::AccessArray {
+            Ast::SExpr(SExpression::AccessArray {
                 identifier: Box::new(Ast::Literal(Datatype::Array {
                     value: vec![
                         Datatype::Number(12),
@@ -67,7 +67,7 @@ mod test {
                     type_: TypeInfo::Number,
                 })),
                 index: Box::new(Ast::Literal(Datatype::Number(0))),
-            })),
+            }),
             value
         )
     }

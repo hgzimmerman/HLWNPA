@@ -13,25 +13,25 @@ pub fn add_std_functions(map: &mut HashMap<String, Datatype>) {
 
 
 fn add_print_function(map: &mut HashMap<String, Datatype>) {
-    let ast: Ast = Ast::SExpr(Box::new(SExpression::CreateFunction {
+    let ast: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("print".to_string())),
         fn_parameters_body_and_return_type: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                expressions: vec![Ast::SExpr(SExpression::TypeAssignment{
                     identifier: Box::new(Ast::ValueIdentifier("to_print".to_string())),
                     typeInfo: Box::new(Ast::Type(TypeInfo::String))
-                }))],
+                })],
             }),
             body: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::SExpr(Box::new(SExpression::Print(
+                    Ast::SExpr(SExpression::Print(
                         Box::new(Ast::ValueIdentifier("to_print".to_string()))
-                    )))
+                    ))
                 ],
             }),
             return_type: Box::new(Ast::Type(TypeInfo::String)),
         })),
-    }));
+    });
     ast.evaluate(map);
 }
 
@@ -40,7 +40,7 @@ fn add_println_function(map: &mut HashMap<String, Datatype>) {
     // implement the println using the print function.
     let input_function = "
         fn println(x: String) -> String {
-            let str := (x + \"\n\")
+            let str := x + \"\n\"
             print(str)
         }
     ";
@@ -63,19 +63,19 @@ fn expect_print_function_to_be_added_to_global_map() {
         parameters: (Box::new(
             Ast::VecExpression {
                 expressions: vec![
-                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                    Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier("to_print".to_string())),
                         typeInfo: Box::new(Ast::Type(TypeInfo::String))
-                    }))
+                    })
                 ]
             }
         )),
         body: (Box::new(
             Ast::VecExpression {
                 expressions: vec![
-                    Ast::SExpr(Box::new(SExpression::Print(
+                    Ast::SExpr(SExpression::Print(
                         Box::new(Ast::ValueIdentifier("to_print".to_string()))
-                    )))
+                    ))
                 ]
             }
         )),

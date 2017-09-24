@@ -14,10 +14,10 @@ named!(pub while_loop<Ast>,
         while_conditional: ws!(expression_or_literal_or_identifier_or_struct_or_array) >>
         while_body: ws!(body) >>
 
-        (Ast::SExpr(Box::new(SExpression::Loop{
+        (Ast::SExpr(SExpression::Loop{
             conditional: Box::new(while_conditional),
             body: Box::new(while_body)
-        })))
+        }))
     )
 );
 
@@ -36,7 +36,7 @@ mod test {
         };
 
         assert_eq!(
-            Ast::SExpr(Box::new(
+            Ast::SExpr(
                 SExpression::Loop {
                    conditional: Box::new(Ast::Literal(Datatype::Bool(true))),
                    body: Box::new(Ast::VecExpression {
@@ -45,7 +45,7 @@ mod test {
                        ]
                    }),
                 }
-            )),
+            ),
             value
         )
     }

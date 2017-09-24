@@ -9,8 +9,8 @@ named!(pub include<Ast>,
     do_parse!(
         ws!(tag!("include")) >>
         filename: string_literal >>
-        ( Ast::SExpr(Box::new(SExpression::Include(
+        ( Ast::SExpr(SExpression::Include(
             Box::new(filename)
-        ))))
+        )))
     )
 );

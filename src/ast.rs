@@ -10,7 +10,7 @@ use include::read_file_into_ast;
 
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum Ast {
-    SExpr(Box<SExpression>),
+    SExpr(SExpression),
     VecExpression { expressions: Vec<Ast> }, // uesd for structuring execution of the AST.
     Conditional {
         condition: Box<Ast>,
@@ -21,8 +21,6 @@ pub enum Ast {
     Type(TypeInfo), // value in the datatype is useless, just use this to determine parameter type.
     ValueIdentifier(String), // gets the value mapped to a hashmap
 }
-
-
 
 
 pub enum ArithmeticOperator {
@@ -93,7 +91,7 @@ impl Ast {
 
                     match *ast {
                         Ast::SExpr(ref sexpr)  => {
-                            match **sexpr {
+                            match *sexpr {
                                 SExpression::CreateStruct{..} => {
                                     let ast = ast.clone();
                                     struct_declarations.push(ast);
@@ -143,7 +141,7 @@ impl Ast {
                             if let SExpression::CreateFunction {
                                 ref identifier,
                                 ref fn_parameters_body_and_return_type
-                            } = **sexpr {
+                            } = *sexpr {
                                 if let Ast::ValueIdentifier(ref fn_name) = **identifier {
                                     if fn_name.as_str() == MAIN_FUNCTION_NAME {
                                         return true
@@ -161,12 +159,12 @@ impl Ast {
     }
 
     pub fn execute_main(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
-        let executing_ast = Ast::SExpr(Box::new(SExpression::ExecuteFn {
+        let executing_ast = Ast::SExpr(SExpression::ExecuteFn {
             identifier: Box::new(Ast::ValueIdentifier("main".to_string())),
             // get the identifier for a
             parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
             // provide the function parameters
-        }));
+        });
 
         executing_ast.evaluate(map)
     }
@@ -177,7 +175,7 @@ impl Ast {
     pub fn evaluate(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
         match *self {
             Ast::SExpr(ref sexpr) => {
-                match **sexpr {
+                match *sexpr {
                     SExpression::Add(ref lhs, ref rhs) => lhs.evaluate(map)? + rhs.evaluate(map)?,
                     SExpression::Subtract(ref lhs, ref rhs) => lhs.evaluate(map)? - rhs.evaluate(map)?,
                     SExpression::Multiply(ref lhs, ref rhs) => lhs.evaluate(map)? * rhs.evaluate(map)?,
@@ -414,7 +412,7 @@ fn declare_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>)
                     if let SExpression::TypeAssignment {
                         identifier: ref field_identifier_expr,
                         typeInfo: ref field_type_expr
-                    } = **sexpr{
+                    } = *sexpr{
                         if let Ast::ValueIdentifier(ref field_id) = **field_identifier_expr {
                             if let Ast::Type(ref field_type) = **field_type_expr {
                                 struct_map.insert(field_id.clone(), field_type.clone());
@@ -462,7 +460,7 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
                     if let SExpression::FieldAssignment {
                         identifier: ref assignment_expr1,
                         ast: ref assignment_expr2
-                    } = **sexpr {
+                    } = *sexpr {
                         if let Ast::ValueIdentifier(ref field_identifier) = **assignment_expr1 {
                             // Is the identifier specified in the AST exist in the struct type? check the struct_map
                             let expected_type = match struct_type_map.get(field_identifier) {
@@ -554,7 +552,7 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
                                         if let SExpression::TypeAssignment {
                                             identifier: ref expr1,
                                             typeInfo: ref expr2
-                                        } = **sexpr {
+                                        } = *sexpr {
                                             let expr1 = expr1.clone();
 
                                             //do run-time type-checking, the supplied value should be of the same type as the specified value
@@ -584,10 +582,10 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
                                                 });
                                             }
 
-                                            return Ok(Ast::SExpr(Box::new(SExpression::FieldAssignment {
+                                            return Ok(Ast::SExpr(SExpression::FieldAssignment {
                                                 identifier: expr1,
                                                 ast: Box::new(Ast::Literal(d))
-                                            })))
+                                            }))
                                                 // return a new FunctionParameterAssignment Expression with a replaced expr2.
                                         } else {
                                             return Err(LangError::InvalidFunctionPrototypeFormatting);

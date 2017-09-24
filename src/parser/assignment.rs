@@ -12,7 +12,7 @@ named!(pub assignment<Ast>,
         id: ws!(identifier) >>
         ws!(tag!(":="))>>
         value: ws!(expression_or_literal_or_identifier_or_struct_or_array) >>
-        (Ast::SExpr(Box::new(SExpression::Assignment{identifier: Box::new(id), ast: Box::new(value) })))
+        (Ast::SExpr(SExpression::Assignment{identifier: Box::new(id), ast: Box::new(value) }))
     )
 );
 
@@ -23,7 +23,7 @@ named!(pub type_assignment<Ast>,
         id: identifier >>
         tag!(":") >>
         type_info: alt!( complete!(type_signature) | complete!(identifier)) >> // also takes an identifier that will be checked at runtime to verify it is a structure
-        (Ast::SExpr(Box::new(SExpression::TypeAssignment{identifier: Box::new(id), typeInfo: Box::new(type_info) })))
+        (Ast::SExpr(SExpression::TypeAssignment{identifier: Box::new(id), typeInfo: Box::new(type_info) }))
 //        (Ast::Expression{ operator: BinaryOperator::TypeAssignment, expr1: Box::new(id), expr2: Box::new(type_info) })
     )
 );
@@ -34,7 +34,7 @@ named!(pub struct_value_assignment<Ast>,
         id: identifier >>
         tag!(":") >>
         value:  expression_or_literal_or_identifier_or_struct_or_array >>
-        (Ast::SExpr(Box::new(SExpression::FieldAssignment{identifier: Box::new(id), ast: Box::new(value) })))
+        (Ast::SExpr(SExpression::FieldAssignment{identifier: Box::new(id), ast: Box::new(value) }))
 //        (Ast::Expression{ operator: BinaryOperator::FieldAssignment, expr1: Box::new(id), expr2: Box::new(value) })
     )
 );
@@ -54,10 +54,10 @@ mod test {
             _ => panic!(),
         };
         assert_eq!(
-            Ast::SExpr(Box::new(SExpression::Assignment {
+            Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
                 ast: Box::new(Ast::Literal(Datatype::Number(8))),
-            })),
+            }),
             value
         )
     }
@@ -72,10 +72,10 @@ mod test {
             _ => panic!(),
         };
         assert_eq!(
-            Ast::SExpr(Box::new(SExpression::TypeAssignment {
+            Ast::SExpr(SExpression::TypeAssignment {
                 identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
                 typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
-            })),
+            }),
             value
         )
     }

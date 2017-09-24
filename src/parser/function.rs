@@ -31,7 +31,7 @@ named!(pub function<Ast>,
         ) >>
         return_type: function_return_type >>
         body_expressions: body >>
-        (Ast::SExpr(Box::new(SExpression::CreateFunction {
+        (Ast::SExpr(SExpression::CreateFunction {
             identifier: Box::new(function_name),
             fn_parameters_body_and_return_type: Box::new(Ast::Literal (
                 Datatype::Function {
@@ -40,12 +40,9 @@ named!(pub function<Ast>,
                     return_type: Box::new(return_type)
                 }
             ) )
-        })))
+        }))
     )
 );
-
-
-
 
 
 
@@ -59,28 +56,28 @@ fn parse_whole_function_number_input_returns_number_test() {
         _ => panic!(),
     };
 
-    let expected_fn: Ast = Ast::SExpr(Box::new(SExpression::CreateFunction {
+    let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         fn_parameters_body_and_return_type: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                expressions: vec![Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                         typeInfo: Box::new(Ast::Type ( TypeInfo::Number ))
-                    }))],
+                    })],
             }),
             body: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::SExpr(Box::new(
+                    Ast::SExpr(
                     SExpression::Add(
                             Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                             Box::new(Ast::Literal ( Datatype::Number(8))),
                         )
-                    ))
+                    )
                 ],
             }),
             return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),
-    }));
+    });
     assert_eq!(expected_fn, value)
 }
 
@@ -94,29 +91,29 @@ fn parse_whole_function_identifier_input_returns_number_test() {
         _ => panic!(),
     };
 
-    let expected_fn: Ast = Ast::SExpr(Box::new(SExpression::CreateFunction {
+    let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         fn_parameters_body_and_return_type: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::SExpr(Box::new(SExpression::TypeAssignment{
+                    Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                         typeInfo: Box::new(Ast::ValueIdentifier("Identifier".to_string()))
-                    }))
+                    })
                 ],
             }),
             body: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::SExpr(Box::new(
+                    Ast::SExpr(
                         SExpression::Add(
                             Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                             Box::new(Ast::Literal ( Datatype::Number(8))),
                         )
-                    ))
+                    )
                 ],
             }),
             return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),
-    }));
+    });
     assert_eq!(expected_fn, value)
 }

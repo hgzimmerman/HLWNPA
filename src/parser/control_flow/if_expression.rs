@@ -71,11 +71,11 @@ mod test {
         assert_eq!(
             Ast::Conditional {
                 condition: Box::new(Ast::SExpr(
-                    Box::new(SExpression::Equals(
+                    SExpression::Equals(
                         Box::new(Ast::Literal(Datatype::Number(1))),
                         Box::new(Ast::Literal(Datatype::Number(1)))
                     ))
-                )),
+                ),
                 true_expr: Box::new(Ast::VecExpression {
                     expressions: vec![Ast::Literal(Datatype::Bool(true))],
                 }),

@@ -4,5 +4,5 @@ fn main() -> Number {
 
 let a := 0
 fn add_two_to_value(value: Number) -> Number {
-    (value + 2)
+    value + 2
 }

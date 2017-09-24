@@ -13,7 +13,7 @@ fn create_new_MyStruct( value: Number ) -> MyStruct {
 }
 
 fn addContents( s: MyStruct ) -> Number {
-    (s.a + s.b)
+    s.a + s.b
 }
 
 let instance := create_new_MyStruct( a )

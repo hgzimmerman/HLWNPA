@@ -153,7 +153,7 @@ mod test {
     }
 
     #[test]
-    fn sexpr_parens_tripple_parse() {
+    fn sexpr_parens_triple_parse() {
         let (_, value) = match sexpr(b"3 + (4 + 5 + 6)") {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),

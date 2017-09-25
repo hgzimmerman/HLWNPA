@@ -631,19 +631,19 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
                             .iter()
                             .zip(evaluated_parameters)
                             .map(|expressions_with_parameters: (&Ast, Datatype)| {
-                                let (e, d) = expressions_with_parameters; // assign out of tuple.
+                                let (expression, datatype) = expressions_with_parameters; // assign out of tuple.
                                 if let Ast::SExpr(
                                     ref sexpr
-                                ) = *e
+                                ) = *expression
                                     {
                                         if let SExpression::TypeAssignment {
-                                            identifier: ref expr1,
-                                            typeInfo: ref expr2
+                                            ref identifier,
+                                            ref typeInfo
                                         } = *sexpr {
-                                            let expr1 = expr1.clone();
+                                            let identifier: Box<Ast> = identifier.clone();
 
                                             //do run-time type-checking, the supplied value should be of the same type as the specified value
-                                            let expected_type: &TypeInfo = match **expr2 {
+                                            let expected_type: &TypeInfo = match **typeInfo {
                                                 Ast::Type(ref datatype) => datatype,
                                                 Ast::ValueIdentifier(ref id) => {
                                                     match map.get(id) {
@@ -662,27 +662,26 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
                                                 }
                                                 _ => return Err(LangError::ExpectedDataTypeInfo),
                                             };
-                                            if expected_type != &TypeInfo::from(d.clone()) {
+                                            // Convert the datatype into a TypeInfo and check it against the expected type
+                                            if expected_type != &TypeInfo::from(datatype.clone()) {
                                                 return Err(LangError::TypeError {
                                                     expected: expected_type.clone(),
-                                                    found: TypeInfo::from(d),
+                                                    found: TypeInfo::from(datatype),
                                                 });
                                             }
-
+                                            // Return a new FunctionParameterAssignment Expression with the same identifier
+                                            // pointing to a literal that was reduced from the expression passed in as a parameter.
                                             return Ok(Ast::SExpr(SExpression::FieldAssignment {
-                                                identifier: expr1,
-                                                ast: Box::new(Ast::Literal(d))
+                                                identifier: identifier,
+                                                ast: Box::new(Ast::Literal(datatype))
                                             }))
-                                                // return a new FunctionParameterAssignment Expression with a replaced expr2.
                                         } else {
                                             return Err(LangError::InvalidFunctionPrototypeFormatting);
                                         }
                                     } else {
                                     return Err(LangError::InvalidFunctionPrototypeFormatting)
                                 }
-
-                            })
-                            .collect();
+                            }).collect();
 
                         // These functions _should_ all be assignments, per the parser.
                         // So after replacing the Types with Literals that have been derived from the expressions passed in,

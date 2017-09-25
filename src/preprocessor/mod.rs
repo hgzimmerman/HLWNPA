@@ -8,7 +8,7 @@ pub fn preprocess(string: &str) -> String {
 
 /// This replaces \\<escape> instances with \<escape>.
 /// The readline functionality sanitizes these escapes with the double backslash, this returns them to the form they were entered with.
-// TODO: This uses 4 regexes to alter 4 different strings, this should be able to be accomplished in a single pass
+// TODO: This uses 4+ regexes to alter 4+ different strings, this should be able to be accomplished in a single pass
 fn replace_escapes(string: &str) -> String {
     let newline_re = Regex::new(r"\\n").unwrap();
     let newline_string = newline_re.replace_all(string, "\n").to_string();
@@ -22,7 +22,10 @@ fn replace_escapes(string: &str) -> String {
     let backslash_re = Regex::new(r"\\\\").unwrap();
     let backslash_string = backslash_re.replace_all(return_string.as_str(), "\\").to_string();
 
-    backslash_string
+    let double_quote_re = Regex::new(r#"\\""#).unwrap();
+    let double_quote_string = double_quote_re.replace_all(backslash_string.as_str(), "\"").to_string();
+
+    double_quote_string
 }
 
 #[test]
@@ -33,4 +36,5 @@ fn escape_escapes() {
     assert_eq!("hello\tworld", replace_escapes("hello\\tworld"));
     assert_eq!("hello\n\rworld", replace_escapes("hello\\n\\rworld"));
     assert_eq!("hello\\world", replace_escapes("hello\\\\world"));
+    assert_eq!("hello\"world", replace_escapes(r#"hello\\"world"#));
 }

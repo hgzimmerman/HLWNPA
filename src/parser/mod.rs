@@ -93,6 +93,7 @@ mod test {
     use nom::IResult;
     use test::Bencher;
     use datatype::{Datatype, TypeInfo};
+    use preprocessor::preprocess;
     /// assign the value 7 to x
     /// create a function that takes a number
     /// call the function with x
@@ -153,6 +154,20 @@ mod test {
     fn parse_simple_program_bench(b: &mut Bencher) {
         fn parse_simple_program() {
             let (_, _) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
+                IResult::Done(rest, v) => (rest, v),
+                IResult::Error(e) => panic!("{}", e),
+                _ => panic!(),
+            };
+        }
+
+        b.iter(|| parse_simple_program());
+    }
+
+    #[bench]
+    fn preprocess_and_parse_simple_program_bench(b: &mut Bencher) {
+        fn parse_simple_program() {
+            let preprocessed = preprocess(SIMPLE_PROGRAM_INPUT_1);
+            let (_, _) = match program(preprocessed.as_bytes()) {
                 IResult::Done(rest, v) => (rest, v),
                 IResult::Error(e) => panic!("{}", e),
                 _ => panic!(),

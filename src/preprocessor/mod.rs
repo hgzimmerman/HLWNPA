@@ -9,6 +9,7 @@ pub fn preprocess(string: &str) -> String {
 /// This replaces \\<escape> instances with \<escape>.
 /// The readline functionality sanitizes these escapes with the double backslash, this returns them to the form they were entered with.
 // TODO: This uses 4+ regexes to alter 4+ different strings, this should be able to be accomplished in a single pass
+// This absolutely tanks the speed of the parsing step about 8 times slower for small minimal programs.
 fn replace_escapes(string: &str) -> String {
     let newline_re = Regex::new(r"\\n").unwrap();
     let newline_string = newline_re.replace_all(string, "\n").to_string();

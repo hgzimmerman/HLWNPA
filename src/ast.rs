@@ -63,12 +63,18 @@ pub enum SExpression {
     LessThan(Box<Ast>, Box<Ast>),
     GreaterThanOrEqual(Box<Ast>, Box<Ast>),
     LessThanOrEqual(Box<Ast>, Box<Ast>),
-    Assignment { identifier: Box<Ast>, ast: Box<Ast> },
+    Assignment {
+        identifier: Box<Ast>,
+        ast: Box<Ast>
+    },
     TypeAssignment {
         identifier: Box<Ast>,
         typeInfo: Box<Ast>,
     },
-    FieldAssignment { identifier: Box<Ast>, ast: Box<Ast> },
+    FieldAssignment {
+        identifier: Box<Ast>,
+        ast: Box<Ast>
+    },
     CreateFunction {
         identifier: Box<Ast>,
         function_datatype: Box<Ast>,
@@ -142,7 +148,7 @@ impl Ast {
                             }
                         }
                         _ => {
-                            // If it isn't an expression, put it in the everything else bucket.
+                            // If it isn't one of the desired expression types, put it in the everything else bucket.
                             let ast = ast.clone();
                             everything_else.push(ast)
                         }
@@ -459,13 +465,13 @@ impl Ast {
 /// Check if the second expression's identifier is in the struct's map.
 /// If it is, the get the value associated with that identifier and return it.
 fn access_struct_field(
-    expr1: &Ast,
-    expr2: &Ast,
+    struct_identifier: &Ast,
+    field_identifier: &Ast,
     map: &mut HashMap<String, Datatype>,
 ) -> LangResult {
-    // if expr1 produces a struct when evaluated
-    if let Datatype::Struct { map: struct_map } = expr1.evaluate(map)? {
-        if let Ast::ValueIdentifier(ref field_identifier) = *expr2 {
+    // if struct_identifier produces a struct when evaluated
+    if let Datatype::Struct { map: struct_map } = struct_identifier.evaluate(map)? {
+        if let Ast::ValueIdentifier(ref field_identifier) = *field_identifier {
             match struct_map.get(field_identifier) {
                 Some(struct_field_datatype) => return Ok(struct_field_datatype.clone()),
                 None => return Err(LangError::StructFieldDoesntExist),
@@ -483,9 +489,9 @@ fn access_struct_field(
 /// Create a new map that will represent the binding between the fields in the struct and the types they should have when instansiated.
 /// Insert into the map these field-type pairs.
 /// Create a new StructType from the new map and return it.
-fn declare_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
-    if let Ast::ValueIdentifier(ref struct_type_identifier) = *expr1 {
-        if let Ast::ExpressionList(ref expressions) = *expr2 {
+fn declare_struct(identifier: &Ast, struct_type_assignments: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
+    if let Ast::ValueIdentifier(ref struct_type_identifier) = *identifier {
+        if let Ast::ExpressionList(ref expressions) = *struct_type_assignments {
 
             let mut struct_map: HashMap<String, TypeInfo> = HashMap::new();
 
@@ -595,11 +601,11 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
 /// Evaluate the function with the substituted datatypes as input.
 /// Check if the return type is the same as was expected by the function.
 /// Return the return value.
-fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -> LangResult {
+fn execute_function(identifier: &Ast, function: &Ast, map: &HashMap<String, Datatype>) -> LangResult {
     let mut cloned_map = map.clone(); // clone the map, to create a temporary new "stack" for the life of the function
 
     // evaluate the parameters
-    let evaluated_parameters: Vec<Datatype> = match *expr2 {
+    let evaluated_parameters: Vec<Datatype> = match *function {
         Ast::ExpressionList(ref expressions) => {
             let mut evaluated_expressions: Vec<Datatype> = vec![];
             for e in expressions {
@@ -615,7 +621,7 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
 
 
     // Take an existing function by (by grabbing the function using an identifier, which should resolve to a function)
-    match expr1.evaluate(&mut cloned_map)? {
+    match identifier.evaluate(&mut cloned_map)? {
         Datatype::Function {
             parameters,
             body,

@@ -6,23 +6,30 @@ use std::boxed::Box;
 use std::collections::HashMap;
 use include::read_file_into_ast;
 
+/// Used for finding the main function.
+const MAIN_FUNCTION_NAME: &'static str = "main";
 
 
+/// Abstract Syntax Tree
+/// A recursive data structure that holds instances of other ASTs.
+/// It encodes the operations that are defined by the language's syntax.
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum Ast {
-    SExpr(SExpression),
+    SExpr(SExpression), // Operators that store their operands
     ExpressionList ( Vec<Ast> ), // uesd for structuring execution of the AST.
     Conditional {
-        condition: Box<Ast>,
-        true_expr: Box<Ast>,
-        false_expr: Option<Box<Ast>>,
+        condition: Box<Ast>, // Resolves to a literal->bool
+        true_expr: Box<Ast>, // Will execute if the condition is true
+        false_expr: Option<Box<Ast>>, // Will execute if the condition is false
     },
     Literal(Datatype), // consider making the Literal another enum with supported default datatypes.
     Type(TypeInfo), // value in the datatype is useless, just use this to determine parameter type.
     ValueIdentifier(String), // gets the value mapped to a hashmap
 }
 
-
+/// There are more Operators used than these (S Expressions use more for control flow),
+/// but these are the ones that directly map to arithmetic symbols.
+#[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum ArithmeticOperator {
     Increment,
     Decrement,
@@ -40,6 +47,8 @@ pub enum ArithmeticOperator {
     LessThanOrEqual
 }
 
+/// Operators that store their operands.
+/// The Ast's evaluate() method will preform different logic on the operands depending on the operator.
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum SExpression {
     //BinaryOperators
@@ -72,9 +81,13 @@ pub enum SExpression {
     Decrement(Box<Ast>)
 }
 
-const MAIN_FUNCTION_NAME: &'static str = "main";
+
 impl Ast {
 
+    /// Moves functions and structs to the top of the Ast's top level ExpressionList.
+    /// This is done because regardless of where a function is declared, a datatype representing it
+    /// will be encoded in the program map before it is used.
+    /// If the AST doesn't have an Expression list, this will throw an error.
     pub fn hoist_functions_and_structs(&self) -> Ast {
         match *self {
             Ast::ExpressionList ( ref expressions ) => {
@@ -118,15 +131,14 @@ impl Ast {
                 eval_list_with_hoists.append(&mut function_declarations);
                 eval_list_with_hoists.append(&mut everything_else);
 
-
                 Ast::ExpressionList ( eval_list_with_hoists )
-
-
             }
             _ => panic!("Tried to hoist a non list of expressions.")
         }
     }
 
+    /// Determines if a main function exists.
+    /// This should be used to determine if calling the main function after evaluating the AST is necessary.
     pub fn main_fn_exists(&self) -> bool {
         match *self {
             Ast::ExpressionList ( ref expressions ) => {
@@ -153,12 +165,12 @@ impl Ast {
         false
     }
 
+    /// Calls the main function.
+    /// This should be used if a main function has been determined to exist.
     pub fn execute_main(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
         let executing_ast = Ast::SExpr(SExpression::ExecuteFn {
-            identifier: Box::new(Ast::ValueIdentifier("main".to_string())),
-            // get the identifier for a
+            identifier: Box::new(Ast::ValueIdentifier(MAIN_FUNCTION_NAME.to_string())),
             parameters: Box::new(Ast::ExpressionList ( vec![] )),
-            // provide the function parameters
         });
 
         executing_ast.evaluate(map)

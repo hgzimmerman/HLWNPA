@@ -68,7 +68,8 @@ Returns: `Number(11)`
 
 # TODO
 * ~~Switch to using S-Expressions, where each operator holds one or more operators or literals. This would replace the current implementation that just has binary and unary expressions that hold the operator and its operands.~~ S-Expressions are now used.
-* Since switching to S-Expressions, parentheses can't be used to control oreder of execution. Add optional parentheses to allow for this.
+* ~~Since switching to S-Expressions, parentheses can't be used to control oreder of execution. Add optional parentheses to allow for this.~~
+* S-Expressions currently always evaluate from right to left, the parser should be able to organize the operations so that multiplication ocurrs before addition if given `3 * 3 + 1`. That should result as 10, instead of 12.
 * Introduce mutability rules. `const` vs. `let`.
 * Prevent reassignment of Struct and Function names. Currently, you are allowed to set the identifier for a struct's type to be a number, this has wonky concequences for the type system.
 * Investigate Nom's custom error messages. 

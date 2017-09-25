@@ -35,7 +35,7 @@ named!(pub function<Ast>,
             identifier: Box::new(function_name),
             function_datatype: Box::new(Ast::Literal (
                 Datatype::Function {
-                    parameters: Box::new(Ast::VecExpression{expressions: arguments}),
+                    parameters: Box::new(Ast::VecExpression( arguments )),
                     body: Box::new(body_expressions),
                     return_type: Box::new(return_type)
                 }
@@ -59,14 +59,14 @@ fn parse_whole_function_number_input_returns_number_test() {
     let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         function_datatype: Box::new(Ast::Literal(Datatype::Function {
-            parameters: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::SExpr(SExpression::TypeAssignment{
+            parameters: Box::new(Ast::VecExpression (
+                vec![Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                         typeInfo: Box::new(Ast::Type ( TypeInfo::Number ))
                     })],
-            }),
-            body: Box::new(Ast::VecExpression {
-                expressions: vec![
+            )),
+            body: Box::new(Ast::VecExpression (
+                vec![
                     Ast::SExpr(
                     SExpression::Add(
                             Box::new(Ast::ValueIdentifier ( "a".to_string() )),
@@ -74,7 +74,7 @@ fn parse_whole_function_number_input_returns_number_test() {
                         )
                     )
                 ],
-            }),
+            )),
             return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),
     });
@@ -94,16 +94,16 @@ fn parse_whole_function_identifier_input_returns_number_test() {
     let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         function_datatype: Box::new(Ast::Literal(Datatype::Function {
-            parameters: Box::new(Ast::VecExpression {
-                expressions: vec![
+            parameters: Box::new(Ast::VecExpression (
+                vec![
                     Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                         typeInfo: Box::new(Ast::ValueIdentifier("Identifier".to_string()))
                     })
                 ],
-            }),
-            body: Box::new(Ast::VecExpression {
-                expressions: vec![
+            )),
+            body: Box::new(Ast::VecExpression (
+                vec![
                     Ast::SExpr(
                         SExpression::Add(
                             Box::new(Ast::ValueIdentifier ( "a".to_string() )),
@@ -111,7 +111,7 @@ fn parse_whole_function_identifier_input_returns_number_test() {
                         )
                     )
                 ],
-            }),
+            )),
             return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),
     });

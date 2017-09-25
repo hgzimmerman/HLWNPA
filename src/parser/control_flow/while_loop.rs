@@ -39,11 +39,11 @@ mod test {
             Ast::SExpr(
                 SExpression::Loop {
                    conditional: Box::new(Ast::Literal(Datatype::Bool(true))),
-                   body: Box::new(Ast::VecExpression {
-                       expressions: vec![
+                   body: Box::new(Ast::VecExpression (
+                       vec![
                            Ast::Literal(Datatype::Bool(true))
                        ]
-                   }),
+                   )),
                 }
             ),
             value

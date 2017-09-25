@@ -60,14 +60,14 @@ mod test {
         };
         let expected_struct_ast = Ast::SExpr(SExpression::StructDeclaration {
             identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            struct_type_info: Box::new(Ast::VecExpression {
-                expressions: vec![
+            struct_type_info: Box::new(Ast::VecExpression (
+                vec![
                     Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a_number".to_string())),
                         typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
                     }),
                 ],
-            }),
+            )),
         });
 
         assert_eq!(expected_struct_ast, value);
@@ -102,14 +102,14 @@ mod test {
         };
         let expected_ast = Ast::SExpr(SExpression::CreateStruct {
             identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            struct_datatype: Box::new(Ast::VecExpression {
-                expressions: vec![
+            struct_datatype: Box::new(Ast::VecExpression (
+                vec![
                     Ast::SExpr(SExpression::FieldAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
                         ast: Box::new(Ast::Literal(Datatype::Number(8))),
                     }),
                 ],
-            }),
+            )),
         });
 
         assert_eq!(expected_ast, value);

@@ -16,19 +16,19 @@ fn add_print_function(map: &mut HashMap<String, Datatype>) {
     let ast: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("print".to_string())),
         function_datatype: Box::new(Ast::Literal(Datatype::Function {
-            parameters: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::SExpr(SExpression::TypeAssignment{
+            parameters: Box::new(Ast::VecExpression (
+                vec![Ast::SExpr(SExpression::TypeAssignment{
                     identifier: Box::new(Ast::ValueIdentifier("to_print".to_string())),
                     typeInfo: Box::new(Ast::Type(TypeInfo::String))
                 })],
-            }),
-            body: Box::new(Ast::VecExpression {
-                expressions: vec![
+            )),
+            body: Box::new(Ast::VecExpression (
+                vec![
                     Ast::SExpr(SExpression::Print(
                         Box::new(Ast::ValueIdentifier("to_print".to_string()))
                     ))
                 ],
-            }),
+            )),
             return_type: Box::new(Ast::Type(TypeInfo::String)),
         })),
     });
@@ -61,23 +61,23 @@ fn expect_print_function_to_be_added_to_global_map() {
     let mut expected_map: HashMap<String, Datatype> = HashMap::new();
     let print_fn: Datatype = Datatype::Function {
         parameters: (Box::new(
-            Ast::VecExpression {
-                expressions: vec![
+            Ast::VecExpression (
+                vec![
                     Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier("to_print".to_string())),
                         typeInfo: Box::new(Ast::Type(TypeInfo::String))
                     })
                 ]
-            }
+            )
         )),
         body: (Box::new(
-            Ast::VecExpression {
-                expressions: vec![
+            Ast::VecExpression (
+                vec![
                     Ast::SExpr(SExpression::Print(
                         Box::new(Ast::ValueIdentifier("to_print".to_string()))
                     ))
                 ]
-            }
+            )
         )),
         return_type: (Box::new(Ast::Type(TypeInfo::String))),
     };

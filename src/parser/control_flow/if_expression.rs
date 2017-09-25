@@ -50,9 +50,9 @@ mod test {
         assert_eq!(
             Ast::Conditional {
                 condition: Box::new(Ast::Literal(Datatype::Bool(true))),
-                true_expr: Box::new(Ast::VecExpression {
-                    expressions: vec![Ast::Literal(Datatype::Bool(true))],
-                }),
+                true_expr: Box::new(Ast::VecExpression (
+                    vec![Ast::Literal(Datatype::Bool(true))],
+                )),
                 false_expr: None,
             },
             value
@@ -76,9 +76,9 @@ mod test {
                         Box::new(Ast::Literal(Datatype::Number(1)))
                     ))
                 ),
-                true_expr: Box::new(Ast::VecExpression {
-                    expressions: vec![Ast::Literal(Datatype::Bool(true))],
-                }),
+                true_expr: Box::new(Ast::VecExpression (
+                    vec![Ast::Literal(Datatype::Bool(true))],
+                )),
                 false_expr: None,
             },
             value
@@ -96,12 +96,12 @@ mod test {
         assert_eq!(
             Ast::Conditional {
                 condition: Box::new(Ast::Literal(Datatype::Bool(true))),
-                true_expr: Box::new(Ast::VecExpression {
-                    expressions: vec![Ast::Literal(Datatype::Bool(true))],
-                }),
-                false_expr: Some(Box::new(Ast::VecExpression {
-                    expressions: vec![Ast::Literal(Datatype::Bool(true))],
-                })),
+                true_expr: Box::new(Ast::VecExpression (
+                    vec![Ast::Literal(Datatype::Bool(true))],
+                )),
+                false_expr: Some(Box::new(Ast::VecExpression (
+                    vec![Ast::Literal(Datatype::Bool(true))],
+                ))),
             },
             value
         )

@@ -66,7 +66,7 @@ named!(any_ast<Ast>,
 named!(pub program<Ast>,
     do_parse!(
         e: many1!(ws!(any_ast)) >>
-        (Ast::VecExpression{expressions: e})
+        (Ast::VecExpression( e ))
     )
 );
 
@@ -81,7 +81,7 @@ named!(function_execution<Ast>,
         >>
         (Ast::SExpr(SExpression::ExecuteFn {
             identifier: Box::new(function_name), // and identifier
-            parameters: Box::new(Ast::VecExpression{expressions: arguments})
+            parameters: Box::new(Ast::VecExpression( arguments))
         }))
     )
 );
@@ -117,14 +117,14 @@ mod test {
         let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
             function_datatype: Box::new(Ast::Literal(Datatype::Function {
-                parameters: Box::new(Ast::VecExpression {
-                    expressions: vec![Ast::SExpr(SExpression::TypeAssignment {
+                parameters: Box::new(Ast::VecExpression (
+                    vec![Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
                         typeInfo: Box::new(Ast::Type(TypeInfo::Number))
                     })],
-                }),
-                body: Box::new(Ast::VecExpression {
-                    expressions: vec![
+                )),
+                body: Box::new(Ast::VecExpression (
+                    vec![
                         Ast::SExpr(
                             SExpression::Add(
                                 Box::new(Ast::ValueIdentifier ( "a".to_string() )),
@@ -132,24 +132,24 @@ mod test {
                             )
                         )
                     ],
-                }),
+                )),
                 return_type: Box::new(Ast::Type(TypeInfo::Number)),
             })),
         });
         let expected_fn_call: Ast = Ast::SExpr(SExpression::ExecuteFn {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
-            parameters: Box::new(Ast::VecExpression {
-                expressions: vec![Ast::ValueIdentifier("x".to_string())],
-            }),
+            parameters: Box::new(Ast::VecExpression (
+                vec![Ast::ValueIdentifier("x".to_string())],
+            )),
         });
 
-        let expected_program_ast: Ast = Ast::VecExpression {
-            expressions: vec![
+        let expected_program_ast: Ast = Ast::VecExpression (
+            vec![
                 expected_assignment,
                 expected_fn,
                 expected_fn_call
             ],
-        };
+        );
 
         assert_eq!(expected_program_ast, value)
     }
@@ -177,7 +177,7 @@ mod test {
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
         };
 
-        assert_eq!(Ast::VecExpression { expressions: vec![Ast::ValueIdentifier("x".to_string())] }, value)
+        assert_eq!(Ast::VecExpression ( vec![Ast::ValueIdentifier("x".to_string())] ), value)
     }
 
 
@@ -190,13 +190,13 @@ mod test {
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
         };
 
-        assert_eq!(Ast::VecExpression {
-            expressions: vec![Ast::Conditional {
+        assert_eq!(Ast::VecExpression (
+            vec![Ast::Conditional {
                 condition: Box::new(Ast::Literal(Datatype::Bool(true))),
-                true_expr: Box::new(Ast::VecExpression { expressions: vec![Ast::Literal(Datatype::Bool(true))] }),
-                false_expr: Some(Box::new(Ast::VecExpression { expressions: vec![Ast::Literal(Datatype::Bool(true))] }))
+                true_expr: Box::new(Ast::VecExpression(vec![Ast::Literal(Datatype::Bool(true))])),
+                false_expr: Some(Box::new(Ast::VecExpression(vec![Ast::Literal(Datatype::Bool(true))])))
             }]
-        }, value)
+        ), value)
     }
 
 
@@ -286,11 +286,11 @@ mod test {
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
         };
 
-        assert_eq!(Ast::VecExpression{
-            expressions: vec![
+        assert_eq!(Ast::VecExpression (
+            vec![
                 Ast::Literal(Datatype::String("\nHello\nWorld\n".to_string()))
             ]
-        }, ast)
+        ), ast)
 
     }
 

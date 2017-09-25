@@ -25,7 +25,7 @@ I then proceeded to graft things onto the AST and syntax parser once I had a min
 # Actual Features
 * REPL.
 * Supports Functions, while loops, if statements, as well as the primative types: Number (signed 32), String, Booleans, and Arrays (partially). As well as Structs.
-* Assignment looks like: `let value := ( 4 * 6 )`
+* Assignment looks like: `let value := 4 * 6`
 * Includes in the form of `include <filename>`. The filename path is relative to where the interpreter is called from and requires the extension `.hlw`.
 
 
@@ -34,7 +34,7 @@ I then proceeded to graft things onto the AST and syntax parser once I had a min
 ```
 let x := 5
 fn add_2_to_number( number: Number) -> Number {
-  ( number + 2 )
+   number + 2 
 }
 add_2_to_number(x)
 ```
@@ -57,7 +57,7 @@ fn create_new_MyStruct( value: Number ) -> MyStruct {
 }
 
 fn addContents( s: MyStruct ) -> Number {
-    (s.a + s.b)
+    s.a + s.b
 }
 
 let instance := create_new_MyStruct( a )
@@ -68,6 +68,7 @@ Returns: `Number(11)`
 
 # TODO
 * ~~Switch to using S-Expressions, where each operator holds one or more operators or literals. This would replace the current implementation that just has binary and unary expressions that hold the operator and its operands.~~ S-Expressions are now used.
+* Since switching to S-Expressions, parentheses can't be used to control oreder of execution. Add optional parentheses to allow for this.
 * Introduce mutability rules. `const` vs. `let`.
 * Prevent reassignment of Struct and Function names. Currently, you are allowed to set the identifier for a struct's type to be a number, this has wonky concequences for the type system.
 * Investigate Nom's custom error messages. 

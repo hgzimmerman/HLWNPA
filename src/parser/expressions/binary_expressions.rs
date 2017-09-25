@@ -13,13 +13,13 @@ use parser::structure::struct_access;
 named!(pub sexpr<Ast>,
     alt!(
         complete!(do_parse!(
-            lhs: alt!( literal | struct_access | identifier ) >> // TODO, make this alt allow access to literals and variable accesses, but not explicit expressions, stack overflow errors.
+            lhs: alt!( literal | struct_access | identifier | sexpr_parens ) >> // TODO, make this alt allow access to literals and variable accesses, but not explicit expressions, stack overflow errors.
             operator: arithmetic_binary_operator >>
             rhs: expression_or_literal_or_identifier_or_struct_or_array >>
             (create_sexpr(operator, lhs, Some(rhs)))
         )) |
         complete!(do_parse!(
-            lhs: alt!(literal | struct_access |identifier ) >>
+            lhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
             operator:  arithmetic_unary_operator >>
             (create_sexpr(operator, lhs, None))
         )) |
@@ -28,7 +28,14 @@ named!(pub sexpr<Ast>,
             lhs: literal_or_expression_identifier_or_struct_or_array >>
             (create_sexpr(operator, lhs, None))
         ))
+    )
+);
 
+named!(pub sexpr_parens<Ast>,
+    delimited!(
+        ws!(char!('(')),
+        ws!(sexpr),
+        ws!(char!(')'))
     )
 );
 
@@ -59,7 +66,7 @@ mod test {
     use datatype::Datatype;
 
     #[test]
-    fn sexpr_parse_addition_test() {
+    fn sexpr_parse_addition() {
         let (_, value) = match sexpr(b"3 + 4") {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),
@@ -70,7 +77,7 @@ mod test {
 
 
     #[test]
-    fn sexpr_parse_increment_test() {
+    fn sexpr_parse_increment() {
         let (_, value) = match sexpr(b"3++") {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),
@@ -80,7 +87,7 @@ mod test {
     }
 
     #[test]
-    fn sexpr_parse_negate_test() {
+    fn sexpr_parse_negate() {
         let (_, value) = match sexpr(b"!true") {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),
@@ -90,7 +97,7 @@ mod test {
     }
 
     #[test]
-    fn sexpr_parse_addition_multiple_test() {
+    fn sexpr_parse_addition_multiple() {
         let (_, value) = match sexpr(b"3 + 4 + 5") {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),
@@ -105,6 +112,94 @@ mod test {
                 )))
             )
         ), value);
+    }
+
+
+    #[test]
+    fn sexpr_parens_parse() {
+        let (_, value) = match sexpr(b"(3 + 4) + 5") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(Ast::SExpr(
+            SExpression::Add(
+                Box::new(Ast::SExpr(SExpression::Add (
+                    Box::new(Ast::Literal(Datatype::Number(3))),
+                    Box::new(Ast::Literal(Datatype::Number(4)))
+                ))),
+                Box::new(Ast::Literal(Datatype::Number(5))),
+
+            )
+        ), value);
+    }
+
+    #[test]
+    fn sexpr_parens_rhs_parse() {
+        let (_, value) = match sexpr(b"3 + (4 + 5)") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(Ast::SExpr(
+            SExpression::Add(
+                Box::new(Ast::Literal(Datatype::Number(3))),
+                Box::new(Ast::SExpr(SExpression::Add(
+                    Box::new(Ast::Literal(Datatype::Number(4))),
+                    Box::new(Ast::Literal(Datatype::Number(5)))
+                )))
+            )
+        ), value);
+    }
+
+    #[test]
+    fn sexpr_parens_tripple_parse() {
+        let (_, value) = match sexpr(b"3 + (4 + 5 + 6)") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(Ast::SExpr(
+            SExpression::Add(
+                Box::new(Ast::Literal(Datatype::Number(3))),
+                Box::new(Ast::SExpr(SExpression::Add(
+                    Box::new(Ast::Literal(Datatype::Number(4))),
+                    Box::new(Ast::SExpr(SExpression::Add(
+                        Box::new(Ast::Literal(Datatype::Number(5))),
+                         Box::new(Ast::Literal(Datatype::Number(6)))
+                    )))
+                )))
+            )
+        ), value);
+    }
+
+    ///Not supported syntax
+//    #[test]
+//    fn sexpr_parens_negate_parse() {
+//        let (_, value) = match sexpr(b"!(true)") {
+//            IResult::Done(r, v) => (r, v),
+//            IResult::Error(e) => panic!("{:?}", e),
+//            _ => panic!(),
+//        };
+//        assert_eq!(
+//            Ast::SExpr(SExpression::Invert(
+//                Box::new(Ast::Literal(Datatype::Bool(true))),
+//            )
+//        ), value);
+//    }
+
+    #[test]
+    fn sexpr_parens_negate_parse() {
+        let (_, value) = match sexpr_parens(b"(!true)") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::Invert(
+                Box::new(Ast::Literal(Datatype::Bool(true))),
+            )
+            ), value);
     }
 }
 

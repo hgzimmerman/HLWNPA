@@ -9,7 +9,7 @@ use parser::structure::{create_struct_instance, struct_access};
 use parser::array::array_access;
 use parser::function_execution;
 use parser::control_flow::control_flow;
-use parser::expressions::sexpr;
+use parser::expressions::{sexpr, sexpr_parens};
 
 
 //TODO this is misnamed, now that it matches other sequences, fix that
@@ -31,6 +31,7 @@ named!(pub expression_or_literal_or_identifier<Ast>,
 named!(pub expression_or_literal_or_identifier_or_struct_or_array<Ast>,
     alt!(
         complete!(sexpr) |
+        complete!(sexpr_parens) |
         complete!(literal) |
         complete!(struct_access) |
         complete!(function_execution) |
@@ -47,6 +48,7 @@ named!(pub literal_or_expression_identifier_or_struct_or_array<Ast>,
 
         complete!(literal) |
         complete!(sexpr) |
+        complete!(sexpr_parens) |
         complete!(struct_access) |
         complete!(function_execution) |
         complete!(identifier) |

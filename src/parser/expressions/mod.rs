@@ -1,5 +1,5 @@
 mod binary_expressions;
-pub use self::binary_expressions::sexpr;
+pub use self::binary_expressions::*;
 
 
 #[allow(unused_imports)]

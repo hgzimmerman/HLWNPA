@@ -40,6 +40,6 @@ pub enum LangError {
     ExpectedExpression,
     ExpectedIdentifierToBeStructType { found: String },
     InitState,
-    CouldNotReadFile{filename: String, reason: String},
-    CouldNotParseFile{filename: String, reason: String}
+    CouldNotReadFile { filename: String, reason: String },
+    CouldNotParseFile { filename: String, reason: String },
 }

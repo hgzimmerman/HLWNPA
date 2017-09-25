@@ -37,30 +37,21 @@ pub enum Datatype {
 impl fmt::Display for Datatype {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Datatype::Number(ref value) => {
-                write!(f, "{}", value)
-            }
-            Datatype::String(ref value) => {
-                write!(f, "{}", value)
-            }
-            Datatype::Bool(ref value) => {
-                write!(f, "{}", value)
-            }
-            Datatype::Array {ref value, ref type_} => {
-                write!(f, "[{:?}]{:?}", value, type_)
-            }
-            Datatype::None => {
-                write!(f, "NONE")
-            }
-            Datatype::Function{ ref parameters, ref body, ref return_type} => {
-                write!(f, "{:?} -> {:?}", parameters, return_type)
-            }
-            Datatype::Struct{ref map } => {
-                write!(f, "{{{:?}}}", map)
-            }
-            Datatype::StructType(ref value) => {
-                write!(f, "{:?}", value)
-            }
+            Datatype::Number(ref value) => write!(f, "{}", value),
+            Datatype::String(ref value) => write!(f, "{}", value),
+            Datatype::Bool(ref value) => write!(f, "{}", value),
+            Datatype::Array {
+                ref value,
+                ref type_,
+            } => write!(f, "[{:?}]{:?}", value, type_),
+            Datatype::None => write!(f, "NONE"),
+            Datatype::Function {
+                ref parameters,
+                ref body,
+                ref return_type,
+            } => write!(f, "{:?} -> {:?}", parameters, return_type),
+            Datatype::Struct { ref map } => write!(f, "{{{:?}}}", map),
+            Datatype::StructType(ref value) => write!(f, "{:?}", value),
         }
     }
 }

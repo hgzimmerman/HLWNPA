@@ -1,4 +1,4 @@
-use ast::{Ast, SExpression };
+use ast::{Ast, SExpression};
 
 #[allow(unused_imports)]
 use nom::*;
@@ -106,50 +106,44 @@ mod test {
 
         let expected_assignment: Ast = Ast::SExpr(SExpression::Assignment {
             identifier: Box::new(Ast::ValueIdentifier("x".to_string())),
-            ast: Box::new(Ast::SExpr(
-                SExpression::Add(
-                    Box::new(Ast::Literal(Datatype::Number(3))),
-                    Box::new(Ast::Literal ( Datatype::Number(4))),
-                )
-            ))
+            ast: Box::new(Ast::SExpr(SExpression::Add(
+                Box::new(Ast::Literal(Datatype::Number(3))),
+                Box::new(Ast::Literal(Datatype::Number(4))),
+            ))),
         });
 
         let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
             function_datatype: Box::new(Ast::Literal(Datatype::Function {
-                parameters: Box::new(Ast::ExpressionList (
+                parameters: Box::new(Ast::ExpressionList(
                     vec![Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
                         typeInfo: Box::new(Ast::Type(TypeInfo::Number))
                     })],
                 )),
-                body: Box::new(Ast::ExpressionList (
-                    vec![
+                body: Box::new(Ast::ExpressionList(vec![
                         Ast::SExpr(
                             SExpression::Add(
                                 Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                                 Box::new(Ast::Literal ( Datatype::Number(8))),
                             )
                         )
-                    ],
-                )),
+                    ])),
                 return_type: Box::new(Ast::Type(TypeInfo::Number)),
             })),
         });
         let expected_fn_call: Ast = Ast::SExpr(SExpression::ExecuteFn {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
-            parameters: Box::new(Ast::ExpressionList (
+            parameters: Box::new(Ast::ExpressionList(
                 vec![Ast::ValueIdentifier("x".to_string())],
             )),
         });
 
-        let expected_program_ast: Ast = Ast::ExpressionList (
-            vec![
+        let expected_program_ast: Ast = Ast::ExpressionList(vec![
                 expected_assignment,
                 expected_fn,
                 expected_fn_call
-            ],
-        );
+            ]);
 
         assert_eq!(expected_program_ast, value)
     }

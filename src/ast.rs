@@ -16,7 +16,7 @@ const MAIN_FUNCTION_NAME: &'static str = "main";
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum Ast {
     SExpr(SExpression), // Operators that store their operands
-    ExpressionList ( Vec<Ast> ), // uesd for structuring execution of the AST.
+    ExpressionList(Vec<Ast>), // uesd for structuring execution of the AST.
     Conditional {
         condition: Box<Ast>, // Resolves to a literal->bool
         true_expr: Box<Ast>, // Will execute if the condition is true
@@ -44,7 +44,7 @@ pub enum ArithmeticOperator {
     GreaterThan,
     LessThan,
     GreaterThanOrEqual,
-    LessThanOrEqual
+    LessThanOrEqual,
 }
 
 /// Operators that store their operands.
@@ -63,51 +63,74 @@ pub enum SExpression {
     LessThan(Box<Ast>, Box<Ast>),
     GreaterThanOrEqual(Box<Ast>, Box<Ast>),
     LessThanOrEqual(Box<Ast>, Box<Ast>),
-    Assignment{ identifier: Box<Ast>, ast: Box<Ast>},
-    TypeAssignment{ identifier: Box<Ast>, typeInfo: Box<Ast>},
-    FieldAssignment{ identifier: Box<Ast>, ast: Box<Ast>},
-    CreateFunction{identifier: Box<Ast>, function_datatype: Box<Ast>},
-    CreateStruct{identifier: Box<Ast>, struct_datatype: Box<Ast>},
-    Loop{ conditional: Box<Ast>, body: Box<Ast>},
-    AccessArray{ identifier: Box<Ast>, index: Box<Ast>},
-    StructDeclaration{identifier: Box<Ast>, struct_type_info: Box<Ast>},
-    AccessStructField{identifier: Box<Ast>, field_identifier: Box<Ast>},
-    ExecuteFn{ identifier: Box<Ast>, parameters: Box<Ast>},
+    Assignment { identifier: Box<Ast>, ast: Box<Ast> },
+    TypeAssignment {
+        identifier: Box<Ast>,
+        typeInfo: Box<Ast>,
+    },
+    FieldAssignment { identifier: Box<Ast>, ast: Box<Ast> },
+    CreateFunction {
+        identifier: Box<Ast>,
+        function_datatype: Box<Ast>,
+    },
+    CreateStruct {
+        identifier: Box<Ast>,
+        struct_datatype: Box<Ast>,
+    },
+    Loop {
+        conditional: Box<Ast>,
+        body: Box<Ast>,
+    },
+    AccessArray {
+        identifier: Box<Ast>,
+        index: Box<Ast>,
+    },
+    StructDeclaration {
+        identifier: Box<Ast>,
+        struct_type_info: Box<Ast>,
+    },
+    AccessStructField {
+        identifier: Box<Ast>,
+        field_identifier: Box<Ast>,
+    },
+    ExecuteFn {
+        identifier: Box<Ast>,
+        parameters: Box<Ast>,
+    },
     //Unary Operators
     Print(Box<Ast>),
     Include(Box<Ast>),
     Invert(Box<Ast>),
     Increment(Box<Ast>),
-    Decrement(Box<Ast>)
+    Decrement(Box<Ast>),
 }
 
 
 impl Ast {
-
     /// Moves functions and structs to the top of the Ast's top level ExpressionList.
     /// This is done because regardless of where a function is declared, a datatype representing it
     /// will be encoded in the program map before it is used.
     /// If the AST doesn't have an Expression list, this will throw an error.
     pub fn hoist_functions_and_structs(&self) -> Ast {
         match *self {
-            Ast::ExpressionList ( ref expressions ) => {
+            Ast::ExpressionList(ref expressions) => {
                 // Capture struct declarations and hoist them to the top of the AST
-                let mut struct_declarations: Vec<Ast> = vec!();
+                let mut struct_declarations: Vec<Ast> = vec![];
                 // Capture the functions as well and move them to the top of the evaluation list.
-                let mut function_declarations: Vec<Ast> = vec!();
+                let mut function_declarations: Vec<Ast> = vec![];
                 // Keep the ordering of everything else, likely constant assignments.
-                let mut everything_else: Vec<Ast> = vec!();
+                let mut everything_else: Vec<Ast> = vec![];
 
                 for ast in expressions {
 
                     match *ast {
-                        Ast::SExpr(ref sexpr)  => {
+                        Ast::SExpr(ref sexpr) => {
                             match *sexpr {
-                                SExpression::CreateStruct{..} => {
+                                SExpression::CreateStruct { .. } => {
                                     let ast = ast.clone();
                                     struct_declarations.push(ast);
                                 }
-                                SExpression::CreateFunction{..} => {
+                                SExpression::CreateFunction { .. } => {
                                     let ast = ast.clone();
                                     function_declarations.push(ast);
                                 }
@@ -126,14 +149,14 @@ impl Ast {
                     }
                 }
                 // Rearrange the order in which the top level AST node is evaluated
-                let mut eval_list_with_hoists: Vec<Ast> = vec!();
+                let mut eval_list_with_hoists: Vec<Ast> = vec![];
                 eval_list_with_hoists.append(&mut struct_declarations);
                 eval_list_with_hoists.append(&mut function_declarations);
                 eval_list_with_hoists.append(&mut everything_else);
 
-                Ast::ExpressionList ( eval_list_with_hoists )
+                Ast::ExpressionList(eval_list_with_hoists)
             }
-            _ => panic!("Tried to hoist a non list of expressions.")
+            _ => panic!("Tried to hoist a non list of expressions."),
         }
     }
 
@@ -141,17 +164,18 @@ impl Ast {
     /// This should be used to determine if calling the main function after evaluating the AST is necessary.
     pub fn main_fn_exists(&self) -> bool {
         match *self {
-            Ast::ExpressionList ( ref expressions ) => {
+            Ast::ExpressionList(ref expressions) => {
                 for ast in expressions {
                     match *ast {
-                        Ast::SExpr(ref sexpr)  => {
+                        Ast::SExpr(ref sexpr) => {
                             if let SExpression::CreateFunction {
                                 ref identifier,
-                                ref function_datatype
-                            } = *sexpr {
+                                ref function_datatype,
+                            } = *sexpr
+                            {
                                 if let Ast::ValueIdentifier(ref fn_name) = **identifier {
                                     if fn_name.as_str() == MAIN_FUNCTION_NAME {
-                                        return true
+                                        return true;
                                     }
                                 }
                             }
@@ -170,7 +194,7 @@ impl Ast {
     pub fn execute_main(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
         let executing_ast = Ast::SExpr(SExpression::ExecuteFn {
             identifier: Box::new(Ast::ValueIdentifier(MAIN_FUNCTION_NAME.to_string())),
-            parameters: Box::new(Ast::ExpressionList ( vec![] )),
+            parameters: Box::new(Ast::ExpressionList(vec![])),
         });
 
         executing_ast.evaluate(map)
@@ -184,64 +208,83 @@ impl Ast {
             Ast::SExpr(ref sexpr) => {
                 match *sexpr {
                     SExpression::Add(ref lhs, ref rhs) => lhs.evaluate(map)? + rhs.evaluate(map)?,
-                    SExpression::Subtract(ref lhs, ref rhs) => lhs.evaluate(map)? - rhs.evaluate(map)?,
-                    SExpression::Multiply(ref lhs, ref rhs) => lhs.evaluate(map)? * rhs.evaluate(map)?,
-                    SExpression::Divide(ref lhs, ref rhs) => lhs.evaluate(map)? / rhs.evaluate(map)?,
-                    SExpression::Modulo(ref lhs, ref rhs) => lhs.evaluate(map)? % rhs.evaluate(map)?,
+                    SExpression::Subtract(ref lhs, ref rhs) => {
+                        lhs.evaluate(map)? - rhs.evaluate(map)?
+                    }
+                    SExpression::Multiply(ref lhs, ref rhs) => {
+                        lhs.evaluate(map)? * rhs.evaluate(map)?
+                    }
+                    SExpression::Divide(ref lhs, ref rhs) => {
+                        lhs.evaluate(map)? / rhs.evaluate(map)?
+                    }
+                    SExpression::Modulo(ref lhs, ref rhs) => {
+                        lhs.evaluate(map)? % rhs.evaluate(map)?
+                    }
                     SExpression::Equals(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? == rhs.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));
                         }
-                    },
+                    }
                     SExpression::Equals(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? == rhs.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));
                         }
-                    },
+                    }
                     SExpression::NotEquals(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? != rhs.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));
                         }
-                    },
+                    }
                     SExpression::GreaterThan(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? > rhs.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));
                         }
-                    },
+                    }
                     SExpression::LessThan(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? < rhs.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));
                         }
-                    },
+                    }
                     SExpression::GreaterThanOrEqual(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? >= rhs.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));
                         }
-                    },
+                    }
                     SExpression::LessThanOrEqual(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? <= rhs.evaluate(map)? {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));
                         }
-                    },
-                    SExpression::Assignment {identifier: ref lhs, ast: ref rhs} |
-                    SExpression::TypeAssignment {identifier: ref lhs, typeInfo: ref rhs} |
-                    SExpression::FieldAssignment {identifier: ref lhs, ast: ref rhs} |
-                    SExpression::CreateFunction{identifier: ref lhs, function_datatype: ref rhs}
-                    => {
+                    }
+                    SExpression::Assignment {
+                        identifier: ref lhs,
+                        ast: ref rhs,
+                    } |
+                    SExpression::TypeAssignment {
+                        identifier: ref lhs,
+                        typeInfo: ref rhs,
+                    } |
+                    SExpression::FieldAssignment {
+                        identifier: ref lhs,
+                        ast: ref rhs,
+                    } |
+                    SExpression::CreateFunction {
+                        identifier: ref lhs,
+                        function_datatype: ref rhs,
+                    } => {
                         if let Ast::ValueIdentifier(ref ident) = **lhs {
                             let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
                             let evaluated_right_hand_side = rhs.evaluate(&mut cloned_map)?;
@@ -252,7 +295,10 @@ impl Ast {
                             Err(LangError::IdentifierDoesntExist)
                         }
                     }
-                    SExpression::Loop {ref conditional, ref body } => {
+                    SExpression::Loop {
+                        ref conditional,
+                        ref body,
+                    } => {
                         let mut evaluated_loop: Datatype = Datatype::None;
                         let cloned_conditional = *conditional.clone();
                         loop {
@@ -265,12 +311,19 @@ impl Ast {
                                         break;
                                     }
                                 }
-                                _ => return Err(LangError::ConditionalNotBoolean(TypeInfo::from(condition))),
+                                _ => {
+                                    return Err(LangError::ConditionalNotBoolean(
+                                        TypeInfo::from(condition),
+                                    ))
+                                }
                             }
                         }
                         return Ok(evaluated_loop); // leave block
-                    },
-                    SExpression::AccessArray{ref identifier, ref index}=> {
+                    }
+                    SExpression::AccessArray {
+                        ref identifier,
+                        ref index,
+                    } => {
                         let datatype: Datatype = identifier.evaluate(map)?;
                         match datatype {
                             Datatype::Array { value, .. } => {
@@ -289,18 +342,34 @@ impl Ast {
                                     _ => Err(LangError::InvalidIndexType(possible_index)),
                                 }
                             }
-                            _ => return Err(LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype))),
+                            _ => {
+                                return Err(
+                                    LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype)),
+                                )
+                            }
                         }
                     }
 
-                    SExpression::StructDeclaration{identifier: ref lhs, struct_type_info: ref rhs} => return declare_struct(lhs, rhs, map),
-                    SExpression::AccessStructField{identifier: ref lhs, field_identifier: ref rhs} => return access_struct_field(lhs, rhs, map),
-                    SExpression::CreateStruct{identifier: ref lhs, struct_datatype: ref rhs} =>  return create_struct(lhs, rhs, map),
-                    SExpression::ExecuteFn {ref identifier, ref parameters} => return execute_function(identifier, parameters, map),
+                    SExpression::StructDeclaration {
+                        identifier: ref lhs,
+                        struct_type_info: ref rhs,
+                    } => return declare_struct(lhs, rhs, map),
+                    SExpression::AccessStructField {
+                        identifier: ref lhs,
+                        field_identifier: ref rhs,
+                    } => return access_struct_field(lhs, rhs, map),
+                    SExpression::CreateStruct {
+                        identifier: ref lhs,
+                        struct_datatype: ref rhs,
+                    } => return create_struct(lhs, rhs, map),
+                    SExpression::ExecuteFn {
+                        ref identifier,
+                        ref parameters,
+                    } => return execute_function(identifier, parameters, map),
                     SExpression::Print(ref expr) => {
                         let datatype_to_print = expr.evaluate(map)?;
                         if let Ast::ValueIdentifier(ref identifier) = **expr {
-                            if let Datatype::Struct {..} = datatype_to_print {
+                            if let Datatype::Struct { .. } = datatype_to_print {
                                 print!("{}{}", identifier, datatype_to_print)
                             } else {
                                 print!("{}", datatype_to_print);
@@ -316,7 +385,10 @@ impl Ast {
                                 let new_ast: Ast = read_file_into_ast(filename)?;
                                 new_ast.evaluate(map) // move the new AST into the current AST
                             }
-                            _ => Err(LangError::CouldNotReadFile {filename: "Not provided".to_string(), reason: "File name was not a string.".to_string()})
+                            _ => Err(LangError::CouldNotReadFile {
+                                filename: "Not provided".to_string(),
+                                reason: "File name was not a string.".to_string(),
+                            }),
                         }
                     }
                     SExpression::Invert(ref expr) => {
@@ -338,10 +410,10 @@ impl Ast {
                         }
                     }
                 }
-            },
+            }
 
             //Evaluate multiple expressions and return the result of the last one.
-            Ast::ExpressionList ( ref expressions ) => {
+            Ast::ExpressionList(ref expressions) => {
                 let mut val: Datatype = Datatype::None; // TODO, consider making this return an error if the expressions vector is empty
                 for e in expressions {
                     val = e.evaluate(map)?;
@@ -386,7 +458,11 @@ impl Ast {
 /// Resolve the second expression to an identifier.
 /// Check if the second expression's identifier is in the struct's map.
 /// If it is, the get the value associated with that identifier and return it.
-fn access_struct_field(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
+fn access_struct_field(
+    expr1: &Ast,
+    expr2: &Ast,
+    map: &mut HashMap<String, Datatype>,
+) -> LangResult {
     // if expr1 produces a struct when evaluated
     if let Datatype::Struct { map: struct_map } = expr1.evaluate(map)? {
         if let Ast::ValueIdentifier(ref field_identifier) = *expr2 {
@@ -409,17 +485,17 @@ fn access_struct_field(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datat
 /// Create a new StructType from the new map and return it.
 fn declare_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
     if let Ast::ValueIdentifier(ref struct_type_identifier) = *expr1 {
-        if let Ast::ExpressionList ( ref expressions ) = *expr2 {
+        if let Ast::ExpressionList(ref expressions) = *expr2 {
 
             let mut struct_map: HashMap<String, TypeInfo> = HashMap::new();
 
             for assignment_expr in expressions {
-                if let &Ast::SExpr(ref sexpr) = assignment_expr
-                {
+                if let &Ast::SExpr(ref sexpr) = assignment_expr {
                     if let SExpression::TypeAssignment {
                         identifier: ref field_identifier_expr,
-                        typeInfo: ref field_type_expr
-                    } = *sexpr{
+                        typeInfo: ref field_type_expr,
+                    } = *sexpr
+                    {
                         if let Ast::ValueIdentifier(ref field_id) = **field_identifier_expr {
                             if let Ast::Type(ref field_type) = **field_type_expr {
                                 struct_map.insert(field_id.clone(), field_type.clone());
@@ -459,15 +535,16 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
     // This expects the expr1 to be an Identifier that resolves to be a struct definition, or the struct definition itself.
     if let Datatype::StructType(TypeInfo::Struct { map: struct_type_map }) = expr1.evaluate(map)? {
         // It expects that the righthand side should be a series of expressions that assign values to fields (that have already been specified in the StructType)
-        if let Ast::ExpressionList ( ref assignment_expressions ) = *expr2 {
+        if let Ast::ExpressionList(ref assignment_expressions) = *expr2 {
             let mut new_struct_map: HashMap<String, Datatype> = HashMap::new();
 
             for assignment_expression in assignment_expressions {
-                if let Ast::SExpr(ref sexpr)  = *assignment_expression {
+                if let Ast::SExpr(ref sexpr) = *assignment_expression {
                     if let SExpression::FieldAssignment {
                         identifier: ref assignment_expr1,
-                        ast: ref assignment_expr2
-                    } = *sexpr {
+                        ast: ref assignment_expr2,
+                    } = *sexpr
+                    {
                         if let Ast::ValueIdentifier(ref field_identifier) = **assignment_expr1 {
                             // Is the identifier specified in the AST exist in the struct type? check the struct_map
                             let expected_type = match struct_type_map.get(field_identifier) {
@@ -477,17 +554,20 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
                             let value_to_be_assigned: Datatype = assignment_expr2.evaluate(map)?;
 
                             // check if the value to be assigned matches the expected type
-                            let to_be_assigned_type: TypeInfo = TypeInfo::from(value_to_be_assigned.clone());
+                            let to_be_assigned_type: TypeInfo =
+                                TypeInfo::from(value_to_be_assigned.clone());
                             if expected_type == &to_be_assigned_type {
                                 // now add the value to the new struct's map
-                                new_struct_map.insert(field_identifier.clone(), value_to_be_assigned);
+                                new_struct_map.insert(
+                                    field_identifier.clone(),
+                                    value_to_be_assigned,
+                                );
                             } else {
                                 return Err(LangError::TypeError {
                                     expected: expected_type.clone(),
                                     found: to_be_assigned_type,
                                 });
                             }
-
                         } else {
                             return Err(LangError::ExpectedIdentifier);
                         }
@@ -520,7 +600,7 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
 
     // evaluate the parameters
     let evaluated_parameters: Vec<Datatype> = match *expr2 {
-        Ast::ExpressionList ( ref expressions ) => {
+        Ast::ExpressionList(ref expressions) => {
             let mut evaluated_expressions: Vec<Datatype> = vec![];
             for e in expressions {
                 match e.evaluate(&mut cloned_map) {
@@ -543,7 +623,7 @@ fn execute_function(expr1: &Ast, expr2: &Ast, map: &HashMap<String, Datatype>) -
         } => {
             match *parameters {
                 // The parameters should be in the form: ExpressionList(expression_with_fn_assignment, expression_with_fn_assignment, ...) This way, functions should be able to support arbitrary numbers of parameters.
-                Ast::ExpressionList ( expressions ) => {
+                Ast::ExpressionList(expressions) => {
                     // zip the values of the evaluated parameters into the expected parameters for the function
                     if evaluated_parameters.len() == expressions.len() {
                         // Replace the right hand side of the expression (which should be an Ast::Type with a computed literal.
@@ -671,8 +751,12 @@ mod test {
     fn string_plus_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let ast = Ast::SExpr(SExpression::Add(
-            Box::new(Ast::Literal(Datatype::String("Hello".to_string()))),
-            Box::new(Ast::Literal(Datatype::String(" World!".to_string()))),
+            Box::new(
+                Ast::Literal(Datatype::String("Hello".to_string())),
+            ),
+            Box::new(
+                Ast::Literal(Datatype::String(" World!".to_string())),
+            ),
         ));
         assert_eq!(
             Datatype::String("Hello World!".to_string()),
@@ -823,18 +907,16 @@ mod test {
     #[test]
     fn assignment_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::ExpressionList (
-            vec![
-                Ast::SExpr(SExpression::Assignment{
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    ast: Box::new(Ast::Literal(Datatype::Number(6))),
-                }),
-                Ast::SExpr(SExpression::Add(
-                    Box::new(Ast::ValueIdentifier("a".to_string())),
-                    Box::new(Ast::Literal(Datatype::Number(5))),
-                )),
-            ],
-        );
+        let ast = Ast::ExpressionList(vec![
+            Ast::SExpr(SExpression::Assignment {
+                identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                ast: Box::new(Ast::Literal(Datatype::Number(6))),
+            }),
+            Ast::SExpr(SExpression::Add(
+                Box::new(Ast::ValueIdentifier("a".to_string())),
+                Box::new(Ast::Literal(Datatype::Number(5))),
+            )),
+        ]);
         assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
     }
 
@@ -845,22 +927,20 @@ mod test {
     #[test]
     fn variable_copy_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::ExpressionList (
-            vec![
-                Ast::SExpr(SExpression::Assignment{
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    ast: Box::new(Ast::Literal(Datatype::Number(6))),
-                }),
-                Ast::SExpr(SExpression::Assignment {
-                    identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
-                    ast: Box::new(Ast::ValueIdentifier("a".to_string())),
-                }),
-                Ast::SExpr(SExpression::Add(
-                    Box::new(Ast::ValueIdentifier("b".to_string())),
-                    Box::new(Ast::Literal(Datatype::Number(5))),
-                )),
-            ],
-        );
+        let ast = Ast::ExpressionList(vec![
+            Ast::SExpr(SExpression::Assignment {
+                identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                ast: Box::new(Ast::Literal(Datatype::Number(6))),
+            }),
+            Ast::SExpr(SExpression::Assignment {
+                identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
+                ast: Box::new(Ast::ValueIdentifier("a".to_string())),
+            }),
+            Ast::SExpr(SExpression::Add(
+                Box::new(Ast::ValueIdentifier("b".to_string())),
+                Box::new(Ast::Literal(Datatype::Number(5))),
+            )),
+        ]);
         assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
     }
 
@@ -870,22 +950,20 @@ mod test {
     #[test]
     fn reassignment_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::ExpressionList (
-            vec![
-                Ast::SExpr(SExpression::Assignment{
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    ast: Box::new(Ast::Literal(Datatype::Number(6))),
-                }),
-                Ast::SExpr(SExpression::Assignment {
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    ast: Box::new(Ast::Literal(Datatype::Number(3))),
-                }),
-                Ast::SExpr(SExpression::Add(
-                    Box::new(Ast::ValueIdentifier("a".to_string())),
-                    Box::new(Ast::Literal(Datatype::Number(5))),
-                )),
-            ],
-        );
+        let ast = Ast::ExpressionList(vec![
+            Ast::SExpr(SExpression::Assignment {
+                identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                ast: Box::new(Ast::Literal(Datatype::Number(6))),
+            }),
+            Ast::SExpr(SExpression::Assignment {
+                identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                ast: Box::new(Ast::Literal(Datatype::Number(3))),
+            }),
+            Ast::SExpr(SExpression::Add(
+                Box::new(Ast::ValueIdentifier("a".to_string())),
+                Box::new(Ast::Literal(Datatype::Number(5))),
+            )),
+        ]);
         assert_eq!(Datatype::Number(8), ast.evaluate(&mut map).unwrap())
     }
 
@@ -914,63 +992,55 @@ mod test {
     #[test]
     fn basic_function_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::ExpressionList (
-            vec![
-                Ast::SExpr(SExpression::Assignment{
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    ast: Box::new(Ast::Literal(Datatype::Function {
-                        parameters: Box::new(Ast::ExpressionList ( vec![] )),
-                        // empty parameters
-                        body: (Box::new(Ast::Literal(Datatype::Number(32)))),
-                        // just return a number
-                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+        let ast = Ast::ExpressionList(vec![
+            Ast::SExpr(SExpression::Assignment {
+                identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                ast: Box::new(Ast::Literal(Datatype::Function {
+                    parameters: Box::new(Ast::ExpressionList(vec![])),
+                    // empty parameters
+                    body: (Box::new(Ast::Literal(Datatype::Number(32)))),
+                    // just return a number
+                    return_type: Box::new(Ast::Type(TypeInfo::Number)),
                         // expect a number
-                    })),
-                }),
-                Ast::SExpr(SExpression::ExecuteFn {
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    // get the identifier for a
-                    parameters: Box::new(Ast::ExpressionList ( vec![] )),
+                })),
+            }),
+            Ast::SExpr(SExpression::ExecuteFn {
+                identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                // get the identifier for a
+                parameters: Box::new(Ast::ExpressionList(vec![])),
                     // provide the function parameters
-                }),
-            ],
-        );
+            }),
+        ]);
         assert_eq!(Datatype::Number(32), ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn function_with_parameter_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::ExpressionList (
-            vec![
-                Ast::SExpr(SExpression::Assignment{
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    ast: Box::new(Ast::Literal(Datatype::Function {
-                        parameters: Box::new(Ast::ExpressionList (
-                            vec![
-                                Ast::SExpr(SExpression::TypeAssignment {
-                                    identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
-                                    // the value's name is b
-                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+        let ast = Ast::ExpressionList(vec![
+            Ast::SExpr(SExpression::Assignment {
+                identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                ast: Box::new(Ast::Literal(Datatype::Function {
+                    parameters: Box::new(Ast::ExpressionList(vec![
+                        Ast::SExpr(SExpression::TypeAssignment {
+                            identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
+                            // the value's name is b
+                            typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
                                     // fn takes a number
-                                }),
-                            ],
-                        )),
-                        body: (Box::new(Ast::ValueIdentifier("b".to_string()))),
-                        // just return the number passed in.
-                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+                        }),
+                    ])),
+                    body: (Box::new(Ast::ValueIdentifier("b".to_string()))),
+                    // just return the number passed in.
+                    return_type: Box::new(Ast::Type(TypeInfo::Number)),
                         // expect a number to be returned
-                    }))
-                }),
-                Ast::SExpr(SExpression::ExecuteFn {
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    // get the identifier for a
-                    parameters: Box::new(Ast::ExpressionList (
-                        vec![Ast::Literal(Datatype::Number(7))],
-                    )),
-                })
-            ],
-        );
+                })),
+            }),
+            Ast::SExpr(SExpression::ExecuteFn {
+                identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                // get the identifier for a
+                parameters: Box::new(Ast::ExpressionList(vec![Ast::Literal(Datatype::Number(7))])),
+            }),
+        ]);
         assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
     }
 
@@ -978,50 +1048,42 @@ mod test {
     #[test]
     fn function_with_two_parameters_addition_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::ExpressionList (
-            vec![
-                Ast::SExpr(SExpression::Assignment{
-                    identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
-                    ast: Box::new(Ast::Literal(Datatype::Function {
-                        parameters: Box::new(Ast::ExpressionList (
-                            vec![
-                                Ast::SExpr(SExpression::TypeAssignment {
-                                    identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
-                                    // the value's name is b
-                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+        let ast = Ast::ExpressionList(vec![
+            Ast::SExpr(SExpression::Assignment {
+                identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
+                ast: Box::new(Ast::Literal(Datatype::Function {
+                    parameters: Box::new(Ast::ExpressionList(vec![
+                        Ast::SExpr(SExpression::TypeAssignment {
+                            identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
+                            // the value's name is b
+                            typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
                                     // fn takes a number
-                                }),
-                                Ast::SExpr(SExpression::TypeAssignment {
-                                    identifier: Box::new(Ast::ValueIdentifier("c".to_string())),
-                                    // the value's name is b
-                                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                        }),
+                        Ast::SExpr(SExpression::TypeAssignment {
+                            identifier: Box::new(Ast::ValueIdentifier("c".to_string())),
+                            // the value's name is b
+                            typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
                                     // fn takes a number
-                                })
-                            ],
-                        )),
-                        body: (Box::new(
-                            Ast::SExpr(SExpression::Add(
-                                Box::new(Ast::ValueIdentifier("b".to_string())),
-                                Box::new(Ast::ValueIdentifier("c".to_string()))
-                            ))
-                        )),
-                        // just return the number passed in.
-                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+                        }),
+                    ])),
+                    body: (Box::new(Ast::SExpr(SExpression::Add(
+                        Box::new(Ast::ValueIdentifier("b".to_string())),
+                        Box::new(Ast::ValueIdentifier("c".to_string())),
+                    )))),
+                    // just return the number passed in.
+                    return_type: Box::new(Ast::Type(TypeInfo::Number)),
                         // expect a number to be returned
-                    }))
-                }),
-                Ast::SExpr(SExpression::ExecuteFn {
-                    identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
-                    // get the identifier for a
-                    parameters: Box::new(Ast::ExpressionList (
-                        vec![
-                            Ast::Literal(Datatype::Number(7)),
-                            Ast::Literal(Datatype::Number(5))
-                        ],
-                    )),
-                })
-            ],
-        );
+                })),
+            }),
+            Ast::SExpr(SExpression::ExecuteFn {
+                identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
+                // get the identifier for a
+                parameters: Box::new(Ast::ExpressionList(vec![
+                    Ast::Literal(Datatype::Number(7)),
+                    Ast::Literal(Datatype::Number(5)),
+                ])),
+            }),
+        ]);
         assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
     }
 
@@ -1067,14 +1129,12 @@ mod test {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let ast: Ast = Ast::SExpr(SExpression::StructDeclaration {
             identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            struct_type_info: Box::new(Ast::ExpressionList (
-                vec![
-                    Ast::SExpr(SExpression::TypeAssignment {
-                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
-                    }),
-                ],
-            )),
+            struct_type_info: Box::new(Ast::ExpressionList(vec![
+                Ast::SExpr(SExpression::TypeAssignment {
+                    identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                }),
+            ])),
         });
 
         let _ = ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
@@ -1094,28 +1154,24 @@ mod test {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let declaration_ast: Ast = Ast::SExpr(SExpression::StructDeclaration {
             identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            struct_type_info: Box::new(Ast::ExpressionList (
-                vec![
-                    Ast::SExpr(SExpression::TypeAssignment {
-                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
-                    }),
-                ],
-            )),
+            struct_type_info: Box::new(Ast::ExpressionList(vec![
+                Ast::SExpr(SExpression::TypeAssignment {
+                    identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                }),
+            ])),
         });
         let _ = declaration_ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
 
         let creation_ast: Ast = Ast::SExpr(SExpression::CreateStruct {
             identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            struct_datatype: Box::new(Ast::ExpressionList (
-                vec![
-                    Ast::SExpr(SExpression::FieldAssignment {
-                        identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        ast: Box::new(Ast::Literal(Datatype::Number(8))),
+            struct_datatype: Box::new(Ast::ExpressionList(vec![
+                Ast::SExpr(SExpression::FieldAssignment {
+                    identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
+                    ast: Box::new(Ast::Literal(Datatype::Number(8))),
                         // assign 8 to field Field1
-                    }),
-                ],
-            )),
+                }),
+            ])),
         });
 
         let struct_instance = creation_ast.evaluate(&mut map).unwrap();
@@ -1133,62 +1189,61 @@ mod test {
     #[test]
     fn function_hoisting_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast = Ast::ExpressionList (
-            vec![
-                Ast::SExpr(SExpression::Assignment{
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    ast: Box::new(Ast::Literal(Datatype::Number(6))),
-                }),
-                Ast::SExpr(SExpression::CreateFunction {
-                    identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
-                    function_datatype: Box::new(Ast::Literal(Datatype::Function {
-                        parameters: Box::new(Ast::ExpressionList ( vec![] )),
-                        // empty parameters
-                        body: (Box::new(Ast::Literal(Datatype::Number(32)))),
-                        // just return a number
-                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+        let ast = Ast::ExpressionList(vec![
+            Ast::SExpr(SExpression::Assignment {
+                identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                ast: Box::new(Ast::Literal(Datatype::Number(6))),
+            }),
+            Ast::SExpr(SExpression::CreateFunction {
+                identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
+                function_datatype: Box::new(Ast::Literal(Datatype::Function {
+                    parameters: Box::new(Ast::ExpressionList(vec![])),
+                    // empty parameters
+                    body: (Box::new(Ast::Literal(Datatype::Number(32)))),
+                    // just return a number
+                    return_type: Box::new(Ast::Type(TypeInfo::Number)),
                         // expect a number
-                    })),
-                }),
-                Ast::SExpr(SExpression::ExecuteFn {
-                    identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
-                    // get the identifier for a
-                    parameters: Box::new(Ast::ExpressionList ( vec![] )),
+                })),
+            }),
+            Ast::SExpr(SExpression::ExecuteFn {
+                identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
+                // get the identifier for a
+                parameters: Box::new(Ast::ExpressionList(vec![])),
                     // provide the function parameters
-                }),
-            ],
-        );
+            }),
+        ]);
 
         let hoisted_ast: Ast = ast.hoist_functions_and_structs();
 
-        let expected_hoisted_ast: Ast = Ast::ExpressionList (
-            vec![
-                Ast::SExpr(SExpression::CreateFunction{
-                    identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
-                    function_datatype: Box::new(Ast::Literal(Datatype::Function {
-                        parameters: Box::new(Ast::ExpressionList ( vec![] )),
-                        // empty parameters
-                        body: (Box::new(Ast::Literal(Datatype::Number(32)))),
-                        // just return a number
-                        return_type: Box::new(Ast::Type(TypeInfo::Number)),
+        let expected_hoisted_ast: Ast = Ast::ExpressionList(vec![
+            Ast::SExpr(SExpression::CreateFunction {
+                identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
+                function_datatype: Box::new(Ast::Literal(Datatype::Function {
+                    parameters: Box::new(Ast::ExpressionList(vec![])),
+                    // empty parameters
+                    body: (Box::new(Ast::Literal(Datatype::Number(32)))),
+                    // just return a number
+                    return_type: Box::new(Ast::Type(TypeInfo::Number)),
                         // expect a number
-                    })),
-                }),
-                Ast::SExpr(SExpression::Assignment {
-                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                    ast: Box::new(Ast::Literal(Datatype::Number(6))),
-                }),
-                Ast::SExpr(SExpression::ExecuteFn {
-                    identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
-                    // get the identifier for a
-                    parameters: Box::new(Ast::ExpressionList ( vec![] )),
+                })),
+            }),
+            Ast::SExpr(SExpression::Assignment {
+                identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                ast: Box::new(Ast::Literal(Datatype::Number(6))),
+            }),
+            Ast::SExpr(SExpression::ExecuteFn {
+                identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
+                // get the identifier for a
+                parameters: Box::new(Ast::ExpressionList(vec![])),
                     // provide the function parameters
-                }),
-            ],
-        );
+            }),
+        ]);
 
         assert_eq!(hoisted_ast, expected_hoisted_ast);
-        assert_eq!(Datatype::Number(32), hoisted_ast.evaluate(&mut map).unwrap());
+        assert_eq!(
+            Datatype::Number(32),
+            hoisted_ast.evaluate(&mut map).unwrap()
+        );
     }
 
 

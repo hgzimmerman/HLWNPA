@@ -59,22 +59,20 @@ fn parse_whole_function_number_input_returns_number_test() {
     let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         function_datatype: Box::new(Ast::Literal(Datatype::Function {
-            parameters: Box::new(Ast::ExpressionList (
+            parameters: Box::new(Ast::ExpressionList(
                 vec![Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                         typeInfo: Box::new(Ast::Type ( TypeInfo::Number ))
                     })],
             )),
-            body: Box::new(Ast::ExpressionList (
-                vec![
+            body: Box::new(Ast::ExpressionList(vec![
                     Ast::SExpr(
                     SExpression::Add(
                             Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                             Box::new(Ast::Literal ( Datatype::Number(8))),
                         )
                     )
-                ],
-            )),
+                ])),
             return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),
     });
@@ -94,24 +92,20 @@ fn parse_whole_function_identifier_input_returns_number_test() {
     let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         function_datatype: Box::new(Ast::Literal(Datatype::Function {
-            parameters: Box::new(Ast::ExpressionList (
-                vec![
+            parameters: Box::new(Ast::ExpressionList(vec![
                     Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                         typeInfo: Box::new(Ast::ValueIdentifier("Identifier".to_string()))
                     })
-                ],
-            )),
-            body: Box::new(Ast::ExpressionList (
-                vec![
+                ])),
+            body: Box::new(Ast::ExpressionList(vec![
                     Ast::SExpr(
                         SExpression::Add(
                             Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                             Box::new(Ast::Literal ( Datatype::Number(8))),
                         )
                     )
-                ],
-            )),
+                ])),
             return_type: Box::new(Ast::Type(TypeInfo::Number)),
         })),
     });

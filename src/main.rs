@@ -29,7 +29,7 @@ mod include;
 use datatype::Datatype;
 use ast::*;
 use repl::{repl, create_repl};
-use lang_result::{LangResult,LangError};
+use lang_result::{LangResult, LangError};
 
 use parser::program;
 //use std_functions;
@@ -104,8 +104,12 @@ fn main() {
                             }
 
                         }
-                        IResult::Error(e) => eprintln!("encountered an error while parsing the file: {:?}", e),
-                        IResult::Incomplete(i) => eprintln!("Couldn't parse all of the file: {:?}", i),
+                        IResult::Error(e) => {
+                            eprintln!("encountered an error while parsing the file: {:?}", e)
+                        }
+                        IResult::Incomplete(i) => {
+                            eprintln!("Couldn't parse all of the file: {:?}", i)
+                        }
                     }
                 }
                 Err(e) => eprintln!("Couldn't open file because: {}", e),

@@ -68,4 +68,3 @@ fn parse_string_literal_with_escape_sequences_2() {
     };
     assert_eq!(Ast::Literal(Datatype::String("\n".to_string())), value)
 }
-

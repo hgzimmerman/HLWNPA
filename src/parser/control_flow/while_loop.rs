@@ -36,16 +36,12 @@ mod test {
         };
 
         assert_eq!(
-            Ast::SExpr(
-                SExpression::Loop {
-                   conditional: Box::new(Ast::Literal(Datatype::Bool(true))),
-                   body: Box::new(Ast::ExpressionList (
-                       vec![
-                           Ast::Literal(Datatype::Bool(true))
-                       ]
-                   )),
-                }
-            ),
+            Ast::SExpr(SExpression::Loop {
+                conditional: Box::new(Ast::Literal(Datatype::Bool(true))),
+                body: Box::new(Ast::ExpressionList(
+                    vec![Ast::Literal(Datatype::Bool(true))],
+                )),
+            }),
             value
         )
     }

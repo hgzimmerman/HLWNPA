@@ -116,7 +116,7 @@ mod test {
 
         let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
-            fn_parameters_body_and_return_type: Box::new(Ast::Literal(Datatype::Function {
+            function_datatype: Box::new(Ast::Literal(Datatype::Function {
                 parameters: Box::new(Ast::VecExpression {
                     expressions: vec![Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),

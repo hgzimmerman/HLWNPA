@@ -57,7 +57,7 @@ pub enum SExpression {
     Assignment{ identifier: Box<Ast>, ast: Box<Ast>},
     TypeAssignment{ identifier: Box<Ast>, typeInfo: Box<Ast>},
     FieldAssignment{ identifier: Box<Ast>, ast: Box<Ast>},
-    CreateFunction{identifier: Box<Ast>, fn_parameters_body_and_return_type: Box<Ast>}, //TODO: Consider breaking this into multiple types instead of keeping the body, parameters and return type in one node.
+    CreateFunction{identifier: Box<Ast>, function_datatype: Box<Ast>},
     CreateStruct(Box<Ast>, Box<Ast>),
     Loop{ conditional: Box<Ast>, body: Box<Ast>},
     AccessArray{ identifier: Box<Ast>, index: Box<Ast>},
@@ -140,7 +140,7 @@ impl Ast {
                         Ast::SExpr(ref sexpr)  => {
                             if let SExpression::CreateFunction {
                                 ref identifier,
-                                ref fn_parameters_body_and_return_type
+                                ref function_datatype
                             } = *sexpr {
                                 if let Ast::ValueIdentifier(ref fn_name) = **identifier {
                                     if fn_name.as_str() == MAIN_FUNCTION_NAME {
@@ -233,7 +233,7 @@ impl Ast {
                     SExpression::Assignment {identifier: ref lhs, ast: ref rhs} |
                     SExpression::TypeAssignment {identifier: ref lhs, typeInfo: ref rhs} |
                     SExpression::FieldAssignment {identifier: ref lhs, ast: ref rhs} |
-                    SExpression::CreateFunction{identifier: ref lhs, fn_parameters_body_and_return_type: ref rhs}
+                    SExpression::CreateFunction{identifier: ref lhs, function_datatype: ref rhs}
                     => {
                         if let Ast::ValueIdentifier(ref ident) = **lhs {
                             let mut cloned_map = map.clone(); // since this is a clone, the required righthand expressions will be evaluated in their own 'stack', this modified hashmap will be cleaned up post assignment.
@@ -1133,7 +1133,7 @@ mod test {
                 }),
                 Ast::SExpr(SExpression::CreateFunction {
                     identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
-                    fn_parameters_body_and_return_type: Box::new(Ast::Literal(Datatype::Function {
+                    function_datatype: Box::new(Ast::Literal(Datatype::Function {
                         parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
                         // empty parameters
                         body: (Box::new(Ast::Literal(Datatype::Number(32)))),
@@ -1157,7 +1157,7 @@ mod test {
             expressions: vec![
                 Ast::SExpr(SExpression::CreateFunction{
                     identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
-                    fn_parameters_body_and_return_type: Box::new(Ast::Literal(Datatype::Function {
+                    function_datatype: Box::new(Ast::Literal(Datatype::Function {
                         parameters: Box::new(Ast::VecExpression { expressions: vec![] }),
                         // empty parameters
                         body: (Box::new(Ast::Literal(Datatype::Number(32)))),

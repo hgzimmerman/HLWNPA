@@ -58,11 +58,11 @@ pub enum SExpression {
     TypeAssignment{ identifier: Box<Ast>, typeInfo: Box<Ast>},
     FieldAssignment{ identifier: Box<Ast>, ast: Box<Ast>},
     CreateFunction{identifier: Box<Ast>, function_datatype: Box<Ast>},
-    CreateStruct(Box<Ast>, Box<Ast>),
+    CreateStruct{identifier: Box<Ast>, struct_datatype: Box<Ast>},
     Loop{ conditional: Box<Ast>, body: Box<Ast>},
     AccessArray{ identifier: Box<Ast>, index: Box<Ast>},
-    StructDeclaration(Box<Ast>, Box<Ast>),
-    AccessStructField(Box<Ast>, Box<Ast>),
+    StructDeclaration{identifier: Box<Ast>, struct_type_info: Box<Ast>},
+    AccessStructField{identifier: Box<Ast>, field_identifier: Box<Ast>},
     ExecuteFn{ identifier: Box<Ast>, parameters: Box<Ast>},
     //Unary Operators
     Print(Box<Ast>),
@@ -286,9 +286,9 @@ impl Ast {
                         }
                     }
 
-                    SExpression::StructDeclaration(ref lhs, ref rhs) => return declare_struct(lhs, rhs, map),
-                    SExpression::AccessStructField(ref lhs, ref rhs) => return access_struct_field(lhs, rhs, map),
-                    SExpression::CreateStruct(ref lhs, ref rhs) =>  return create_struct(lhs, rhs, map),
+                    SExpression::StructDeclaration{identifier: ref lhs, struct_type_info: ref rhs} => return declare_struct(lhs, rhs, map),
+                    SExpression::AccessStructField{identifier: ref lhs, field_identifier: ref rhs} => return access_struct_field(lhs, rhs, map),
+                    SExpression::CreateStruct{identifier: ref lhs, struct_datatype: ref rhs} =>  return create_struct(lhs, rhs, map),
                     SExpression::ExecuteFn {ref identifier, ref parameters} => return execute_function(identifier, parameters, map),
                     SExpression::Print(ref expr) => {
                         let datatype_to_print = expr.evaluate(map)?;
@@ -1058,17 +1058,17 @@ mod test {
     #[test]
     fn struct_declaration_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        let ast: Ast = Ast::SExpr(SExpression::StructDeclaration(
-            Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            Box::new(Ast::VecExpression {
+        let ast: Ast = Ast::SExpr(SExpression::StructDeclaration {
+            identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
+            struct_type_info: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::SExpr(SExpression::TypeAssignment{
+                    Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
                         typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
                     }),
                 ],
             }),
-        ));
+        });
 
         let _ = ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
         let mut expected_map = HashMap::new();
@@ -1085,30 +1085,31 @@ mod test {
     #[test]
     fn struct_creation_test() {
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        let declaration_ast: Ast = Ast::SExpr(SExpression::StructDeclaration(
-            Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            Box::new(Ast::VecExpression {
+        let declaration_ast: Ast = Ast::SExpr(SExpression::StructDeclaration {
+            identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
+            struct_type_info: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::SExpr(SExpression::TypeAssignment{
+                    Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
                         typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
                     }),
                 ],
             }),
-        ));
+        });
         let _ = declaration_ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
 
-        let creation_ast: Ast = Ast::SExpr(SExpression::CreateStruct(
-            Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            Box::new(Ast::VecExpression {
+        let creation_ast: Ast = Ast::SExpr(SExpression::CreateStruct {
+            identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
+            struct_datatype: Box::new(Ast::VecExpression {
                 expressions: vec![
-                    Ast::SExpr(SExpression::FieldAssignment{
+                    Ast::SExpr(SExpression::FieldAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                        ast: Box::new(Ast::Literal(Datatype::Number(8))), // assign 8 to field Field1
+                        ast: Box::new(Ast::Literal(Datatype::Number(8))),
+                        // assign 8 to field Field1
                     }),
                 ],
             }),
-        ));
+        });
 
         let struct_instance = creation_ast.evaluate(&mut map).unwrap();
 

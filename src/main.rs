@@ -7,6 +7,7 @@
 extern crate nom;
 extern crate test;
 extern crate clap;
+extern crate regex;
 
 use clap::{Arg, App};
 use nom::IResult;
@@ -25,6 +26,7 @@ mod std_functions;
 #[cfg(test)]
 mod testing;
 mod include;
+mod preprocessor;
 
 use datatype::Datatype;
 use ast::*;

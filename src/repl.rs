@@ -10,10 +10,14 @@ use std::io;
 use std::io::Write;
 
 use std_functions;
+use regex::Regex;
+
+use preprocessor::preprocess;
+
 
 /// Reads and parses
-fn read<'a>(a: &'a str) -> IResult<&'a [u8], Ast> {
-    return program(a.as_bytes());
+fn read<'a>(read_string: &'a str ) -> IResult<&'a [u8], Ast> {
+    return program(read_string.as_bytes());
 }
 
 // Evaluates the AST
@@ -55,7 +59,7 @@ pub fn repl(mut map: &mut HashMap<String, Datatype>) {
     print!("user>");
     let _ = io::stdout().flush();
     for line in stdin.lock().lines() {
-        rep(line.unwrap(), &mut map)
+        prep(&mut line.unwrap().as_str(), &mut map)
     }
 }
 
@@ -68,8 +72,9 @@ pub fn create_repl() {
 }
 
 
-fn rep(a: String, map: &mut HashMap<String, Datatype>) {
-    let parsed = read(a.as_str());
+fn prep(a: &mut &str, map: &mut HashMap<String, Datatype>) {
+    let preprocessed = preprocess(a);
+    let parsed = read(preprocessed.as_str());
     let evaled = evaluate(parsed, map);
     print(evaled)
 }

@@ -39,13 +39,15 @@ named!(pub sexpr_parens<Ast>,
     )
 );
 
-/// This isn't exactly perfect.
+/// This isn't exactly bulletproof, in that this could fail if a binary operator is provided without a rhs.
+/// This relies on the parser always providing a rhs for binary operators.
 fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast {
     match operator {
+        //Unary
         ArithmeticOperator::Increment => Ast::SExpr(SExpression::Increment(Box::new(lhs))),
         ArithmeticOperator::Decrement => Ast::SExpr(SExpression::Decrement(Box::new(lhs))),
         ArithmeticOperator::Negate => Ast::SExpr(SExpression::Invert(Box::new(lhs))),
-
+        //Binary
         ArithmeticOperator::Plus => Ast::SExpr(SExpression::Add(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
         ArithmeticOperator::Minus => Ast::SExpr(SExpression::Subtract(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),
         ArithmeticOperator::Times => Ast::SExpr(SExpression::Multiply(Box::new(lhs), Box::new(rhs.expect("rhs should be present")))),

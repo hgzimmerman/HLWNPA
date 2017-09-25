@@ -67,7 +67,7 @@ addContents( instance )
 Returns: `Number(11)`
 
 # TODO
-* Switch to using S-Expressions, where each operator holds one or more operators or literals. This would replace the current implementation that just has binary and unary expressions that hold the operator and its operands.
+* ~~Switch to using S-Expressions, where each operator holds one or more operators or literals. This would replace the current implementation that just has binary and unary expressions that hold the operator and its operands.~~ S-Expressions are now used.
 * Introduce mutability rules. `const` vs. `let`.
 * Prevent reassignment of Struct and Function names. Currently, you are allowed to set the identifier for a struct's type to be a number, this has wonky concequences for the type system.
 * Investigate Nom's custom error messages. 

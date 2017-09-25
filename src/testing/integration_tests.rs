@@ -23,7 +23,7 @@ mod test {
     //    let executor_ast: Ast = Ast::Expression {
     //        operator: BinaryOperator::ExecuteFn,
     //        expr1: Box::new(Ast::ValueIdentifier("add8ToValue".to_string())),
-    //        expr2: Box::new(Ast::VecExpression {
+    //        expr2: Box::new(Ast::ExpressionList {
     //            expressions: vec![Ast::Literal(Datatype::Number(7))],
     //        }),
     //    };

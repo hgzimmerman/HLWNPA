@@ -35,7 +35,7 @@ named!(pub function<Ast>,
             identifier: Box::new(function_name),
             function_datatype: Box::new(Ast::Literal (
                 Datatype::Function {
-                    parameters: Box::new(Ast::VecExpression( arguments )),
+                    parameters: Box::new(Ast::ExpressionList( arguments )),
                     body: Box::new(body_expressions),
                     return_type: Box::new(return_type)
                 }
@@ -59,13 +59,13 @@ fn parse_whole_function_number_input_returns_number_test() {
     let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         function_datatype: Box::new(Ast::Literal(Datatype::Function {
-            parameters: Box::new(Ast::VecExpression (
+            parameters: Box::new(Ast::ExpressionList (
                 vec![Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
                         typeInfo: Box::new(Ast::Type ( TypeInfo::Number ))
                     })],
             )),
-            body: Box::new(Ast::VecExpression (
+            body: Box::new(Ast::ExpressionList (
                 vec![
                     Ast::SExpr(
                     SExpression::Add(
@@ -94,7 +94,7 @@ fn parse_whole_function_identifier_input_returns_number_test() {
     let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
         function_datatype: Box::new(Ast::Literal(Datatype::Function {
-            parameters: Box::new(Ast::VecExpression (
+            parameters: Box::new(Ast::ExpressionList (
                 vec![
                     Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
@@ -102,7 +102,7 @@ fn parse_whole_function_identifier_input_returns_number_test() {
                     })
                 ],
             )),
-            body: Box::new(Ast::VecExpression (
+            body: Box::new(Ast::ExpressionList (
                 vec![
                     Ast::SExpr(
                         SExpression::Add(

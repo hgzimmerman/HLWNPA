@@ -66,7 +66,7 @@ named!(any_ast<Ast>,
 named!(pub program<Ast>,
     do_parse!(
         e: many1!(ws!(any_ast)) >>
-        (Ast::VecExpression( e ))
+        (Ast::ExpressionList( e ))
     )
 );
 
@@ -81,7 +81,7 @@ named!(function_execution<Ast>,
         >>
         (Ast::SExpr(SExpression::ExecuteFn {
             identifier: Box::new(function_name), // and identifier
-            parameters: Box::new(Ast::VecExpression( arguments))
+            parameters: Box::new(Ast::ExpressionList( arguments))
         }))
     )
 );
@@ -117,13 +117,13 @@ mod test {
         let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
             function_datatype: Box::new(Ast::Literal(Datatype::Function {
-                parameters: Box::new(Ast::VecExpression (
+                parameters: Box::new(Ast::ExpressionList (
                     vec![Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
                         typeInfo: Box::new(Ast::Type(TypeInfo::Number))
                     })],
                 )),
-                body: Box::new(Ast::VecExpression (
+                body: Box::new(Ast::ExpressionList (
                     vec![
                         Ast::SExpr(
                             SExpression::Add(
@@ -138,12 +138,12 @@ mod test {
         });
         let expected_fn_call: Ast = Ast::SExpr(SExpression::ExecuteFn {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
-            parameters: Box::new(Ast::VecExpression (
+            parameters: Box::new(Ast::ExpressionList (
                 vec![Ast::ValueIdentifier("x".to_string())],
             )),
         });
 
-        let expected_program_ast: Ast = Ast::VecExpression (
+        let expected_program_ast: Ast = Ast::ExpressionList (
             vec![
                 expected_assignment,
                 expected_fn,
@@ -177,7 +177,7 @@ mod test {
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
         };
 
-        assert_eq!(Ast::VecExpression ( vec![Ast::ValueIdentifier("x".to_string())] ), value)
+        assert_eq!(Ast::ExpressionList ( vec![Ast::ValueIdentifier("x".to_string())] ), value)
     }
 
 
@@ -190,11 +190,11 @@ mod test {
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
         };
 
-        assert_eq!(Ast::VecExpression (
+        assert_eq!(Ast::ExpressionList (
             vec![Ast::Conditional {
                 condition: Box::new(Ast::Literal(Datatype::Bool(true))),
-                true_expr: Box::new(Ast::VecExpression(vec![Ast::Literal(Datatype::Bool(true))])),
-                false_expr: Some(Box::new(Ast::VecExpression(vec![Ast::Literal(Datatype::Bool(true))])))
+                true_expr: Box::new(Ast::ExpressionList(vec![Ast::Literal(Datatype::Bool(true))])),
+                false_expr: Some(Box::new(Ast::ExpressionList(vec![Ast::Literal(Datatype::Bool(true))])))
             }]
         ), value)
     }
@@ -286,7 +286,7 @@ mod test {
             IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
         };
 
-        assert_eq!(Ast::VecExpression (
+        assert_eq!(Ast::ExpressionList (
             vec![
                 Ast::Literal(Datatype::String("\nHello\nWorld\n".to_string()))
             ]

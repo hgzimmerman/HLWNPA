@@ -14,7 +14,7 @@ pub enum LangError {
     IncrementNonNumber,
     ExecuteNonFunction,
     ReturnTypeDoesNotMatchReturnValue,
-    FunctionParametersShouldBeVecExpression,
+    FunctionParametersShouldBeExpressionList,
     ParameterLengthMismatch,
     InvalidFunctionPrototypeFormatting,
     TypeError { expected: TypeInfo, found: TypeInfo },

@@ -12,7 +12,7 @@ named!(pub body<Ast>,
             many0!(ws!(expression_or_literal_or_identifier_or_assignment)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
             ws!(char!('}'))
         ) >>
-        (Ast::VecExpression( statements ))
+        (Ast::ExpressionList( statements ))
     )
 );
 
@@ -26,7 +26,7 @@ named!(pub body<Ast>,
             ws!(alt!(tag!("thankyou") | tag!("}")))
         ) >>
 
-        (Ast::VecExpression( statements ))
+        (Ast::ExpressionList( statements ))
     )
 );
 
@@ -39,7 +39,7 @@ named!(pub type_assignment_body<Ast>,
             many0!(ws!(type_assignment)),
             ws!(char!('}'))
         ) >>
-        (Ast::VecExpression( statements ))
+        (Ast::ExpressionList( statements ))
     )
 );
 
@@ -50,7 +50,7 @@ named!(pub struct_init_body<Ast>,
             many0!(ws!(struct_value_assignment)),
             ws!(char!('}'))
         ) >>
-        (Ast::VecExpression( statements ))
+        (Ast::ExpressionList( statements ))
     )
 );
 

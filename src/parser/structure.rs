@@ -60,7 +60,7 @@ mod test {
         };
         let expected_struct_ast = Ast::SExpr(SExpression::StructDeclaration {
             identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            struct_type_info: Box::new(Ast::VecExpression (
+            struct_type_info: Box::new(Ast::ExpressionList (
                 vec![
                     Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a_number".to_string())),
@@ -102,7 +102,7 @@ mod test {
         };
         let expected_ast = Ast::SExpr(SExpression::CreateStruct {
             identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
-            struct_datatype: Box::new(Ast::VecExpression (
+            struct_datatype: Box::new(Ast::ExpressionList (
                 vec![
                     Ast::SExpr(SExpression::FieldAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),

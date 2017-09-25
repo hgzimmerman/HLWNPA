@@ -9,7 +9,7 @@ use parser::identifier::identifier;
 use parser::structure::struct_access;
 
 
-
+//Todo create another alt option where just a single token can be accepted, this will allow wrapping of identifiers and literals with () via sexpr_parens, those can then be removed from the top-level program parser as they are covered in the sexpr parser.
 named!(pub sexpr<Ast>,
     alt!(
         complete!(do_parse!(

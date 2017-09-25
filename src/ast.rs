@@ -881,28 +881,28 @@ mod test {
         };
         assert_eq!(Datatype::Number(8), ast.evaluate(&mut map).unwrap())
     }
-//
-//    #[test]
-//    fn conditional_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Conditional {
-//            condition: Box::new(Ast::Literal(Datatype::Bool(true))),
-//            true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
-//            false_expr: None,
-//        };
-//        assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
-//    }
-//
-//    #[test]
-//    fn conditional_with_else_test() {
-//        let mut map: HashMap<String, Datatype> = HashMap::new();
-//        let ast = Ast::Conditional {
-//            condition: Box::new(Ast::Literal(Datatype::Bool(false))),
-//            true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
-//            false_expr: Some(Box::new(Ast::Literal(Datatype::Number(2)))),
-//        };
-//        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
-//    }
+
+    #[test]
+    fn conditional_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::Conditional {
+            condition: Box::new(Ast::Literal(Datatype::Bool(true))),
+            true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
+            false_expr: None,
+        };
+        assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
+    }
+
+    #[test]
+    fn conditional_with_else_test() {
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let ast = Ast::Conditional {
+            condition: Box::new(Ast::Literal(Datatype::Bool(false))),
+            true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
+            false_expr: Some(Box::new(Ast::Literal(Datatype::Number(2)))),
+        };
+        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
+    }
 //
 //    #[test]
 //    fn basic_function_test() {

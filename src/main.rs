@@ -79,7 +79,9 @@ fn main() {
                         Err(e) => eprintln!("Couldn't read the file {} because: {}", filename, e),
                     }
 
-                    match program(file_contents.as_bytes()) {
+                    let preprocessed_program = preprocessor::preprocess(file_contents.as_str()); // run the preprocessor
+
+                    match program(preprocessed_program.as_bytes()) {
                         IResult::Done(_, ast) => {
                             let mut map: HashMap<String, Datatype> = HashMap::new();
                             std_functions::add_std_functions(&mut map);

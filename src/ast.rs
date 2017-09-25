@@ -63,18 +63,12 @@ pub enum SExpression {
     LessThan(Box<Ast>, Box<Ast>),
     GreaterThanOrEqual(Box<Ast>, Box<Ast>),
     LessThanOrEqual(Box<Ast>, Box<Ast>),
-    Assignment {
-        identifier: Box<Ast>,
-        ast: Box<Ast>
-    },
+    Assignment { identifier: Box<Ast>, ast: Box<Ast> },
     TypeAssignment {
         identifier: Box<Ast>,
         typeInfo: Box<Ast>,
     },
-    FieldAssignment {
-        identifier: Box<Ast>,
-        ast: Box<Ast>
-    },
+    FieldAssignment { identifier: Box<Ast>, ast: Box<Ast> },
     CreateFunction {
         identifier: Box<Ast>,
         function_datatype: Box<Ast>,
@@ -489,7 +483,11 @@ fn access_struct_field(
 /// Create a new map that will represent the binding between the fields in the struct and the types they should have when instansiated.
 /// Insert into the map these field-type pairs.
 /// Create a new StructType from the new map and return it.
-fn declare_struct(identifier: &Ast, struct_type_assignments: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
+fn declare_struct(
+    identifier: &Ast,
+    struct_type_assignments: &Ast,
+    map: &mut HashMap<String, Datatype>,
+) -> LangResult {
     if let Ast::ValueIdentifier(ref struct_type_identifier) = *identifier {
         if let Ast::ExpressionList(ref expressions) = *struct_type_assignments {
 
@@ -601,7 +599,11 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
 /// Evaluate the function with the substituted datatypes as input.
 /// Check if the return type is the same as was expected by the function.
 /// Return the return value.
-fn execute_function(identifier: &Ast, function: &Ast, map: &HashMap<String, Datatype>) -> LangResult {
+fn execute_function(
+    identifier: &Ast,
+    function: &Ast,
+    map: &HashMap<String, Datatype>,
+) -> LangResult {
     let mut cloned_map = map.clone(); // clone the map, to create a temporary new "stack" for the life of the function
 
     // evaluate the parameters
@@ -1029,15 +1031,11 @@ mod test {
                     parameters: Box::new(Ast::ExpressionList(vec![
                         Ast::SExpr(SExpression::TypeAssignment {
                             identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
-                            // the value's name is b
                             typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
-                                    // fn takes a number
                         }),
                     ])),
-                    body: (Box::new(Ast::ValueIdentifier("b".to_string()))),
-                    // just return the number passed in.
-                    return_type: Box::new(Ast::Type(TypeInfo::Number)),
-                        // expect a number to be returned
+                    body: (Box::new(Ast::ValueIdentifier("b".to_string()))), // just return the number passed in.
+                    return_type: Box::new(Ast::Type(TypeInfo::Number)), // expect a number to be returned
                 })),
             }),
             Ast::SExpr(SExpression::ExecuteFn {

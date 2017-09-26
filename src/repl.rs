@@ -10,7 +10,6 @@ use std::io;
 use std::io::Write;
 
 use std_functions;
-use regex::Regex;
 
 use preprocessor::preprocess;
 

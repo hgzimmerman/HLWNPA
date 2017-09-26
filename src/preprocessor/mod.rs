@@ -1,5 +1,3 @@
-use regex::Regex;
-use std::borrow::Cow;
 
 pub fn preprocess(string: &str) -> String {
     replace_escapes(string)

@@ -7,7 +7,6 @@
 extern crate nom;
 extern crate test;
 extern crate clap;
-extern crate regex;
 
 use clap::{Arg, App};
 use nom::IResult;

@@ -8,25 +8,13 @@ pub fn preprocess(string: &str) -> String {
 
 /// This replaces \\<escape> instances with \<escape>.
 /// The readline functionality sanitizes these escapes with the double backslash, this returns them to the form they were entered with.
-// TODO: This uses 4+ regexes to alter 4+ different strings, this should be able to be accomplished in a single pass
-// This absolutely tanks the speed of the parsing step about 8 times slower for small minimal programs.
 fn replace_escapes(string: &str) -> String {
-    let newline_re = Regex::new(r"\\n").unwrap();
-    let newline_string = newline_re.replace_all(string, "\n").to_string();
-
-    let tab_re = Regex::new(r"\\t").unwrap();
-    let tab_string = tab_re.replace_all(newline_string.as_str(), "\t").to_string();
-
-    let return_re = Regex::new(r"\\r").unwrap();
-    let return_string = return_re.replace_all(tab_string.as_str(), "\r").to_string();
-
-    let backslash_re = Regex::new(r"\\\\").unwrap();
-    let backslash_string = backslash_re.replace_all(return_string.as_str(), "\\").to_string();
-
-    let double_quote_re = Regex::new(r#"\\""#).unwrap();
-    let double_quote_string = double_quote_re.replace_all(backslash_string.as_str(), "\"").to_string();
-
-    double_quote_string
+    let string = string.to_string();
+    string.replace("\\n","\n")
+        .replace("\\t", "\t")
+        .replace("\\r", "\r")
+        .replace("\\\\","\\")
+        .replace(r#"\""#, "\"")
 }
 
 #[test]

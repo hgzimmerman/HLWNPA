@@ -70,7 +70,7 @@ named!(pub program<Ast>,
     )
 );
 
-named!(function_execution<Ast>,
+named!(pub function_execution<Ast>,
     do_parse!(
         function_name: identifier >>
         arguments: delimited!(

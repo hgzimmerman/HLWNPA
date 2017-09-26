@@ -2,19 +2,26 @@
 use nom::*;
 use ast::{Ast, ArithmeticOperator, SExpression};
 
-use parser::operators::{arithmetic_binary_operator, arithmetic_unary_operator, negate};
+use parser::operators::{arithmetic_binary_operator, arithmetic_unary_operator, negate, arithmetic_binary_multiplicative_operator };
 use parser::{expression_or_literal_or_identifier_or_struct_or_array,
              literal_or_expression_identifier_or_struct_or_array};
 use parser::literal::literal;
 use parser::identifier::identifier;
 use parser::structure::struct_access;
+use parser::function_execution;
 
 
 //Todo create another alt option where just a single token can be accepted, this will allow wrapping of identifiers and literals with () via sexpr_parens, those can then be removed from the top-level program parser as they are covered in the sexpr parser.
 named!(pub sexpr<Ast>,
     alt!(
         complete!(do_parse!(
-            lhs: alt!( literal | struct_access | identifier | sexpr_parens ) >> // TODO, make this alt allow access to literals and variable accesses, but not explicit expressions, stack overflow errors.
+            lhs: alt!( sexpr_multiplicative ) >>
+            operator: arithmetic_binary_operator >>
+            rhs: expression_or_literal_or_identifier_or_struct_or_array>>
+            (create_sexpr(operator, lhs, Some(rhs)))
+        )) |
+        complete!(do_parse!(
+            lhs: alt!( literal | struct_access | identifier | sexpr_parens ) >>
             operator: arithmetic_binary_operator >>
             rhs: expression_or_literal_or_identifier_or_struct_or_array >>
             (create_sexpr(operator, lhs, Some(rhs)))
@@ -28,7 +35,10 @@ named!(pub sexpr<Ast>,
             operator: negate >>
             lhs: literal_or_expression_identifier_or_struct_or_array >>
             (create_sexpr(operator, lhs, None))
-        ))
+        )) |
+        complete!(
+             ws!(alt!( literal | struct_access | function_execution | identifier )) // match any of these types
+        )
     )
 );
 
@@ -39,6 +49,16 @@ named!(pub sexpr_parens<Ast>,
         ws!(char!(')'))
     )
 );
+
+named!(sexpr_multiplicative<Ast>,
+    do_parse!(
+        lhs: alt!( literal | struct_access | function_execution | identifier) >>
+        operator: arithmetic_binary_multiplicative_operator >>
+        rhs: alt!( complete!(sexpr_multiplicative) | literal | struct_access | function_execution | identifier) >>
+        (create_sexpr(operator, lhs, Some(rhs)))
+    )
+);
+
 
 /// This isn't exactly bulletproof, in that this could fail if a binary operator is provided without a rhs.
 /// This relies on the parser always providing a rhs for binary operators.
@@ -228,20 +248,20 @@ mod test {
         );
     }
 
-    ///Not supported syntax
-    //    #[test]
-    //    fn sexpr_parens_negate_parse() {
-    //        let (_, value) = match sexpr(b"!(true)") {
-    //            IResult::Done(r, v) => (r, v),
-    //            IResult::Error(e) => panic!("{:?}", e),
-    //            _ => panic!(),
-    //        };
-    //        assert_eq!(
-    //            Ast::SExpr(SExpression::Invert(
-    //                Box::new(Ast::Literal(Datatype::Bool(true))),
-    //            )
-    //        ), value);
-    //    }
+    #[test]
+    fn sexpr_parens_negate_parse_1() {
+        let (_, value) = match sexpr(b"!(true)") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::Invert(
+                Box::new(Ast::Literal(Datatype::Bool(true))),
+            )
+        ), value);
+    }
+
     #[test]
     fn sexpr_parens_negate_parse() {
         let (_, value) = match sexpr_parens(b"(!true)") {
@@ -252,6 +272,146 @@ mod test {
         assert_eq!(
             Ast::SExpr(SExpression::Invert(
                 Box::new(Ast::Literal(Datatype::Bool(true))),
+            )),
+            value
+        );
+    }
+
+    #[test]
+    fn sexpr_mult_parse() {
+        let (_, value) = match sexpr_multiplicative(b"10 * 3") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::Multiply(
+                Box::new(Ast::Literal(Datatype::Number(10))),
+                Box::new(Ast::Literal(Datatype::Number(3))),
+            )),
+            value
+        );
+    }
+
+    #[test]
+    fn sexpr_precedence_1_parse() {
+        let (_, value) = match sexpr(b"10 * 3 + 1") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::Add(
+                Box::new(Ast::SExpr(SExpression::Multiply(
+                    Box::new(Ast::Literal(Datatype::Number(10))),
+                    Box::new(Ast::Literal(Datatype::Number(3))),
+                ))),
+                Box::new(Ast::Literal(Datatype::Number(1))),
+            )),
+            value
+        );
+    }
+
+    #[test]
+    fn sexpr_precedence_2_parse() {
+        let (_, value) = match sexpr(b"(10 * 3) + 1") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::Add(
+                Box::new(Ast::SExpr(SExpression::Multiply(
+                    Box::new(Ast::Literal(Datatype::Number(10))),
+                    Box::new(Ast::Literal(Datatype::Number(3))),
+                ))),
+                Box::new(Ast::Literal(Datatype::Number(1))),
+            )),
+            value
+        );
+    }
+
+    #[test]
+    fn sexpr_precedence_3_parse() {
+        let (_, value) = match sexpr(b"2 + 10 * 3 + 1") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::Add(
+                Box::new(Ast::Literal(Datatype::Number(2))),
+                Box::new(Ast::SExpr(SExpression::Add(
+                    Box::new(Ast::SExpr(SExpression::Multiply(
+                        Box::new(Ast::Literal(Datatype::Number(10))),
+                        Box::new(Ast::Literal(Datatype::Number(3))),
+                    ))),
+                    Box::new(Ast::Literal(Datatype::Number(1))),
+                )))
+            )),
+            value
+        );
+    }
+
+    #[test]
+    fn sexpr_precedence_4_parse() {
+        let (_, value) = match sexpr(b"10 * 3 * 2") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::Multiply(
+                Box::new(Ast::Literal(Datatype::Number(10))),
+                Box::new(Ast::SExpr(SExpression::Multiply(
+                    Box::new(Ast::Literal(Datatype::Number(3))),
+                    Box::new(Ast::Literal(Datatype::Number(2))),
+                ))),
+            )),
+            value
+        );
+    }
+
+    #[test]
+    fn sexpr_precedence_5_parse() {
+        let (_, value) = match sexpr(b"10 * 3 * 2 + 1") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+
+        use std::collections::HashMap;
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        assert_eq!(value.evaluate(&mut map).unwrap(), Datatype::Number(61));
+        assert_eq!(
+            Ast::SExpr(SExpression::Add(
+                Box::new(Ast::SExpr(SExpression::Multiply(
+                    Box::new(Ast::Literal(Datatype::Number(10))),
+                    Box::new(Ast::SExpr(SExpression::Multiply(
+                        Box::new(Ast::Literal(Datatype::Number(3))),
+                        Box::new(Ast::Literal(Datatype::Number(2))),
+                    ))),
+                ))),
+                Box::new(Ast::Literal(Datatype::Number(1)))
+            )),
+            value
+        );
+    }
+
+    #[test]
+    fn sexpr_precedence_6_parse() {
+        let (_, value) = match sexpr(b"2 + 10 * 3 ") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::Add(
+                Box::new(Ast::Literal(Datatype::Number(2))),
+                Box::new(Ast::SExpr(SExpression::Multiply(
+                    Box::new(Ast::Literal(Datatype::Number(10))),
+                    Box::new(Ast::Literal(Datatype::Number(3))),
+                ))),
             )),
             value
         );

@@ -107,6 +107,13 @@ named!( pub arithmetic_binary_operator<ArithmeticOperator>,
     ))
 );
 
+named!( pub arithmetic_binary_multiplicative_operator<ArithmeticOperator>,
+    ws!(alt!(
+        multiply |
+        divide
+    ))
+);
+
 named!( pub arithmetic_unary_operator<ArithmeticOperator>,
     ws!(alt!(
         increment |

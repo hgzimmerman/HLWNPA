@@ -5,11 +5,11 @@ use std::boxed::Box;
 use super::literal::number::number_literal;
 use super::literal::literal;
 use super::identifier::identifier;
-use super::utilities::expression_or_literal_or_identifier;
+use super::function_execution;
 
 named!(pub array_access<Ast>,
     do_parse!(
-        array: alt!(identifier | literal) >>
+        array: alt!( function_execution | literal | identifier) >>
         index: delimited!(
             ws!(char!('[')),
             number_literal,

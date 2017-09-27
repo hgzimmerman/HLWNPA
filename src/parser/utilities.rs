@@ -79,7 +79,7 @@ named!(pub no_keyword_token_group <Ast>,
     alt!(
         complete!(literal) |
         complete!(struct_access) |
-//        complete!(array_access) |
+        complete!(array_access) |
         complete!(function_execution) |
         complete!(identifier) |
         complete!(sexpr_parens)

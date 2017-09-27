@@ -3,11 +3,13 @@ use ast::{Ast, SExpression};
 use nom::*;
 use std::boxed::Box;
 use super::literal::number::number_literal;
+use super::literal::literal;
+use super::identifier::identifier;
 use super::utilities::expression_or_literal_or_identifier;
 
 named!(pub array_access<Ast>,
     do_parse!(
-        array: expression_or_literal_or_identifier >>
+        array: alt!(identifier | literal) >>
         index: delimited!(
             ws!(char!('[')),
             number_literal,

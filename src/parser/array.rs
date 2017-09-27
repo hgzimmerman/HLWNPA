@@ -12,7 +12,7 @@ named!(pub array_access<Ast>,
         array: alt!( function_execution | literal | identifier) >>
         index: delimited!(
             ws!(char!('[')),
-            number_literal,
+            number_literal, // TODO, make this a sexpr, adjust the AST accordingly.
             ws!(char!(']'))
         ) >>
         (Ast::SExpr(SExpression::AccessArray {

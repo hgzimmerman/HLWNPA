@@ -32,10 +32,17 @@ named!(pub sexpr<Ast>,
            rhs: expression_or_literal_or_identifier_or_struct_or_array >>
            (create_sexpr(operator, lhs, Some(rhs)))
         )) |
-        // captures addition, subtraction. Will be evaluated left to right.
+        // captures + -. Will be evaluated left to right.
         complete!(do_parse!(
            lhs: complete!(sexpr_additive) >>
            operator: alt!( arithmetic_binary_multiplicative_operator | arithmetic_binary_operator ) >>
+           rhs: alt!(expression_or_literal_or_identifier_or_struct_or_array) >>
+           (create_sexpr(operator, lhs, Some(rhs)))
+        )) |
+        // captures > < >= <=
+        complete!(do_parse!(
+           lhs: complete!(sexpr_inequality) >>
+           operator: alt!( arithmetic_binary_multiplicative_operator | arithmetic_binary_inequality_operator | arithmetic_binary_operator ) >>
            rhs: alt!(expression_or_literal_or_identifier_or_struct_or_array) >>
            (create_sexpr(operator, lhs, Some(rhs)))
         )) |
@@ -49,7 +56,7 @@ named!(pub sexpr<Ast>,
         )) |
         // catchall, will catch the last two (or one) elements and their operator.
         complete!(
-             ws!(alt!( sexpr_multiplicative | sexpr_additive | literal | struct_access | function_execution | identifier ))
+             ws!(alt!( sexpr_multiplicative | sexpr_additive | sexpr_inequality | literal | struct_access | function_execution | identifier ))
         )
     )
 );
@@ -80,6 +87,18 @@ named!(sexpr_additive<Ast>,
         rhs_operator_extensions: many1!(do_parse!(
             operator: alt!(arithmetic_binary_additive_operator)>>
             rhs: alt!( complete!(sexpr_multiplicative) | literal | struct_access | identifier | sexpr_parens ) >>
+            ((operator, Some(rhs)))
+        )) >>
+        (create_sexpr_group_left(lhs, rhs_operator_extensions))
+    )
+);
+
+named!(sexpr_inequality<Ast>,
+    do_parse!(
+        lhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
+        rhs_operator_extensions: many1!(do_parse!(
+            operator: alt!(arithmetic_binary_inequality_operator)>>
+            rhs: alt!( complete!(sexpr_multiplicative) | complete!(sexpr_additive) | literal | struct_access | identifier | sexpr_parens ) >>
             ((operator, Some(rhs)))
         )) >>
         (create_sexpr_group_left(lhs, rhs_operator_extensions))
@@ -352,6 +371,22 @@ mod test {
     }
 
     #[test]
+    fn sexpr_ineq_parse() {
+        let (_, value) = match sexpr_inequality(b"10 > 3") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+        Ast::SExpr(SExpression::GreaterThan(
+            Box::new(Ast::Literal(Datatype::Number(10))),
+            Box::new(Ast::Literal(Datatype::Number(3))),
+        )),
+        value
+        );
+    }
+
+    #[test]
     fn sexpr_precedence_1_parse() {
         let (_, value) = match sexpr(b"10 * 3 + 1") {
             IResult::Done(r, v) => (r, v),
@@ -495,6 +530,43 @@ mod test {
                 Box::new(Ast::Literal(Datatype::Number(1)))
             )),
             value
+        );
+    }
+
+    #[test]
+    fn sexpr_precedence_8_parse() {
+        let (_, value) = match sexpr(b"10 > 3 + 5") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+        Ast::SExpr(SExpression::GreaterThan(
+            Box::new(Ast::Literal(Datatype::Number(10))),
+            Box::new(Ast::SExpr(SExpression::Add(
+                Box::new(Ast::Literal(Datatype::Number(3))),
+                Box::new(Ast::Literal(Datatype::Number(5)))
+            )))
+        )),
+        value
+        );
+    }
+       #[test]
+    fn sexpr_precedence_9_parse() {
+        let (_, value) = match sexpr(b"x > 3 + 5") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+        Ast::SExpr(SExpression::GreaterThan(
+            Box::new(Ast::ValueIdentifier("x".to_string())),
+            Box::new(Ast::SExpr(SExpression::Add(
+                Box::new(Ast::Literal(Datatype::Number(3))),
+                Box::new(Ast::Literal(Datatype::Number(5)))
+            )))
+        )),
+        value
         );
     }
 

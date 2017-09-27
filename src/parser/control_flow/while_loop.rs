@@ -45,4 +45,27 @@ mod test {
             value
         )
     }
+
+        #[test]
+    fn parse_while_loop_2() {
+        let input_string = "while (x > 5) { true }";
+        let (_, value) = match while_loop(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+
+        assert_eq!(
+            Ast::SExpr(SExpression::Loop {
+                conditional: Box::new(Ast::SExpr(SExpression::GreaterThan(
+                    Box::new(Ast::ValueIdentifier("x".to_string())),
+                    Box::new(Ast::Literal(Datatype::Number(5)))
+                ))),
+                body: Box::new(Ast::ExpressionList(
+                    vec![Ast::Literal(Datatype::Bool(true))],
+                )),
+            }),
+            value
+        )
+    }
 }

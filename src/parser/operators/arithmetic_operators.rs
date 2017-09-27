@@ -99,11 +99,11 @@ named!( pub arithmetic_binary_operator<ArithmeticOperator>,
 //        divide |
 //        modulo |
         equals |
-        not_equals |
-        greater_than_or_eq | // try to match these before the normal greater_than or less_than operators, because those parsers will preemptivly match input like "<=" leaving the "=" as the remainder of input, causing the next parser to fail.
-        less_than_or_eq |
-        greater_than |
-        less_than
+        not_equals
+//        greater_than_or_eq | // try to match these before the normal greater_than or less_than operators, because those parsers will preemptivly match input like "<=" leaving the "=" as the remainder of input, causing the next parser to fail.
+//        less_than_or_eq |
+//        greater_than |
+//        less_than
     ))
 );
 

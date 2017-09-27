@@ -69,6 +69,19 @@ named!(less_than_or_eq<ArithmeticOperator>,
         tag!("<=")
     )
 );
+named!(logical_and<ArithmeticOperator>,
+    value!(
+        ArithmeticOperator::LogicalAnd,
+        tag!("&&")
+    )
+);
+named!(logical_or<ArithmeticOperator>,
+    value!(
+        ArithmeticOperator::LogicalOr,
+        tag!("||")
+    )
+);
+
 
 named!(pub negate<ArithmeticOperator>,
     value!(
@@ -107,7 +120,10 @@ named!( pub arithmetic_binary_operator<ArithmeticOperator>,
         less_than |
 
         equals |
-        not_equals
+        not_equals |
+
+        logical_and |
+        logical_or
     ))
 );
 
@@ -142,6 +158,13 @@ named!( pub arithmetic_binary_equality_operator<ArithmeticOperator>,
     ws!(alt!(
         equals |
         not_equals
+    ))
+);
+
+named!( pub arithmetic_binary_boolean_operator<ArithmeticOperator>,
+    ws!(alt!(
+        logical_and |
+        logical_or
     ))
 );
 

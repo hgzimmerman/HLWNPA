@@ -45,6 +45,8 @@ pub enum ArithmeticOperator {
     LessThan,
     GreaterThanOrEqual,
     LessThanOrEqual,
+    LogicalAnd,
+    LogicalOr
 }
 
 /// Operators that store their operands.

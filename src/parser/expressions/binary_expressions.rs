@@ -63,6 +63,12 @@ named!(pub sexpr<Ast>,
            rhs: alt!(expression_or_literal_or_identifier_or_struct_or_array) >>
            (create_sexpr(operator, lhs, Some(rhs)))
         )) |
+        complete!(do_parse!(
+           lhs: complete!(sexpr_boolean) >>
+           operator: arithmetic_binary_operator >>
+           rhs: alt!(expression_or_literal_or_identifier_or_struct_or_array) >>
+           (create_sexpr(operator, lhs, Some(rhs)))
+        )) |
 
         // catchall, will catch the last two (or one) elements and their operator.
         // All binary capture groups must be enumerated in this alt in their order of appearance above.
@@ -137,6 +143,17 @@ named!(sexpr_equality<Ast>,
     )
 );
 
+named!(sexpr_boolean<Ast>,
+    do_parse!(
+        lhs: no_keyword_token_group >>
+        rhs_operator_extensions: many1!(do_parse!(
+            operator: alt!(arithmetic_binary_boolean_operator)>>
+            rhs: alt!( complete!(sexpr_multiplicative) | complete!(sexpr_additive) | complete!(sexpr_inequality) | complete!(sexpr_equality) | literal | struct_access | identifier | sexpr_parens ) >>
+            ((operator, Some(rhs)))
+        )) >>
+        (create_sexpr_group_left(lhs, rhs_operator_extensions))
+    )
+);
 
 /// This isn't exactly bulletproof, in that this function could terminate the program if a binary operator is provided without a rhs.
 /// Therefore, this relies on the parser always providing a rhs for binary operators.
@@ -188,6 +205,14 @@ fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast
             Box::new(rhs.expect("rhs should be present")),
         )),
         ArithmeticOperator::LessThanOrEqual => Ast::SExpr(SExpression::LessThanOrEqual(
+            Box::new(lhs),
+            Box::new(rhs.expect("rhs should be present")),
+        )),
+        ArithmeticOperator::LogicalAnd => Ast::SExpr(SExpression::LogicalAnd(
+            Box::new(lhs),
+            Box::new(rhs.expect("rhs should be present")),
+        )),
+        ArithmeticOperator::LogicalOr => Ast::SExpr(SExpression::LogicalOr(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),

@@ -63,6 +63,8 @@ pub enum SExpression {
     LessThan(Box<Ast>, Box<Ast>),
     GreaterThanOrEqual(Box<Ast>, Box<Ast>),
     LessThanOrEqual(Box<Ast>, Box<Ast>),
+    LogicalAnd(Box<Ast>, Box<Ast>),
+    LogicalOr(Box<Ast>, Box<Ast>),
     Assignment { identifier: Box<Ast>, ast: Box<Ast> },
     TypeAssignment {
         identifier: Box<Ast>,
@@ -264,6 +266,50 @@ impl Ast {
                     }
                     SExpression::LessThanOrEqual(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? <= rhs.evaluate(map)? {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    }
+                    SExpression::LogicalAnd(ref lhs, ref rhs) => {
+                        let lhs_bool: bool = match rhs.evaluate(map)? {
+                            Datatype::Bool(b) => b,
+                            _ => return Err(LangError::TypeError {
+                                expected: (TypeInfo::Bool),
+                                found: (TypeInfo::from(lhs.evaluate(&mut map.clone())?))
+                            })
+                        };
+                        let rhs_bool: bool = match rhs.evaluate(map)? {
+                            Datatype::Bool(b) => b,
+                            _ => return Err(LangError::TypeError {
+                                expected: (TypeInfo::Bool),
+                                found: (TypeInfo::from(rhs.evaluate(&mut map.clone())?))
+                            })
+                        };
+
+                        if lhs_bool && rhs_bool {
+                            return Ok(Datatype::Bool(true));
+                        } else {
+                            return Ok(Datatype::Bool(false));
+                        }
+                    }
+                    SExpression::LogicalOr(ref lhs, ref rhs) => {
+                        let lhs_bool: bool = match rhs.evaluate(map)? {
+                            Datatype::Bool(b) => b,
+                            _ => return Err(LangError::TypeError {
+                                expected: (TypeInfo::Bool),
+                                found: (TypeInfo::from(lhs.evaluate(&mut map.clone())?))
+                            })
+                        };
+                        let rhs_bool: bool = match rhs.evaluate(map)? {
+                            Datatype::Bool(b) => b,
+                            _ => return Err(LangError::TypeError {
+                                expected: (TypeInfo::Bool),
+                                found: (TypeInfo::from(rhs.evaluate(&mut map.clone())?))
+                            })
+                        };
+
+                        if lhs_bool || rhs_bool {
                             return Ok(Datatype::Bool(true));
                         } else {
                             return Ok(Datatype::Bool(false));

@@ -95,9 +95,9 @@ named!( pub arithmetic_binary_operator<ArithmeticOperator>,
     ws!(alt!(
         plus |
         minus |
-        multiply |
-        divide |
-        modulo |
+//       multiply |
+//        divide |
+//        modulo |
         equals |
         not_equals |
         greater_than_or_eq | // try to match these before the normal greater_than or less_than operators, because those parsers will preemptivly match input like "<=" leaving the "=" as the remainder of input, causing the next parser to fail.
@@ -110,7 +110,31 @@ named!( pub arithmetic_binary_operator<ArithmeticOperator>,
 named!( pub arithmetic_binary_multiplicative_operator<ArithmeticOperator>,
     ws!(alt!(
         multiply |
-        divide
+        divide |
+        modulo
+    ))
+);
+
+named!( pub arithmetic_binary_additive_operator<ArithmeticOperator>,
+    ws!(alt!(
+        plus |
+        minus
+    ))
+);
+
+named!( pub arithmetic_binary_inequality_operator<ArithmeticOperator>,
+    ws!(alt!(
+        greater_than |
+        less_than |
+        greater_than_or_eq |
+        less_than_or_eq
+    ))
+);
+
+named!( pub arithmetic_binary_equality_operator<ArithmeticOperator>,
+    ws!(alt!(
+        equals |
+        not_equals
     ))
 );
 

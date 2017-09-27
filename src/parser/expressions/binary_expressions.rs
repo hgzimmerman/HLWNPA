@@ -15,18 +15,6 @@ use parser::function_execution;
 named!(pub sexpr<Ast>,
     alt!(
         complete!(do_parse!(
-            lhs: alt!( sexpr_multiplicative ) >>
-            operator: arithmetic_binary_operator >>
-            rhs: expression_or_literal_or_identifier_or_struct_or_array>>
-            (create_sexpr(operator, lhs, Some(rhs)))
-        )) |
-        complete!(do_parse!(
-            lhs: alt!( literal | struct_access | identifier | sexpr_parens ) >>
-            operator: arithmetic_binary_operator >>
-            rhs: expression_or_literal_or_identifier_or_struct_or_array >>
-            (create_sexpr(operator, lhs, Some(rhs)))
-        )) |
-        complete!(do_parse!(
             lhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
             operator:  arithmetic_unary_operator >>
             (create_sexpr(operator, lhs, None))
@@ -36,8 +24,28 @@ named!(pub sexpr<Ast>,
             lhs: literal_or_expression_identifier_or_struct_or_array >>
             (create_sexpr(operator, lhs, None))
         )) |
+        complete!(do_parse!(
+           lhs: complete!(sexpr_multiplicative) >>
+           operator: arithmetic_binary_operator >>
+           rhs: expression_or_literal_or_identifier_or_struct_or_array >>
+           (create_sexpr(operator, lhs, Some(rhs)))
+        )) |
+
+//        complete!(do_parse!(
+//            lhs: alt!( sexpr_multiplicative ) >>
+//            operator: arithmetic_binary_operator >>
+//            rhs: alt!( sexpr_multiplicative | expression_or_literal_or_identifier_or_struct_or_array) >>
+//            (create_sexpr(operator, lhs, Some(rhs)))
+//        )) |
+        complete!(do_parse!(
+            lhs: alt!( literal | struct_access | identifier | sexpr_parens ) >>
+            operator: arithmetic_binary_operator >>
+            rhs: expression_or_literal_or_identifier_or_struct_or_array >>
+            (create_sexpr(operator, lhs, Some(rhs)))
+        )) |
+
         complete!(
-             ws!(alt!( literal | struct_access | function_execution | identifier )) // match any of these types
+             ws!(alt!( sexpr_multiplicative | literal | struct_access | function_execution | identifier )) // match any of these types
         )
     )
 );
@@ -52,10 +60,23 @@ named!(pub sexpr_parens<Ast>,
 
 named!(sexpr_multiplicative<Ast>,
     do_parse!(
+        lhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
+        rhs_operator_extensions: many1!(do_parse!(
+            operator: alt!(arithmetic_binary_multiplicative_operator)>>
+            rhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
+            ((operator, Some(rhs)))
+        )) >>
+        (create_sexpr_group_left(lhs, rhs_operator_extensions))
+    )
+);
+
+
+
+named!(lhs_and_multiplicative<(Ast, ArithmeticOperator)>,
+    do_parse!(
         lhs: alt!( literal | struct_access | function_execution | identifier) >>
         operator: arithmetic_binary_multiplicative_operator >>
-        rhs: alt!( complete!(sexpr_multiplicative) | literal | struct_access | function_execution | identifier) >>
-        (create_sexpr(operator, lhs, Some(rhs)))
+        ((lhs, operator))
     )
 );
 
@@ -63,6 +84,7 @@ named!(sexpr_multiplicative<Ast>,
 /// This isn't exactly bulletproof, in that this could fail if a binary operator is provided without a rhs.
 /// This relies on the parser always providing a rhs for binary operators.
 fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast {
+//    println!("create_sexpr lhs:{:?}, rhs{:?}", lhs, rhs);
     match operator {
         //Unary
         ArithmeticOperator::Increment => Ast::SExpr(SExpression::Increment(Box::new(lhs))),
@@ -115,6 +137,17 @@ fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast
         )),
     }
 }
+
+fn create_sexpr_group_left(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast>)>) -> Ast {
+//    println!("Create_sexpr_group_left lhs:{:?}, rhss{:?}", lhs, rhss);
+    let mut lhs = lhs;
+    for op_and_rhs in rhss {
+        let (op, rhs) = op_and_rhs.clone();
+        lhs = create_sexpr(op, lhs, rhs) // Group the current lhs with the current rhs and its operator. This will cause a left to right evaluation.
+    }
+    return lhs;
+}
+
 
 #[cfg(test)]
 mod test {
@@ -294,6 +327,25 @@ mod test {
     }
 
     #[test]
+    fn sexpr_div_parse() {
+        let (_, value) = match sexpr_multiplicative(b"10 / 3") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        use std::collections::HashMap;
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        assert_eq!(value.evaluate(&mut map).unwrap(), Datatype::Number(3));
+        assert_eq!(
+            Ast::SExpr(SExpression::Divide(
+                Box::new(Ast::Literal(Datatype::Number(10))),
+                Box::new(Ast::Literal(Datatype::Number(3))),
+            )),
+            value
+        );
+    }
+
+    #[test]
     fn sexpr_precedence_1_parse() {
         let (_, value) = match sexpr(b"10 * 3 + 1") {
             IResult::Done(r, v) => (r, v),
@@ -362,11 +414,11 @@ mod test {
         };
         assert_eq!(
             Ast::SExpr(SExpression::Multiply(
-                Box::new(Ast::Literal(Datatype::Number(10))),
                 Box::new(Ast::SExpr(SExpression::Multiply(
+                    Box::new(Ast::Literal(Datatype::Number(10))),
                     Box::new(Ast::Literal(Datatype::Number(3))),
-                    Box::new(Ast::Literal(Datatype::Number(2))),
                 ))),
+                Box::new(Ast::Literal(Datatype::Number(2))),
             )),
             value
         );
@@ -382,20 +434,20 @@ mod test {
 
         use std::collections::HashMap;
         let mut map: HashMap<String, Datatype> = HashMap::new();
-        assert_eq!(value.evaluate(&mut map).unwrap(), Datatype::Number(61));
         assert_eq!(
             Ast::SExpr(SExpression::Add(
                 Box::new(Ast::SExpr(SExpression::Multiply(
-                    Box::new(Ast::Literal(Datatype::Number(10))),
                     Box::new(Ast::SExpr(SExpression::Multiply(
+                        Box::new(Ast::Literal(Datatype::Number(10))),
                         Box::new(Ast::Literal(Datatype::Number(3))),
-                        Box::new(Ast::Literal(Datatype::Number(2))),
                     ))),
+                    Box::new(Ast::Literal(Datatype::Number(2))),
                 ))),
                 Box::new(Ast::Literal(Datatype::Number(1)))
             )),
             value
         );
+        assert_eq!( Datatype::Number(61), value.evaluate(&mut map).unwrap());
     }
 
     #[test]
@@ -412,6 +464,52 @@ mod test {
                     Box::new(Ast::Literal(Datatype::Number(10))),
                     Box::new(Ast::Literal(Datatype::Number(3))),
                 ))),
+            )),
+            value
+        );
+    }
+
+    #[test]
+    fn sexpr_precedence_7_parse() {
+        let (_, value) = match sexpr(b"10 * 3 * 2 * 1") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::Multiply(
+                Box::new(Ast::SExpr(SExpression::Multiply(
+                    Box::new(Ast::SExpr(SExpression::Multiply(
+                        Box::new(Ast::Literal(Datatype::Number(10))),
+                        Box::new(Ast::Literal(Datatype::Number(3))),
+                    ))),
+                    Box::new(Ast::Literal(Datatype::Number(2))),
+                ))),
+                Box::new(Ast::Literal(Datatype::Number(1)))
+            )),
+            value
+        );
+    }
+
+    /// 10 will multiply with 3 before being divided by 2.
+    #[test]
+    fn sexpr_precedence_mult_then_divide_parse() {
+        let (_, value) = match sexpr(b"10 * 3 / 2") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+
+        use std::collections::HashMap;
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        assert_eq!(value.evaluate(&mut map).unwrap(), Datatype::Number(15));
+        assert_eq!(
+            Ast::SExpr(SExpression::Divide(
+                Box::new(Ast::SExpr(SExpression::Multiply(
+                    Box::new(Ast::Literal(Datatype::Number(10))),
+                    Box::new(Ast::Literal(Datatype::Number(3))),
+                ))),
+                Box::new(Ast::Literal(Datatype::Number(2))),
             )),
             value
         );

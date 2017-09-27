@@ -9,6 +9,7 @@ use parser::literal::literal;
 use parser::identifier::identifier;
 use parser::structure::struct_access;
 use parser::function_execution;
+use parser::utilities::no_keyword_token_group;
 
 
 /// As a rule, the most deeply nested expressions will evaluate first.
@@ -21,7 +22,7 @@ named!(pub sexpr<Ast>,
     alt!(
         // captures ++, --
         complete!(do_parse!(
-            lhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
+            lhs: no_keyword_token_group >>
             operator:  arithmetic_unary_operator >>
             (create_sexpr(operator, lhs, None))
         )) |
@@ -67,14 +68,14 @@ named!(pub sexpr<Ast>,
         // All binary capture groups must be enumerated in this alt in their order of appearance above.
         complete!(
              ws!(alt!(
-                 sexpr_multiplicative |
-                 sexpr_additive |
-                 sexpr_inequality |
-                 sexpr_equality |
-                 literal |
-                 struct_access |
-                 function_execution |
-                 identifier
+                 complete!(sexpr_multiplicative) |
+                 complete!(sexpr_additive) |
+                 complete!(sexpr_inequality) |
+                 complete!(sexpr_equality) |
+                 complete!(literal) |
+                 complete!(struct_access) |
+                 complete!(function_execution) |
+                 complete!(identifier) // Should always be last, as it could match defined struct identifiers
              ))
         )
     )
@@ -90,7 +91,7 @@ named!(pub sexpr_parens<Ast>,
 
 named!(sexpr_multiplicative<Ast>,
     do_parse!(
-        lhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
+        lhs: no_keyword_token_group >>
         rhs_operator_extensions: many1!(do_parse!(
             operator: alt!(arithmetic_binary_multiplicative_operator)>>
             rhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
@@ -102,7 +103,7 @@ named!(sexpr_multiplicative<Ast>,
 
 named!(sexpr_additive<Ast>,
     do_parse!(
-        lhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
+        lhs: no_keyword_token_group >>
         rhs_operator_extensions: many1!(do_parse!(
             operator: alt!(arithmetic_binary_additive_operator)>>
             rhs: alt!( complete!(sexpr_multiplicative) | literal | struct_access | identifier | sexpr_parens ) >>
@@ -114,7 +115,7 @@ named!(sexpr_additive<Ast>,
 
 named!(sexpr_inequality<Ast>,
     do_parse!(
-        lhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
+        lhs: no_keyword_token_group >>
         rhs_operator_extensions: many1!(do_parse!(
             operator: alt!(arithmetic_binary_inequality_operator)>>
             rhs: alt!( complete!(sexpr_multiplicative) | complete!(sexpr_additive) | literal | struct_access | identifier | sexpr_parens ) >>
@@ -126,7 +127,7 @@ named!(sexpr_inequality<Ast>,
 
 named!(sexpr_equality<Ast>,
     do_parse!(
-        lhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
+        lhs: no_keyword_token_group >>
         rhs_operator_extensions: many1!(do_parse!(
             operator: alt!(arithmetic_binary_equality_operator)>>
             rhs: alt!( complete!(sexpr_multiplicative) | complete!(sexpr_additive) | complete!(sexpr_inequality) | literal | struct_access | identifier | sexpr_parens ) >>

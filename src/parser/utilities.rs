@@ -69,3 +69,19 @@ named!(pub expression_or_literal_or_identifier_or_assignment<Ast>,
         assignment
     )
 );
+
+/// Any token that cannot recurse into itself (ie contain an expression)
+/// nor contains a keyword.
+///
+/// This is used in the sexpr parser, as anything that could parse an expression could blow up the
+/// stack, and that parser isn't interested in evaluating assignments, function definitions, etc...
+named!(pub no_keyword_token_group <Ast>,
+    alt!(
+        complete!(literal) |
+        complete!(struct_access) |
+//        complete!(array_access) |
+        complete!(function_execution) |
+        complete!(identifier) |
+        complete!(sexpr_parens)
+    )
+);

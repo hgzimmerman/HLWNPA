@@ -9,7 +9,7 @@ use std::boxed::Box;
 mod operators;
 
 mod expressions;
-use self::expressions::sexpr;
+use self::expressions::{sexpr, sexpr_parens};
 
 mod identifier;
 use self::identifier::identifier;
@@ -45,15 +45,11 @@ use self::include::include;
 ///Anything that generates an AST node.
 named!(any_ast<Ast>,
     alt!(
-        complete!(sexpr) |
+        complete!(sexpr) | // works as a stand in for tokens groups captured no_keyword_token_group
         complete!(include) |
-        complete!(function_execution) | // the complete! is necessary, as it causes the function execution parser to return an error instead of an incomplete, allowing the next values to evaluate.
         complete!(assignment) |
         complete!(if_expression) |
         complete!(while_loop) |
-        complete!(literal) |
-        complete!(struct_access) | // Must come before the identifier, as it will match the identifier first
-        complete!(identifier) |
         complete!(array_access) |
         complete!(struct_definition) |
         complete!(create_struct_instance) |

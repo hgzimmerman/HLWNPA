@@ -1,2 +1,2 @@
 mod arithmetic_operators;
-pub use self::arithmetic_operators::{arithmetic_binary_operator, arithmetic_unary_operator, negate, arithmetic_binary_multiplicative_operator};
+pub use self::arithmetic_operators::{arithmetic_binary_operator, arithmetic_unary_operator, negate, arithmetic_binary_multiplicative_operator, arithmetic_binary_additive_operator};

@@ -2,7 +2,7 @@
 use nom::*;
 use ast::{Ast, ArithmeticOperator, SExpression};
 
-use parser::operators::{arithmetic_binary_operator, arithmetic_unary_operator, negate, arithmetic_binary_multiplicative_operator };
+use parser::operators::*;
 use parser::{expression_or_literal_or_identifier_or_struct_or_array,
              literal_or_expression_identifier_or_struct_or_array};
 use parser::literal::literal;
@@ -26,8 +26,15 @@ named!(pub sexpr<Ast>,
         )) |
         complete!(do_parse!(
            lhs: complete!(sexpr_multiplicative) >>
-           operator: arithmetic_binary_operator >>
+           operator: alt!(arithmetic_binary_additive_operator | arithmetic_binary_operator) >>
            rhs: expression_or_literal_or_identifier_or_struct_or_array >>
+           (create_sexpr(operator, lhs, Some(rhs)))
+        )) |
+
+        complete!(do_parse!(
+           lhs: complete!(sexpr_additive) >>
+           operator: alt!( arithmetic_binary_multiplicative_operator | arithmetic_binary_operator ) >>
+           rhs: alt!(expression_or_literal_or_identifier_or_struct_or_array) >>
            (create_sexpr(operator, lhs, Some(rhs)))
         )) |
 
@@ -45,7 +52,7 @@ named!(pub sexpr<Ast>,
         )) |
 
         complete!(
-             ws!(alt!( sexpr_multiplicative | literal | struct_access | function_execution | identifier )) // match any of these types
+             ws!(alt!( sexpr_multiplicative | sexpr_additive | literal | struct_access | function_execution | identifier )) // match any of these types
         )
     )
 );
@@ -70,13 +77,15 @@ named!(sexpr_multiplicative<Ast>,
     )
 );
 
-
-
-named!(lhs_and_multiplicative<(Ast, ArithmeticOperator)>,
+named!(sexpr_additive<Ast>,
     do_parse!(
-        lhs: alt!( literal | struct_access | function_execution | identifier) >>
-        operator: arithmetic_binary_multiplicative_operator >>
-        ((lhs, operator))
+        lhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
+        rhs_operator_extensions: many1!(do_parse!(
+            operator: alt!(arithmetic_binary_additive_operator)>>
+            rhs: alt!( complete!(sexpr_multiplicative) | literal | struct_access | identifier | sexpr_parens ) >>
+            ((operator, Some(rhs)))
+        )) >>
+        (create_sexpr_group_left(lhs, rhs_operator_extensions))
     )
 );
 
@@ -210,11 +219,11 @@ mod test {
         };
         assert_eq!(
             Ast::SExpr(SExpression::Add(
-                Box::new(Ast::Literal(Datatype::Number(3))),
                 Box::new(Ast::SExpr(SExpression::Add(
+                    Box::new(Ast::Literal(Datatype::Number(3))),
                     Box::new(Ast::Literal(Datatype::Number(4))),
-                    Box::new(Ast::Literal(Datatype::Number(5))),
                 ))),
+                Box::new(Ast::Literal(Datatype::Number(5))),
             )),
             value
         );
@@ -270,11 +279,11 @@ mod test {
             Ast::SExpr(SExpression::Add(
                 Box::new(Ast::Literal(Datatype::Number(3))),
                 Box::new(Ast::SExpr(SExpression::Add(
-                    Box::new(Ast::Literal(Datatype::Number(4))),
                     Box::new(Ast::SExpr(SExpression::Add(
-                        Box::new(Ast::Literal(Datatype::Number(5))),
-                        Box::new(Ast::Literal(Datatype::Number(6))),
+                        Box::new(Ast::Literal(Datatype::Number(4))),
+                        Box::new(Ast::Literal(Datatype::Number(5)))
                     ))),
+                    Box::new(Ast::Literal(Datatype::Number(6)))
                 ))),
             )),
             value
@@ -392,14 +401,15 @@ mod test {
         };
         assert_eq!(
             Ast::SExpr(SExpression::Add(
-                Box::new(Ast::Literal(Datatype::Number(2))),
                 Box::new(Ast::SExpr(SExpression::Add(
+                    Box::new(Ast::Literal(Datatype::Number(2))),
                     Box::new(Ast::SExpr(SExpression::Multiply(
                         Box::new(Ast::Literal(Datatype::Number(10))),
                         Box::new(Ast::Literal(Datatype::Number(3))),
                     ))),
-                    Box::new(Ast::Literal(Datatype::Number(1))),
-                )))
+                ))),
+                Box::new(Ast::Literal(Datatype::Number(1))),
+
             )),
             value
         );

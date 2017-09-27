@@ -93,8 +93,8 @@ named!(decrement<ArithmeticOperator>,
 
 named!( pub arithmetic_binary_operator<ArithmeticOperator>,
     ws!(alt!(
-        plus |
-        minus |
+//        plus |
+//        minus |
 //       multiply |
 //        divide |
 //        modulo |

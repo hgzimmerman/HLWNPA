@@ -11,26 +11,28 @@ use parser::structure::struct_access;
 use parser::function_execution;
 
 
-//Todo create another alt option where just a single token can be accepted, this will allow wrapping of identifiers and literals with () via sexpr_parens, those can then be removed from the top-level program parser as they are covered in the sexpr parser.
 named!(pub sexpr<Ast>,
     alt!(
+        // captures ++, --
         complete!(do_parse!(
             lhs: alt!(literal | struct_access | identifier | sexpr_parens ) >>
             operator:  arithmetic_unary_operator >>
             (create_sexpr(operator, lhs, None))
         )) |
+        // captures !
         complete!(do_parse!(
             operator: negate >>
             lhs: literal_or_expression_identifier_or_struct_or_array >>
             (create_sexpr(operator, lhs, None))
         )) |
+        // captures multiplication, division, modulo. Will be evaluated left to right.
         complete!(do_parse!(
            lhs: complete!(sexpr_multiplicative) >>
            operator: alt!(arithmetic_binary_additive_operator | arithmetic_binary_operator) >>
            rhs: expression_or_literal_or_identifier_or_struct_or_array >>
            (create_sexpr(operator, lhs, Some(rhs)))
         )) |
-
+        // captures addition, subtraction. Will be evaluated left to right.
         complete!(do_parse!(
            lhs: complete!(sexpr_additive) >>
            operator: alt!( arithmetic_binary_multiplicative_operator | arithmetic_binary_operator ) >>
@@ -38,21 +40,16 @@ named!(pub sexpr<Ast>,
            (create_sexpr(operator, lhs, Some(rhs)))
         )) |
 
-//        complete!(do_parse!(
-//            lhs: alt!( sexpr_multiplicative ) >>
-//            operator: arithmetic_binary_operator >>
-//            rhs: alt!( sexpr_multiplicative | expression_or_literal_or_identifier_or_struct_or_array) >>
-//            (create_sexpr(operator, lhs, Some(rhs)))
-//        )) |
+        // catchall, will structure the AST to be evaluated right to left.
         complete!(do_parse!(
             lhs: alt!( literal | struct_access | identifier | sexpr_parens ) >>
             operator: arithmetic_binary_operator >>
             rhs: expression_or_literal_or_identifier_or_struct_or_array >>
             (create_sexpr(operator, lhs, Some(rhs)))
         )) |
-
+        // catchall, will catch the last two (or one) elements and their operator.
         complete!(
-             ws!(alt!( sexpr_multiplicative | sexpr_additive | literal | struct_access | function_execution | identifier )) // match any of these types
+             ws!(alt!( sexpr_multiplicative | sexpr_additive | literal | struct_access | function_execution | identifier ))
         )
     )
 );
@@ -501,7 +498,7 @@ mod test {
         );
     }
 
-    /// 10 will multiply with 3 before being divided by 2.
+    /// 10 will multiply with 3 before being divided by 2. This indicates a left to right evaluation.
     #[test]
     fn sexpr_precedence_mult_then_divide_parse() {
         let (_, value) = match sexpr(b"10 * 3 / 2") {

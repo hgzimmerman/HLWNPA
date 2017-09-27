@@ -63,7 +63,6 @@ named!(pub sexpr<Ast>,
            (create_sexpr(operator, lhs, Some(rhs)))
         )) |
 
-
         // catchall, will catch the last two (or one) elements and their operator.
         // All binary capture groups must be enumerated in this alt in their order of appearance above.
         complete!(
@@ -138,10 +137,9 @@ named!(sexpr_equality<Ast>,
 );
 
 
-/// This isn't exactly bulletproof, in that this could fail if a binary operator is provided without a rhs.
-/// This relies on the parser always providing a rhs for binary operators.
+/// This isn't exactly bulletproof, in that this function could terminate the program if a binary operator is provided without a rhs.
+/// Therefore, this relies on the parser always providing a rhs for binary operators.
 fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast {
-//    println!("create_sexpr lhs:{:?}, rhs{:?}", lhs, rhs);
     match operator {
         //Unary
         ArithmeticOperator::Increment => Ast::SExpr(SExpression::Increment(Box::new(lhs))),
@@ -207,10 +205,9 @@ fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast
 /// Instead, this allows the parser to define for a specific operator group
 /// that it will capture all operators with the same precedence,
 /// then pass that group to this function, ensuring that they will be evaluated left to right,
-/// completely avoiding the problem of recursively trying to parse the same expression.
-///
+/// completely avoiding the problem of recursively trying to parse the same expression, and blowing
+/// out the stack in the process.
 fn create_sexpr_group_left(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast>)>) -> Ast {
-//    println!("Create_sexpr_group_left lhs:{:?}, rhss{:?}", lhs, rhss);
     let mut lhs = lhs;
     for op_and_rhs in rhss {
         let (op, rhs) = op_and_rhs.clone();

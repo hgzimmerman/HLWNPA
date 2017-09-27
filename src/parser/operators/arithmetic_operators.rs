@@ -101,7 +101,7 @@ named!( pub arithmetic_binary_operator<ArithmeticOperator>,
         plus |
         minus |
 
-        greater_than_or_eq | // try to match these before the normal greater_than or less_than operators, because those parsers will preemptivly match input like "<=" leaving the "=" as the remainder of input, causing the next parser to fail.
+        greater_than_or_eq |
         less_than_or_eq |
         greater_than |
         less_than |
@@ -129,7 +129,8 @@ named!( pub arithmetic_binary_additive_operator<ArithmeticOperator>,
 named!( pub arithmetic_binary_inequality_operator<ArithmeticOperator>,
     ws!(alt!(
     // try to match <=, >= before the normal greater_than or less_than operators,
-    // because those parsers will preemptivly match input like "<=" leaving the "=" as the remainder of input, causing the next parser to fail.
+    // because those parsers will preemptivly match input like "<=", taking the "<" and leaving the "="
+    // as the remainder of input, causing the next parser to fail because it didn't expect the "=".
         greater_than_or_eq |
         less_than_or_eq |
         greater_than |

@@ -93,17 +93,21 @@ named!(decrement<ArithmeticOperator>,
 
 named!( pub arithmetic_binary_operator<ArithmeticOperator>,
     ws!(alt!(
-//        plus |
-//        minus |
-//       multiply |
-//        divide |
-//        modulo |
+
+        multiply |
+        divide |
+        modulo |
+
+        plus |
+        minus |
+
+        greater_than_or_eq | // try to match these before the normal greater_than or less_than operators, because those parsers will preemptivly match input like "<=" leaving the "=" as the remainder of input, causing the next parser to fail.
+        less_than_or_eq |
+        greater_than |
+        less_than |
+
         equals |
         not_equals
-//        greater_than_or_eq | // try to match these before the normal greater_than or less_than operators, because those parsers will preemptivly match input like "<=" leaving the "=" as the remainder of input, causing the next parser to fail.
-//        less_than_or_eq |
-//        greater_than |
-//        less_than
     ))
 );
 
@@ -124,10 +128,12 @@ named!( pub arithmetic_binary_additive_operator<ArithmeticOperator>,
 
 named!( pub arithmetic_binary_inequality_operator<ArithmeticOperator>,
     ws!(alt!(
-        greater_than |
-        less_than |
+    // try to match <=, >= before the normal greater_than or less_than operators,
+    // because those parsers will preemptivly match input like "<=" leaving the "=" as the remainder of input, causing the next parser to fail.
         greater_than_or_eq |
-        less_than_or_eq
+        less_than_or_eq |
+        greater_than |
+        less_than
     ))
 );
 

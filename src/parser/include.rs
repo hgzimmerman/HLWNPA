@@ -1,5 +1,6 @@
 use parser::literal::string_literal;
 
+#[allow(unused_imports)]
 use nom::*;
 use ast::{Ast, SExpression};
 

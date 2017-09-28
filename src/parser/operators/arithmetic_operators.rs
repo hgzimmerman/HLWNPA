@@ -127,46 +127,46 @@ named!( pub arithmetic_binary_operator<ArithmeticOperator>,
     ))
 );
 
-named!( pub arithmetic_binary_multiplicative_operator<ArithmeticOperator>,
-    ws!(alt!(
-        multiply |
-        divide |
-        modulo
-    ))
-);
+//named!( pub arithmetic_binary_multiplicative_operator<ArithmeticOperator>,
+//    ws!(alt!(
+//        multiply |
+//        divide |
+//        modulo
+//    ))
+//);
+//
+//named!( pub arithmetic_binary_additive_operator<ArithmeticOperator>,
+//    ws!(alt!(
+//        plus |
+//        minus
+//    ))
+//);
 
-named!( pub arithmetic_binary_additive_operator<ArithmeticOperator>,
-    ws!(alt!(
-        plus |
-        minus
-    ))
-);
+//named!( pub arithmetic_binary_inequality_operator<ArithmeticOperator>,
+//    ws!(alt!(
+//    // try to match <=, >= before the normal greater_than or less_than operators,
+//    // because those parsers will preemptivly match input like "<=", taking the "<" and leaving the "="
+//    // as the remainder of input, causing the next parser to fail because it didn't expect the "=".
+//        greater_than_or_eq |
+//        less_than_or_eq |
+//        greater_than |
+//        less_than
+//    ))
+//);
 
-named!( pub arithmetic_binary_inequality_operator<ArithmeticOperator>,
-    ws!(alt!(
-    // try to match <=, >= before the normal greater_than or less_than operators,
-    // because those parsers will preemptivly match input like "<=", taking the "<" and leaving the "="
-    // as the remainder of input, causing the next parser to fail because it didn't expect the "=".
-        greater_than_or_eq |
-        less_than_or_eq |
-        greater_than |
-        less_than
-    ))
-);
-
-named!( pub arithmetic_binary_equality_operator<ArithmeticOperator>,
-    ws!(alt!(
-        equals |
-        not_equals
-    ))
-);
-
-named!( pub arithmetic_binary_boolean_operator<ArithmeticOperator>,
-    ws!(alt!(
-        logical_and |
-        logical_or
-    ))
-);
+//named!( pub arithmetic_binary_equality_operator<ArithmeticOperator>,
+//    ws!(alt!(
+//        equals |
+//        not_equals
+//    ))
+//);
+//
+//named!( pub arithmetic_binary_boolean_operator<ArithmeticOperator>,
+//    ws!(alt!(
+//        logical_and |
+//        logical_or
+//    ))
+//);
 
 named!( pub arithmetic_unary_operator<ArithmeticOperator>,
     ws!(alt!(

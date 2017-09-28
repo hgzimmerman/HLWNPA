@@ -1,6 +1,5 @@
-use std::collections::HashMap;
 use ast::Ast;
-use lang_result::{LangError, LangResult};
+use lang_result::{LangError};
 use nom::IResult;
 use parser::program;
 use std::io::prelude::*;
@@ -29,7 +28,7 @@ pub fn read_file_into_ast(filename: String) -> Result<Ast, LangError> {
                     filename: filename,
                     reason: e.description().to_string(),
                 }),
-                IResult::Incomplete(i) => Err(LangError::CouldNotParseFile {
+                IResult::Incomplete(_) => Err(LangError::CouldNotParseFile {
                     filename: filename,
                     reason: "Incomplete parse".to_string(),
                 }),

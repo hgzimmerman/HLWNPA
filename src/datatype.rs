@@ -47,7 +47,7 @@ impl fmt::Display for Datatype {
             Datatype::None => write!(f, "NONE"),
             Datatype::Function {
                 ref parameters,
-                ref body,
+                body: ref _body,
                 ref return_type,
             } => write!(f, "{:?} -> {:?}", parameters, return_type),
             Datatype::Struct { ref map } => write!(f, "{{{:?}}}", map),

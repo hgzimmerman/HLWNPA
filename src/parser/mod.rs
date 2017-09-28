@@ -9,13 +9,13 @@ use std::boxed::Box;
 mod operators;
 
 mod expressions;
-use self::expressions::{sexpr, sexpr_parens};
+use self::expressions::{sexpr};
 
 mod identifier;
 use self::identifier::identifier;
 
 mod literal;
-use self::literal::literal;
+//use self::literal::literal;
 
 mod utilities;
 use self::utilities::*;
@@ -37,7 +37,7 @@ mod array;
 use self::array::array_access;
 
 mod structure;
-use self::structure::{struct_definition, struct_access, create_struct_instance};
+use self::structure::{struct_definition, /* struct_access,*/ create_struct_instance};
 
 mod include;
 use self::include::include;

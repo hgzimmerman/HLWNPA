@@ -1,7 +1,7 @@
 
 use datatype::{Datatype, TypeInfo};
 use std::collections::HashMap;
-use ast::{Ast, SExpression, ArithmeticOperator};
+use ast::{Ast, SExpression};
 use parser::program;
 
 use nom::IResult;
@@ -30,7 +30,7 @@ fn add_print_function(map: &mut HashMap<String, Datatype>) {
             return_type: Box::new(Ast::Type(TypeInfo::String)),
         })),
     });
-    ast.evaluate(map);
+    ast.evaluate(map).expect("Couldn't add print()");
 }
 
 fn add_println_function(map: &mut HashMap<String, Datatype>) {
@@ -44,7 +44,7 @@ fn add_println_function(map: &mut HashMap<String, Datatype>) {
     ";
     match program(input_function.as_bytes()) {
         IResult::Done(_, ast) => {
-            ast.evaluate(map);
+            ast.evaluate(map).expect("Couldn't add println()");
         }
         IResult::Error(e) => {
             panic!(

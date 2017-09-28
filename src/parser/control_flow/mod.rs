@@ -4,6 +4,7 @@ pub use self::if_expression::if_expression;
 mod while_loop;
 pub use self::while_loop::while_loop;
 
+#[allow(unused_imports)]
 use nom::*;
 use ast::Ast;
 

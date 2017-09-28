@@ -88,13 +88,17 @@ fn main() {
 
                             // Drop the user into a repl
                             if repl_after_parse {
-                                ast.evaluate(&mut map);
-                                repl(&mut map);
+                                match ast.evaluate(&mut map) {
+                                    Ok(_) => repl(&mut map), // Start the REPL if the program evaluates correctly
+                                    Err(e) => println!("Couldn't load program into REPL, due to error: {:?}", e)
+                                };
                             } else {
                                 let mut program_return_value: LangResult = Err(LangError::InitState);
                                 if ast.main_fn_exists() {
-                                    ast.evaluate(&mut map);
-                                    program_return_value = ast.execute_main(&mut map);
+                                    match ast.evaluate(&mut map) {
+                                        Ok(_) => program_return_value = ast.execute_main(&mut map),
+                                        Err(e) => println!("Couldn't call main because program failed to evaluate, due to error: {:?}", e)
+                                    }
                                 } else {
                                     // main() isn't found, just execute the statements found in the program.
                                     program_return_value = ast.evaluate(&mut map);

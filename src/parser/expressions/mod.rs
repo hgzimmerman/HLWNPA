@@ -4,12 +4,7 @@ use ast::{Ast, ArithmeticOperator, SExpression};
 
 
 use parser::operators::*;
-use parser::{expression_or_literal_or_identifier_or_struct_or_array,
-             literal_or_expression_identifier_or_struct_or_array};
-use parser::literal::literal;
-use parser::identifier::identifier;
-use parser::structure::struct_access;
-use parser::function_execution;
+use parser::{literal_or_expression_identifier_or_struct_or_array};
 use parser::utilities::no_keyword_token_group;
 
 
@@ -18,11 +13,6 @@ use parser::utilities::no_keyword_token_group;
 
 named!(pub sexpr<Ast>,
     alt!(
-//        complete!(do_parse!(
-//            lhs: no_keyword_token_group >>
-//            operator:  arithmetic_unary_operator >>
-//            (create_sexpr(operator, lhs, None))
-//        )) |
         complete!(do_parse!(
             lhs: no_keyword_token_group >>
             op_rhss: many0!( op_and_rhs ) >>
@@ -158,7 +148,7 @@ fn retrieve_operator_and_operands(ast: &Ast) -> Result<(Option<ArithmeticOperato
 }
 
 
-//TODO, this is currently the biggest cost center for the parser. While it isn't awful, it still isn't great and I should find a way to optimize it.
+// TODO, this is currently the biggest cost center for the parser. While it isn't awful, it still isn't great and I should find a way to optimize it.
 fn group_sexpr_by_precedence(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast>)>) -> Ast {
     let mut lhs = lhs;
     let mut previous_op_value: u32 = 0;
@@ -167,7 +157,7 @@ fn group_sexpr_by_precedence(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast
         let op_value: u32 =  op.clone().into();
         // the a lower value indicates it has more precedence.
         if op_value < previous_op_value {
-            let (old_operator, old_lhs, old_rhs) = retrieve_operator_and_operands(&lhs).unwrap(); // todo bad unwrap
+            let (old_operator, old_lhs, old_rhs) = retrieve_operator_and_operands(&lhs).unwrap(); // TODO bad unwrap
             match old_operator {
                 Some(old_operator) => {
                     lhs = create_sexpr(old_operator, old_lhs, Some(create_sexpr(op, old_rhs.unwrap(), rhs)) ) // Group left
@@ -723,7 +713,7 @@ mod test {
     }
 
     #[test]
-    fn sexpr_fail() {
+    fn sexpr_add_with_increment() {
         let (_, value) = match sexpr(b"5 + 2++") {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),
@@ -736,6 +726,24 @@ mod test {
                     Box::new(Ast::Literal(Datatype::Number(2)))
                 )))
             ))),
+        value
+        );
+    }
+
+    #[test]
+    fn sexpr_add_with_increment_first() {
+        let (_, value) = match sexpr(b"5++ + 2") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+        (Ast::SExpr(SExpression::Add(
+            Box::new(Ast::SExpr(SExpression::Increment(
+                Box::new(Ast::Literal(Datatype::Number(5)))
+            ))),
+            Box::new(Ast::Literal(Datatype::Number(2)))
+        ))),
         value
         );
     }

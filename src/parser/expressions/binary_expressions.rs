@@ -18,7 +18,9 @@ use parser::utilities::no_keyword_token_group;
 ///
 /// The order in which the capture groups appear corresponds to their precedence,
 /// with the first capture group having the highest precedence.
-named!(pub sexpr<Ast>,
+///
+/// Because of the excessive recursiveness of this parser, it has become pretty slow.
+named!(pub sexpr_old<Ast>,
     alt!(
         // captures ++, --
         complete!(do_parse!(
@@ -78,12 +80,42 @@ named!(pub sexpr<Ast>,
                  complete!(sexpr_additive) |
                  complete!(sexpr_inequality) |
                  complete!(sexpr_equality) |
+                 complete!(sexpr_boolean) |
                  complete!(literal) |
                  complete!(struct_access) |
                  complete!(function_execution) |
                  complete!(identifier) // Should always be last, as it could match defined struct identifiers
              ))
         )
+    )
+);
+
+named!(pub sexpr<Ast>,
+    alt!(
+        complete!(do_parse!(
+            lhs: no_keyword_token_group >>
+            operator:  arithmetic_unary_operator >>
+            (create_sexpr(operator, lhs, None))
+        )) |
+        complete!(do_parse!(
+            lhs: no_keyword_token_group >>
+            op_rhss: many0!( op_and_rhs ) >>
+            (create_sexpr_group_left_alt(lhs, op_rhss))
+        )) |
+        // captures !
+        complete!(do_parse!(
+            operator: negate >>
+            lhs: literal_or_expression_identifier_or_struct_or_array >>
+            (create_sexpr(operator, lhs, None))
+        ))
+    )
+);
+
+named!(op_and_rhs<(ArithmeticOperator, Option<Ast>)>,
+    do_parse!(
+        op: arithmetic_binary_operator >>
+        rhs: no_keyword_token_group >>
+        ((op, Some(rhs)))
     )
 );
 
@@ -219,6 +251,34 @@ fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast
     }
 }
 
+/// When creating left-aligned groups, it is necessary to reuse the most recent state of the LHS,
+/// so the RHS of that old LHS can be replaced.
+/// This method if given that LHS, will deconstruct it into its component parts so they can be used construct a new grouping.
+fn retrieve_operator_and_operands(ast: Ast) -> Result<(Option<ArithmeticOperator>, Ast, Option<Ast>), String>{
+    match ast {
+        Ast::SExpr(sexpr) => {
+            match sexpr {
+                SExpression::Multiply(lhs, rhs) => Ok((Some(ArithmeticOperator::Times), *lhs, Some(*rhs))),
+                SExpression::Divide(lhs, rhs) => Ok((Some(ArithmeticOperator::Divide), *lhs, Some(*rhs))),
+                SExpression::Modulo(lhs, rhs) => Ok((Some(ArithmeticOperator::Modulo), *lhs, Some(*rhs))),
+                SExpression::Add(lhs, rhs) => Ok((Some(ArithmeticOperator::Plus), *lhs, Some(*rhs))),
+                SExpression::Subtract(lhs, rhs) => Ok((Some(ArithmeticOperator::Minus), *lhs, Some(*rhs))),
+                SExpression::Equals(lhs, rhs) => Ok((Some(ArithmeticOperator::Equals), *lhs, Some(*rhs))),
+                SExpression::NotEquals(lhs, rhs) => Ok((Some(ArithmeticOperator::NotEquals), *lhs, Some(*rhs))),
+                SExpression::GreaterThan(lhs, rhs) => Ok((Some(ArithmeticOperator::GreaterThan), *lhs, Some(*rhs))),
+                SExpression::LessThan(lhs, rhs) => Ok((Some(ArithmeticOperator::LessThan), *lhs, Some(*rhs))),
+                SExpression::GreaterThanOrEqual(lhs, rhs) => Ok((Some(ArithmeticOperator::GreaterThanOrEqual), *lhs, Some(*rhs))),
+                SExpression::LessThanOrEqual(lhs, rhs) => Ok((Some(ArithmeticOperator::LessThanOrEqual), *lhs, Some(*rhs))),
+                SExpression::LogicalAnd(lhs, rhs) => Ok((Some(ArithmeticOperator::LogicalAnd), *lhs, Some(*rhs))),
+                SExpression::LogicalOr(lhs, rhs) => Ok((Some(ArithmeticOperator::LogicalOr), *lhs, Some(*rhs))),
+                _ => (Err("Unsupported SExpression".to_string()))
+            }
+        }
+        Ast::Literal(literal_dt) => Ok((None, Ast::Literal(literal_dt), None)),
+        _ => (Err("Ast isn't an supported when assigning precedence".to_string()))
+    }
+}
+
 /// Given a left hand side AST and a list of operator, right hand side AST pairs,
 /// make the LHS contain the existing LHS, and then the operator and RHS.
 /// This has the effect of grouping the resulting AST on the LHS, causing it to be evaluated left to right when evaluated.
@@ -243,10 +303,210 @@ fn create_sexpr_group_left(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast>)
 }
 
 
+//TODO, this is currently the biggest cost center for the parser. While it isn't aweful, it still isn't great and I should find a way to optimize it.
+fn create_sexpr_group_left_alt(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast>)>) -> Ast {
+    let mut lhs = lhs;
+    let mut previous_op_value: u32 = 0;
+    for op_and_rhs in rhss {
+        let (op, rhs): (ArithmeticOperator, Option<Ast>) = op_and_rhs;
+        let op_value: u32 =  op.clone().into();
+        // the a lower value indicates it has more precedence.
+        if op_value < previous_op_value {
+            let (old_operator, old_lhs, old_rhs) = retrieve_operator_and_operands(lhs.clone()).unwrap(); // todo bad unwrap
+            match old_operator {
+                Some(old_operator) => {
+                    lhs = create_sexpr(old_operator, old_lhs, Some(create_sexpr(op, old_rhs.unwrap(), rhs)) ) // Group left // Group the current lhs with the current rhs and its operator. This will cause a left to right evaluation.
+                },
+                None => {
+                    // The lack of an operator in the old RHS indicates that this is the first loop, and we can't group left.
+                    // So just group right, because there is no difference.
+                    lhs = create_sexpr(op, lhs, rhs) // expand, grouping towards the right.
+                }
+            }
+        } else {
+            lhs = create_sexpr(op, lhs, rhs) // expand, grouping towards the right.
+        }
+        previous_op_value = op_value;
+    }
+    return lhs;
+}
+
+
 #[cfg(test)]
 mod test {
     use super::*;
     use datatype::Datatype;
+
+//
+//    #[test]
+//    fn new_sexpr_test_1() {
+//        let (_, value) = match sexpr_new(b"3 + 4") {
+//            IResult::Done(r, v) => (r, v),
+//            IResult::Error(e) => panic!("{:?}", e),
+//            _ => panic!(),
+//        };
+//        assert_eq!(
+//            Ast::SExpr(SExpression::Add(
+//                Box::new(Ast::Literal(Datatype::Number(3))),
+//                Box::new(Ast::Literal(Datatype::Number(4))),
+//            )),
+//            value
+//        );
+//    }
+//
+//
+//    #[test]
+//    fn new_sexpr_test_2() {
+//        let (_, value) = match sexpr_new(b"3") {
+//            IResult::Done(r, v) => (r, v),
+//            IResult::Error(e) => panic!("{:?}", e),
+//            _ => panic!(),
+//        };
+//        assert_eq!(
+//            Ast::Literal(Datatype::Number(3)),
+//            value
+//        );
+//    }
+//
+//    #[test]
+//    fn  new_sexpr_test_3() {
+//        let (_, value) = match sexpr(b"3 + 4 + 5") {
+//            IResult::Done(r, v) => (r, v),
+//            IResult::Error(e) => panic!("{:?}", e),
+//            _ => panic!(),
+//        };
+//        assert_eq!(
+//        Ast::SExpr(SExpression::Add(
+//            Box::new(Ast::SExpr(SExpression::Add(
+//                Box::new(Ast::Literal(Datatype::Number(3))),
+//                Box::new(Ast::Literal(Datatype::Number(4))),
+//            ))),
+//            Box::new(Ast::Literal(Datatype::Number(5))),
+//        )),
+//        value
+//        );
+//    }
+//
+
+    #[test]
+    fn sexpr_identifier() {
+        let (_, value) = match sexpr(b"x + 4") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(
+        Ast::SExpr(SExpression::Add(
+            Box::new(Ast::ValueIdentifier("x".to_string())),
+            Box::new(Ast::Literal(Datatype::Number(4))),
+        )),
+        value
+        );
+    }
+    #[test]
+    fn new_sexpr_test_4() {
+        let (_, value) = match sexpr(b"3 + 4 * 5") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(
+        Ast::SExpr(SExpression::Add(
+            Box::new(Ast::Literal(Datatype::Number(3))),
+            Box::new(Ast::SExpr(SExpression::Multiply(
+                Box::new(Ast::Literal(Datatype::Number(4))),
+                Box::new(Ast::Literal(Datatype::Number(5))),
+            ))),
+        )),
+        value
+        );
+    }
+
+        #[test]
+    fn  new_sexpr_test_5() {
+        let (_, value) = match sexpr(b"3 * 4 * 5") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(
+        Ast::SExpr(SExpression::Multiply(
+            Box::new(Ast::SExpr(SExpression::Multiply(
+                Box::new(Ast::Literal(Datatype::Number(3))),
+                Box::new(Ast::Literal(Datatype::Number(4))),
+            ))),
+            Box::new(Ast::Literal(Datatype::Number(5))),
+        )),
+        value
+        );
+    }
+
+            #[test]
+    fn  new_sexpr_test_6() {
+        let (_, value) = match sexpr(b"3 * 4 * 5 * 6") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(
+        Ast::SExpr(SExpression::Multiply(
+            Box::new(Ast::SExpr(SExpression::Multiply(
+                Box::new(Ast::SExpr(SExpression::Multiply(
+                    Box::new(Ast::Literal(Datatype::Number(3))),
+                    Box::new(Ast::Literal(Datatype::Number(4))),
+                ))),
+                Box::new(Ast::Literal(Datatype::Number(5))),
+            ))),
+            Box::new(Ast::Literal(Datatype::Number(6)))
+        )),
+        value
+        );
+    }
+//
+//    #[test]
+//    fn  new_sexpr_test_5() {
+//        let (_, value) = match sexpr(b"3 + 4 * 5 + 6") {
+//            IResult::Done(r, v) => (r, v),
+//            IResult::Error(e) => panic!("{:?}", e),
+//            _ => panic!(),
+//        };
+//        use std::collections::HashMap;
+//        let mut map: HashMap<String, Datatype> = HashMap::new();
+//        assert_eq!(Datatype::Number(29), value.evaluate(&mut map).unwrap());
+//        assert_eq!(
+//        Ast::SExpr(SExpression::Add(
+//            Box::new(Ast::SExpr(SExpression::Add (
+//                Box::new(Ast::Literal(Datatype::Number(3))),
+//                Box::new(Ast::SExpr(SExpression::Multiply(
+//                    Box::new(Ast::Literal(Datatype::Number(4))),
+//                    Box::new(Ast::Literal(Datatype::Number(5))),
+//                ))),
+//            ))),
+//            Box::new(Ast::Literal(Datatype::Number(6)))
+//        )),
+//        value
+//        );
+//
+//    }
+//
+//     #[test]
+//    fn new_sexpr_precedence_parse() {
+//        let (_, value) = match sexpr_new(b"x > 3 + 5") {
+//            IResult::Done(r, v) => (r, v),
+//            IResult::Error(e) => panic!("{:?}", e),
+//            IResult::Incomplete(i) => panic!("{:?}", i),
+//        };
+//        assert_eq!(
+//        Ast::SExpr(SExpression::GreaterThan(
+//            Box::new(Ast::ValueIdentifier("x".to_string())),
+//            Box::new(Ast::SExpr(SExpression::Add(
+//                Box::new(Ast::Literal(Datatype::Number(3))),
+//                Box::new(Ast::Literal(Datatype::Number(5)))
+//            )))
+//        )),
+//        value
+//        );
+//    }
 
     #[test]
     fn sexpr_parse_addition() {
@@ -290,6 +550,38 @@ mod test {
         assert_eq!(
             Ast::SExpr(SExpression::Invert(
                 Box::new(Ast::Literal(Datatype::Bool(true))),
+            )),
+            value
+        );
+    }
+
+    #[test]
+    fn sexpr_parse_logical_and() {
+        let (_, value) = match sexpr(b"true && false") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::LogicalAnd(
+                Box::new(Ast::Literal(Datatype::Bool(true))),
+                Box::new(Ast::Literal(Datatype::Bool(false)))
+            )),
+            value
+        );
+    }
+
+    #[test]
+    fn sexpr_parse_logical_or() {
+        let (_, value) = match sexpr(b"true || false") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::LogicalOr(
+                Box::new(Ast::Literal(Datatype::Bool(true))),
+                Box::new(Ast::Literal(Datatype::Bool(false)))
             )),
             value
         );

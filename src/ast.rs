@@ -34,19 +34,40 @@ pub enum ArithmeticOperator {
     Increment,
     Decrement,
     Negate,
-    Plus,
-    Minus,
+
     Times,
     Divide,
     Modulo,
-    Equals,
-    NotEquals,
+
+    Plus,
+    Minus,
+
     GreaterThan,
     LessThan,
     GreaterThanOrEqual,
     LessThanOrEqual,
+
+
+    Equals,
+    NotEquals,
+
     LogicalAnd,
     LogicalOr
+}
+
+impl Into<u32> for ArithmeticOperator {
+    fn into(self) -> u32 {
+        use ArithmeticOperator::*;
+        match self {
+            Increment | Decrement | Negate => 0,
+            Times | Divide | Modulo => 1,
+            Plus | Minus => 2,
+            GreaterThan | LessThan | GreaterThanOrEqual | LessThanOrEqual => 3,
+            Equals | NotEquals => 4,
+            LogicalAnd | LogicalOr => 5,
+            _ => unreachable!()
+        }
+    }
 }
 
 /// Operators that store their operands.

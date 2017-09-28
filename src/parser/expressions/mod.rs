@@ -15,13 +15,14 @@ use parser::utilities::no_keyword_token_group;
 
 
 
+
 named!(pub sexpr<Ast>,
     alt!(
-        complete!(do_parse!(
-            lhs: no_keyword_token_group >>
-            operator:  arithmetic_unary_operator >>
-            (create_sexpr(operator, lhs, None))
-        )) |
+//        complete!(do_parse!(
+//            lhs: no_keyword_token_group >>
+//            operator:  arithmetic_unary_operator >>
+//            (create_sexpr(operator, lhs, None))
+//        )) |
         complete!(do_parse!(
             lhs: no_keyword_token_group >>
             op_rhss: many0!( op_and_rhs ) >>
@@ -38,10 +39,16 @@ named!(pub sexpr<Ast>,
 
 /// Grab the righthand side
 named!(op_and_rhs<(ArithmeticOperator, Option<Ast>)>,
-    do_parse!(
-        op: arithmetic_binary_operator >>
-        rhs: no_keyword_token_group >>
-        ((op, Some(rhs)))
+    alt!(
+        complete!(do_parse!(
+            op: arithmetic_binary_operator >>
+            rhs: no_keyword_token_group >>
+            ((op, Some(rhs)))
+        )) |
+        complete!(do_parse!(
+            op: arithmetic_unary_operator >>
+            ((op, None))
+        ))
     )
 );
 
@@ -185,27 +192,11 @@ mod test {
     use super::*;
     use datatype::Datatype;
 
-//
-//    #[test]
-//    fn new_sexpr_test_1() {
-//        let (_, value) = match sexpr_new(b"3 + 4") {
-//            IResult::Done(r, v) => (r, v),
-//            IResult::Error(e) => panic!("{:?}", e),
-//            _ => panic!(),
-//        };
-//        assert_eq!(
-//            Ast::SExpr(SExpression::Add(
-//                Box::new(Ast::Literal(Datatype::Number(3))),
-//                Box::new(Ast::Literal(Datatype::Number(4))),
-//            )),
-//            value
-//        );
-//    }
-//
-//
+
+
     #[test]
     fn new_sexpr_single_literal() {
-        let (_, value) = match sexpr_new(b"3") {
+        let (_, value) = match sexpr(b"3") {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),
             _ => panic!(),
@@ -271,7 +262,7 @@ mod test {
     }
 
             #[test]
-    fn  sexpr_multi_mult_four_terms() {
+    fn sexpr_multi_mult_four_terms() {
         let (_, value) = match sexpr(b"3 * 4 * 5 * 6") {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),
@@ -525,7 +516,6 @@ mod test {
         );
     }
 
-
     #[test]
     fn sexpr_eq_and_ineq_parse() {
         // 10 > 3 must evaluate first.
@@ -671,8 +661,6 @@ mod test {
         );
     }
 
-
-
     #[test]
     fn sexpr_precedence_8_parse() {
         let (_, value) = match sexpr(b"10 > 3 + 5") {
@@ -731,6 +719,24 @@ mod test {
                 Box::new(Ast::Literal(Datatype::Number(2))),
             )),
             value
+        );
+    }
+
+    #[test]
+    fn sexpr_fail() {
+        let (_, value) = match sexpr(b"5 + 2++") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            IResult::Incomplete(i) => panic!("{:?}", i),
+        };
+        assert_eq!(
+            (Ast::SExpr(SExpression::Add(
+                Box::new(Ast::Literal(Datatype::Number(5))),
+                Box::new(Ast::SExpr(SExpression::Increment(
+                    Box::new(Ast::Literal(Datatype::Number(2)))
+                )))
+            ))),
+        value
         );
     }
 }

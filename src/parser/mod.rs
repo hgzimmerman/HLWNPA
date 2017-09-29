@@ -9,7 +9,7 @@ use std::boxed::Box;
 mod operators;
 
 mod expressions;
-use self::expressions::{sexpr};
+use self::expressions::sexpr;
 
 mod identifier;
 use self::identifier::identifier;

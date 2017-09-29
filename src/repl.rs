@@ -15,7 +15,7 @@ use preprocessor::preprocess;
 
 
 /// Reads and parses
-fn read<'a>(read_string: &'a str ) -> IResult<&'a [u8], Ast> {
+fn read<'a>(read_string: &'a str) -> IResult<&'a [u8], Ast> {
     return program(read_string.as_bytes());
 }
 

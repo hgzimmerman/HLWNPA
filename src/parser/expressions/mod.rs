@@ -118,31 +118,99 @@ fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast
 /// When creating left-aligned groups, it is necessary to reuse the most recent state of the LHS,
 /// so the RHS of that old LHS can be replaced.
 /// This method if given that LHS, will deconstruct it into its component parts so they can be used construct a new grouping.
-fn retrieve_operator_and_operands(ast: &Ast) -> Result<(Option<ArithmeticOperator>, Ast, Option<Ast>), String>{
-    match * ast {
-        Ast::SExpr( ref sexpr) => {
+fn retrieve_operator_and_operands(
+    ast: &Ast,
+) -> Result<(Option<ArithmeticOperator>, Ast, Option<Ast>), String> {
+    match *ast {
+        Ast::SExpr(ref sexpr) => {
             match *sexpr {
-                SExpression::Multiply(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::Times), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::Divide(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::Divide), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::Modulo(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::Modulo), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::Add(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::Plus), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::Subtract(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::Minus), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::Equals(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::Equals), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::NotEquals(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::NotEquals), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::GreaterThan(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::GreaterThan), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::LessThan(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::LessThan), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::GreaterThanOrEqual(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::GreaterThanOrEqual), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::LessThanOrEqual(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::LessThanOrEqual), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::LogicalAnd(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::LogicalAnd), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::LogicalOr(ref lhs, ref rhs) => Ok((Some(ArithmeticOperator::LogicalOr), *lhs.clone(), Some(*rhs.clone()))),
-                SExpression::Invert(ref lhs) => (Ok((Some(ArithmeticOperator::Negate), *lhs.clone(), None))),
-                SExpression::Increment(ref lhs) => (Ok((Some(ArithmeticOperator::Increment), *lhs.clone(), None))),
-                SExpression::Decrement(ref lhs) => (Ok((Some(ArithmeticOperator::Decrement), *lhs.clone(), None))),
-                _ => (Err("Unsupported SExpression".to_string()))
+                SExpression::Multiply(ref lhs, ref rhs) => Ok((
+                    Some(ArithmeticOperator::Times),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::Divide(ref lhs, ref rhs) => Ok((
+                    Some(ArithmeticOperator::Divide),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::Modulo(ref lhs, ref rhs) => Ok((
+                    Some(ArithmeticOperator::Modulo),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::Add(ref lhs, ref rhs) => Ok((
+                    Some(ArithmeticOperator::Plus),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::Subtract(ref lhs, ref rhs) => Ok((
+                    Some(ArithmeticOperator::Minus),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::Equals(ref lhs, ref rhs) => Ok((
+                    Some(ArithmeticOperator::Equals),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::NotEquals(ref lhs, ref rhs) => Ok((
+                    Some(ArithmeticOperator::NotEquals),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::GreaterThan(ref lhs, ref rhs) => Ok((
+                    Some(ArithmeticOperator::GreaterThan),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::LessThan(ref lhs, ref rhs) => Ok((
+                    Some(ArithmeticOperator::LessThan),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::GreaterThanOrEqual(ref lhs, ref rhs) => Ok((
+                    Some(
+                        ArithmeticOperator::GreaterThanOrEqual,
+                    ),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::LessThanOrEqual(ref lhs, ref rhs) => Ok((
+                    Some(
+                        ArithmeticOperator::LessThanOrEqual,
+                    ),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::LogicalAnd(ref lhs, ref rhs) => Ok((
+                    Some(ArithmeticOperator::LogicalAnd),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::LogicalOr(ref lhs, ref rhs) => Ok((
+                    Some(ArithmeticOperator::LogicalOr),
+                    *lhs.clone(),
+                    Some(*rhs.clone()),
+                )),
+                SExpression::Invert(ref lhs) => {
+                    (Ok((Some(ArithmeticOperator::Negate), *lhs.clone(), None)))
+                }
+                SExpression::Increment(ref lhs) => {
+                    (Ok((Some(ArithmeticOperator::Increment), *lhs.clone(), None)))
+                }
+                SExpression::Decrement(ref lhs) => {
+                    (Ok((Some(ArithmeticOperator::Decrement), *lhs.clone(), None)))
+                }
+                _ => (Err("Unsupported SExpression".to_string())),
             }
         }
         Ast::Literal(ref literal_dt) => Ok((None, Ast::Literal(literal_dt.clone()), None)),
-        _ => (Err("Ast isn't an supported when assigning precedence".to_string()))
+        _ => {
+            (Err(
+                "Ast isn't an supported when assigning precedence".to_string(),
+            ))
+        }
     }
 }
 
@@ -153,14 +221,18 @@ fn group_sexpr_by_precedence(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast
     let mut previous_op_value: u32 = 0;
     for op_and_rhs in rhss {
         let (op, rhs): (ArithmeticOperator, Option<Ast>) = op_and_rhs;
-        let op_value: u32 =  op.clone().into();
+        let op_value: u32 = op.clone().into();
         // the a lower value indicates it has more precedence.
         if op_value < previous_op_value {
             let (old_operator, old_lhs, old_rhs) = retrieve_operator_and_operands(&lhs).unwrap(); // TODO bad unwrap
             match old_operator {
                 Some(old_operator) => {
-                    lhs = create_sexpr(old_operator, old_lhs, Some(create_sexpr(op, old_rhs.unwrap(), rhs)) ) // Group left
-                },
+                    lhs = create_sexpr(
+                        old_operator,
+                        old_lhs,
+                        Some(create_sexpr(op, old_rhs.unwrap(), rhs)),
+                    ) // Group left
+                }
                 None => {
                     // The lack of an operator in the old RHS indicates that this is the first loop, and we can't group left.
                     // So just group right, because there is no difference for the first term.
@@ -231,8 +303,8 @@ mod test {
         );
     }
 
-        #[test]
-    fn  sexpr_multi_mult() {
+    #[test]
+    fn sexpr_multi_mult() {
         let (_, value) = match sexpr(b"3 * 4 * 5") {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),
@@ -250,7 +322,7 @@ mod test {
         );
     }
 
-            #[test]
+    #[test]
     fn sexpr_multi_mult_four_terms() {
         let (_, value) = match sexpr(b"3 * 4 * 5 * 6") {
             IResult::Done(r, v) => (r, v),
@@ -273,7 +345,7 @@ mod test {
     }
 
     #[test]
-    fn  sexpr_add_mult_add() {
+    fn sexpr_add_mult_add() {
         let (_, value) = match sexpr(b"3 + 4 * 5 + 6") {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),
@@ -298,7 +370,7 @@ mod test {
 
     }
 
-     #[test]
+    #[test]
     fn new_sexpr_precedence_parse() {
         let (_, value) = match sexpr(b"x > 3 + 5") {
             IResult::Done(r, v) => (r, v),
@@ -668,7 +740,7 @@ mod test {
         value
         );
     }
-       #[test]
+    #[test]
     fn sexpr_precedence_9_parse() {
         let (_, value) = match sexpr(b"x > 3 + 5") {
             IResult::Done(r, v) => (r, v),

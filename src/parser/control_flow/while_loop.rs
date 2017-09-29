@@ -47,7 +47,7 @@ mod test {
         )
     }
 
-        #[test]
+    #[test]
     fn parse_while_loop_2() {
         let input_string = "while (x > 5) { true }";
         let (_, value) = match while_loop(input_string.as_bytes()) {
@@ -60,7 +60,7 @@ mod test {
             Ast::SExpr(SExpression::Loop {
                 conditional: Box::new(Ast::SExpr(SExpression::GreaterThan(
                     Box::new(Ast::ValueIdentifier("x".to_string())),
-                    Box::new(Ast::Literal(Datatype::Number(5)))
+                    Box::new(Ast::Literal(Datatype::Number(5))),
                 ))),
                 body: Box::new(Ast::ExpressionList(
                     vec![Ast::Literal(Datatype::Bool(true))],

@@ -48,12 +48,11 @@ pub enum ArithmeticOperator {
     GreaterThanOrEqual,
     LessThanOrEqual,
 
-
     Equals,
     NotEquals,
 
     LogicalAnd,
-    LogicalOr
+    LogicalOr,
 }
 
 impl Into<u32> for ArithmeticOperator {
@@ -290,17 +289,21 @@ impl Ast {
                     SExpression::LogicalAnd(ref lhs, ref rhs) => {
                         let lhs_bool: bool = match rhs.evaluate(map)? {
                             Datatype::Bool(b) => b,
-                            _ => return Err(LangError::TypeError {
-                                expected: (TypeInfo::Bool),
-                                found: (TypeInfo::from(lhs.evaluate(&mut map.clone())?))
-                            })
+                            _ => {
+                                return Err(LangError::TypeError {
+                                    expected: (TypeInfo::Bool),
+                                    found: (TypeInfo::from(lhs.evaluate(&mut map.clone())?)),
+                                })
+                            }
                         };
                         let rhs_bool: bool = match rhs.evaluate(map)? {
                             Datatype::Bool(b) => b,
-                            _ => return Err(LangError::TypeError {
-                                expected: (TypeInfo::Bool),
-                                found: (TypeInfo::from(rhs.evaluate(&mut map.clone())?))
-                            })
+                            _ => {
+                                return Err(LangError::TypeError {
+                                    expected: (TypeInfo::Bool),
+                                    found: (TypeInfo::from(rhs.evaluate(&mut map.clone())?)),
+                                })
+                            }
                         };
 
                         if lhs_bool && rhs_bool {
@@ -312,17 +315,21 @@ impl Ast {
                     SExpression::LogicalOr(ref lhs, ref rhs) => {
                         let lhs_bool: bool = match rhs.evaluate(map)? {
                             Datatype::Bool(b) => b,
-                            _ => return Err(LangError::TypeError {
-                                expected: (TypeInfo::Bool),
-                                found: (TypeInfo::from(lhs.evaluate(&mut map.clone())?))
-                            })
+                            _ => {
+                                return Err(LangError::TypeError {
+                                    expected: (TypeInfo::Bool),
+                                    found: (TypeInfo::from(lhs.evaluate(&mut map.clone())?)),
+                                })
+                            }
                         };
                         let rhs_bool: bool = match rhs.evaluate(map)? {
                             Datatype::Bool(b) => b,
-                            _ => return Err(LangError::TypeError {
-                                expected: (TypeInfo::Bool),
-                                found: (TypeInfo::from(rhs.evaluate(&mut map.clone())?))
-                            })
+                            _ => {
+                                return Err(LangError::TypeError {
+                                    expected: (TypeInfo::Bool),
+                                    found: (TypeInfo::from(rhs.evaluate(&mut map.clone())?)),
+                                })
+                            }
                         };
 
                         if lhs_bool || rhs_bool {

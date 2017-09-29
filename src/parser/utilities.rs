@@ -11,6 +11,7 @@ use parser::control_flow::control_flow;
 use parser::expressions::{sexpr, sexpr_parens};
 
 
+//TODO figure out where this is used, and see if it can be removed
 named!(pub expression_or_literal_or_identifier_or_struct_or_array<Ast>,
     alt!(
         complete!(sexpr) |
@@ -19,6 +20,7 @@ named!(pub expression_or_literal_or_identifier_or_struct_or_array<Ast>,
 );
 
 
+//TODO figure out where this is used, and see if it can be removed
 named!(pub expression_or_literal_or_identifier_or_assignment<Ast>,
     alt!(
         complete!(sexpr) |

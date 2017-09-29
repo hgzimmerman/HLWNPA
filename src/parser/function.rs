@@ -48,24 +48,6 @@ named!(pub function<Ast>,
     )
 );
 
-named!(pub function_execution<Ast>,
-    do_parse!(
-        function_name: identifier >>
-        arguments: delimited!(
-            ws!(char!('(')),
-            separated_list_complete!(
-                ws!(char!(',')),
-                ws!(sexpr)
-            ),
-            ws!(char!(')'))
-        )
-        >>
-        (Ast::SExpr(SExpression::ExecuteFn {
-            identifier: Box::new(function_name),
-            parameters: Box::new(Ast::ExpressionList( arguments))
-        }))
-    )
-);
 
 #[cfg(test)]
 mod test {

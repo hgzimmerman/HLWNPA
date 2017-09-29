@@ -6,7 +6,7 @@ use parser::literal::literal;
 use parser::identifier::identifier;
 //use parser::assignment::assignment;
 use parser::structure::create_struct_instance;
-use parser::function::function_execution;
+//use parser::function::function_execution;
 //use parser::control_flow::control_flow;
 use parser::expressions::{sexpr_parens};
 

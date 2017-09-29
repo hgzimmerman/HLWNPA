@@ -281,4 +281,29 @@ mod test {
 
     }
 
+    #[test]
+    fn multiple_dimensional_array_access() {
+        let input_string = "
+        x[2][1]
+        ";
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+
+        assert_eq!(Ast::ExpressionList (
+            vec![
+                Ast::SExpr(SExpression::AccessArray {
+                    identifier: Box::new(Ast::SExpr(SExpression::AccessArray {
+                        identifier: Box::new(Ast::ValueIdentifier("x".to_string())),
+                        index: Box::new(Ast::Literal(Datatype::Number(2)))
+                    })),
+                    index: Box::new(Ast::Literal(Datatype::Number(1)))
+                }),
+            ]
+        ), ast)
+
+    }
+
 }

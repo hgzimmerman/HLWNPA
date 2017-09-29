@@ -7,6 +7,8 @@ use super::literal::number::number_literal;
 use super::literal::literal;
 use super::identifier::identifier;
 use super::function_execution;
+use parser::expressions::sexpr;
+use parser::utilities::no_keyword_token_group;
 
 named!(pub array_access<Ast>,
     do_parse!(
@@ -22,6 +24,7 @@ named!(pub array_access<Ast>,
         }))
     )
 );
+
 
 #[cfg(test)]
 mod test {

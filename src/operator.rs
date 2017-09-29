@@ -4,6 +4,7 @@
 pub enum ArithmeticOperator {
     ArrayAccess, //TODO Need to rename this struct because this breaks the naming convention
     StructAccess,
+    ExecuteFunction,
 
     Increment,
     Decrement,
@@ -32,7 +33,7 @@ impl Into<u32> for ArithmeticOperator {
     fn into(self) -> u32 {
         use self::ArithmeticOperator::*;
         match self {
-            ArrayAccess | StructAccess => 0,
+            ArrayAccess | StructAccess | ExecuteFunction => 0,
             Increment | Decrement | Negate => 1,
             Times | Divide | Modulo => 2,
             Plus | Minus => 3,

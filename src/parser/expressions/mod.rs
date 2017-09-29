@@ -48,6 +48,7 @@ named!(pub sexpr_parens<Ast>,
     )
 );
 
+/// Get an index into an array.
 named!( array_index<(ArithmeticOperator, Option<Ast>)>,
     do_parse!(
         index: delimited!(
@@ -59,6 +60,7 @@ named!( array_index<(ArithmeticOperator, Option<Ast>)>,
     )
 );
 
+/// Get a field belonging to a struct
 named!( struct_field<(ArithmeticOperator, Option<Ast>)>,
     do_parse!(
         tag!(".") >>
@@ -71,7 +73,7 @@ named!( struct_field<(ArithmeticOperator, Option<Ast>)>,
 /// Therefore, this relies on the parser always providing a rhs for binary operators.
 fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast {
     match operator {
-        //Special
+        //Language Features
         ArithmeticOperator::ArrayAccess => Ast::SExpr(SExpression::AccessArray {
             identifier: Box::new(lhs),
             index: Box::new(rhs.expect("rhs should be present"))
@@ -250,7 +252,6 @@ fn retrieve_operator_and_operands(
 }
 
 
-// TODO, this is currently the biggest cost center for the parser. While it isn't awful, it still isn't great and I should find a way to optimize it.
 fn group_sexpr_by_precedence(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast>)>) -> Ast {
     let mut lhs = lhs;
     let mut previous_op_value: u32 = 0;
@@ -259,7 +260,7 @@ fn group_sexpr_by_precedence(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast
         let op_value: u32 = op.clone().into();
         // the a lower value indicates it has more precedence.
         if op_value < previous_op_value {
-            let (old_operator, old_lhs, old_rhs) = retrieve_operator_and_operands(&lhs).unwrap(); // TODO bad unwrap
+            let (old_operator, old_lhs, old_rhs) = retrieve_operator_and_operands(&lhs).unwrap(); // TODO possibly bad unwrap
             match old_operator {
                 Some(old_operator) => {
                     lhs = create_sexpr(

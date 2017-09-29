@@ -13,6 +13,7 @@ const MAIN_FUNCTION_NAME: &'static str = "main";
 /// Abstract Syntax Tree
 /// A recursive data structure that holds instances of other ASTs.
 /// It encodes the operations that are defined by the language's syntax.
+/// Evaluating an Ast will produce either a Datatype or a LangError
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum Ast {
     SExpr(SExpression), // Operators that store their operands

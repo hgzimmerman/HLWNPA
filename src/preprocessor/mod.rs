@@ -8,10 +8,11 @@ pub fn preprocess(string: &str) -> String {
 /// The readline functionality sanitizes these escapes with the double backslash, this returns them to the form they were entered with.
 fn replace_escapes(string: &str) -> String {
     let string = string.to_string();
-    string.replace("\\n","\n")
+    string
+        .replace("\\n", "\n")
         .replace("\\t", "\t")
         .replace("\\r", "\r")
-        .replace("\\\\","\\")
+        .replace("\\\\", "\\")
         .replace(r#"\""#, "\"")
 }
 

@@ -4,11 +4,11 @@ use ast::Ast;
 
 use parser::literal::literal;
 use parser::identifier::identifier;
-use parser::assignment::assignment;
-use parser::structure::{create_struct_instance, struct_access};
+//use parser::assignment::assignment;
+use parser::structure::create_struct_instance;
 use parser::function::function_execution;
-use parser::control_flow::control_flow;
-use parser::expressions::{sexpr, sexpr_parens};
+//use parser::control_flow::control_flow;
+use parser::expressions::{sexpr_parens};
 
 
 /// Any token that cannot directly recurse into itself (ie contain an expression as its first token)

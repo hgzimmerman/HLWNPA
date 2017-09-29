@@ -11,13 +11,10 @@ mod expressions;
 use self::expressions::sexpr;
 
 mod identifier;
-//use self::identifier::identifier;
 
 mod literal;
-//use self::literal::literal;
 
 mod utilities;
-//use self::utilities::*;
 
 mod assignment;
 use self::assignment::assignment;
@@ -25,7 +22,7 @@ use self::assignment::assignment;
 mod type_signature;
 
 mod function;
-use self::function::*; // todo, maybe not have this be pub in the future.
+use self::function::*;
 
 mod body;
 
@@ -33,7 +30,6 @@ mod control_flow;
 use self::control_flow::control_flow;
 
 mod array;
-//use self::array::array_access;
 
 mod structure;
 use self::structure::{struct_definition, /* struct_access,*/ create_struct_instance};

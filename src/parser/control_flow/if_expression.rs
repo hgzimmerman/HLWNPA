@@ -2,14 +2,12 @@
 use nom::*;
 use ast::{Ast};
 use parser::body::body;
-//use parser::type_signature::type_signature;
 use std::boxed::Box;
 use parser::expressions::sexpr;
 
 named!(pub if_expression<Ast>,
     do_parse!(
         ws!(tag!("if")) >>
-//        if_conditional: ws!(expression_or_literal_or_identifier_or_struct_or_array) >>
         if_conditional: ws!(sexpr) >>
         if_body: ws!(body) >>
         else_body: opt!(

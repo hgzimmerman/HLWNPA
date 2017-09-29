@@ -24,7 +24,6 @@ named!(pub type_assignment<Ast>,
         tag!(":") >>
         type_info: alt!( complete!(type_signature) | complete!(identifier)) >> // also takes an identifier that will be checked at runtime to verify it is a structure
         (Ast::SExpr(SExpression::TypeAssignment{identifier: Box::new(id), type_info: Box::new(type_info) }))
-//        (Ast::Expression{ operator: BinaryOperator::TypeAssignment, expr1: Box::new(id), expr2: Box::new(type_info) })
     )
 );
 
@@ -35,7 +34,6 @@ named!(pub struct_value_assignment<Ast>,
         tag!(":") >>
         value:  expression_or_literal_or_identifier_or_struct_or_array >>
         (Ast::SExpr(SExpression::FieldAssignment{identifier: Box::new(id), ast: Box::new(value) }))
-//        (Ast::Expression{ operator: BinaryOperator::FieldAssignment, expr1: Box::new(id), expr2: Box::new(value) })
     )
 );
 

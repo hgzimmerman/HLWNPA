@@ -7,9 +7,6 @@ use parser::operators::*;
 use parser::utilities::no_keyword_token_group;
 
 
-
-
-
 named!(pub sexpr<Ast>,
     alt!(
         complete!(do_parse!(

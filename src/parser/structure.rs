@@ -87,6 +87,21 @@ mod test {
         assert_eq!(expected_ast, value)
     }
 
+    #[test]
+    fn parse_struct_access_name() {
+        // TODO: structVariable.field fails, because identifier's reserved words forbids "struct" as a sequence of characters as an identifier. It should allow it _in_ the identifier, it just cant be the identifier itself.
+        let input_string = "structVariable.field";
+        let (_, value) = match struct_access(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+        let expected_ast = Ast::SExpr(SExpression::AccessStructField {
+            identifier: Box::new(Ast::ValueIdentifier("structVariable".to_string())),
+            field_identifier: Box::new(Ast::ValueIdentifier("field".to_string())),
+        });
+        assert_eq!(expected_ast, value)
+    }
 
     #[test]
     fn parse_new_struct() {

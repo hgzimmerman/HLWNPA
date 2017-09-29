@@ -1,12 +1,12 @@
 # HLWNPA - Henry's Language With No Pronounceable Acronym
-I figured that I could write a programming language in the timespan of about a week, with 0 thought put into it beforehand, and maybe get a workable result.
-This is that possibly workable result.
-I did this just to see what I could acomplish with no prior experience with language design or compiler theory.
+I started this project to see what I could acomplish in about a week's worth of work, without any prior knowledge about language design.
+What I got looked sort of like a programming language.
+I have since continued to work on this language, adding additional features it didn't have after the first week, like hoisting, file includes and operator precedence.
+
 
 # Process
 I defined what the AST should look like, then defined a syntax that would parse input to that AST, and then implemented a REPL.
 I then proceeded to graft things onto the AST and syntax parser once I had a minimal language.
-
 
 
 # Features
@@ -16,17 +16,17 @@ I then proceeded to graft things onto the AST and syntax parser once I had a min
 * A few runtime error messages.
 * No early return from functions. The last statement in the body of a function, if, or loop block will be returned.
 * Type System. Runtime checking only.
-* Statements are delimited by `()`, because the language has no concept of order of operations.
 * Functions and structs must be declared in the order they are used.
 * I don't think I have support for functions returning arrays.
-* No floating point support, only signed 32 bit numbers.
+* No floating point support, only signed 32 bit integers for the moment.
 
 
 # Actual Features
 * REPL.
-* Supports Functions, while loops, if statements, as well as the primative types: Number (signed 32), String, Booleans, and Arrays (partially). As well as Structs.
+* Supports Functions, while loops, if statements, as well as the primative types: Number (signed 32 bit), String, Booleans, and Arrays (partially). As well as Structs.
 * Assignment looks like: `let value := 4 * 6`
-* Includes in the form of `include <filename>`. The filename path is relative to where the interpreter is called from and requires the extension `.hlw`.
+* Includes in the form of `include <filename>`. The filename path is relative to where the interpreter is called from and requires the full file name (including `.hlw`).
+* Operator precedence.
 
 
 # Example Program
@@ -70,7 +70,8 @@ Returns: `Number(11)`
 * ~~Switch to using S-Expressions, where each operator holds one or more operators or literals. This would replace the current implementation that just has binary and unary expressions that hold the operator and its operands.~~ S-Expressions are now used.
 * ~~Since switching to S-Expressions, parentheses can't be used to control oreder of execution. Add optional parentheses to allow for this.~~
 * ~~S-Expressions currently always evaluate from right to left, the parser should be able to organize the operations so that multiplication ocurrs before addition if given `3 * 3 + 1`. That should result as 10, instead of 12.~~ S-Expressions will be parsed left to right with operator precedence `( *, /, %) > ( +, -) > ( >=, <=, >, <) > (==, !=)`. A sub-expression can be wrapped in `()`  and will evaluate first before continuing to the next operator and tokens.
-* `&&` and `||` operators are not implemented yet. They should have the least precedence.
+* ~~S-Expression parsing with precedence is very slow. This is because the parser would try to match a LHS and an operator for every supported operator, before it found that only a single number or variable had to be parsed.~~ Rewrote the S-Expression parser. Now only about 2x overhead over no precedence logic for simple programs versus the 100x or more for the prior parser.
+* ~~`&&` and `||` operators are not implemented yet. They should have the least precedence.~~
 * Introduce Floats.
 * Introduce mutability rules. `const` vs. `let`.
 * Prevent reassignment of Struct and Function names. Currently, you are allowed to set the identifier for a struct's type to be a number, this has wonky concequences for the type system.

@@ -65,7 +65,6 @@ impl Into<u32> for ArithmeticOperator {
             GreaterThan | LessThan | GreaterThanOrEqual | LessThanOrEqual => 3,
             Equals | NotEquals => 4,
             LogicalAnd | LogicalOr => 5,
-            _ => unreachable!()
         }
     }
 }
@@ -244,13 +243,6 @@ impl Ast {
                     }
                     SExpression::Modulo(ref lhs, ref rhs) => {
                         lhs.evaluate(map)? % rhs.evaluate(map)?
-                    }
-                    SExpression::Equals(ref lhs, ref rhs) => {
-                        if lhs.evaluate(map)? == rhs.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
-                        } else {
-                            return Ok(Datatype::Bool(false));
-                        }
                     }
                     SExpression::Equals(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? == rhs.evaluate(map)? {

@@ -40,19 +40,19 @@ named!(pub expression_or_literal_or_identifier_or_struct_or_array<Ast>,
 
 
 /// When you want the literal to match before the sexpr
-named!(pub literal_or_expression_identifier_or_struct_or_array<Ast>,
-    alt!(
-
-        complete!(literal) |
-        complete!(sexpr) |
-        complete!(sexpr_parens) |
-        complete!(struct_access) |
-        complete!(function_execution) |
-        complete!(identifier) |
-        complete!(create_struct_instance) | // consider making a combinator without this one, only assignment cares about this.
-        complete!(array_access)
-    )
-);
+//named!(pub literal_or_expression_identifier_or_struct_or_array<Ast>,
+//    alt!(
+//
+//        complete!(literal) |
+//        complete!(sexpr) |
+//        complete!(sexpr_parens) |
+//        complete!(struct_access) |
+//        complete!(function_execution) |
+//        complete!(identifier) |
+//        complete!(create_struct_instance) | // consider making a combinator without this one, only assignment cares about this.
+//        complete!(array_access)
+//    )
+//);
 
 named!(pub expression_or_literal_or_identifier_or_assignment<Ast>,
     alt!(

@@ -71,7 +71,8 @@ named!(pub function_execution<Ast>,
         function_name: identifier >>
         arguments: delimited!(
             ws!(char!('(')),
-            many0!(ws!(expression_or_literal_or_identifier_or_struct_or_array)),
+//            many0!(ws!(expression_or_literal_or_identifier_or_struct_or_array)),
+            many0!(ws!(sexpr)),
             ws!(char!(')'))
         )
         >>

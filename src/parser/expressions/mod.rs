@@ -4,7 +4,6 @@ use ast::{Ast, ArithmeticOperator, SExpression};
 
 
 use parser::operators::*;
-use parser::{literal_or_expression_identifier_or_struct_or_array};
 use parser::utilities::no_keyword_token_group;
 
 
@@ -21,7 +20,7 @@ named!(pub sexpr<Ast>,
         // captures !
         complete!(do_parse!(
             operator: negate >>
-            lhs: literal_or_expression_identifier_or_struct_or_array >>
+            lhs:  no_keyword_token_group >>
             (create_sexpr(operator, lhs, None))
         ))
     )

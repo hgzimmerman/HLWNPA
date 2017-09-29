@@ -2,8 +2,8 @@
 use nom::*;
 use ast::{Ast, SExpression};
 use parser::body::body;
-use parser::utilities::expression_or_literal_or_identifier_or_struct_or_array;
 use std::boxed::Box;
+use parser::expressions::sexpr;
 
 
 
@@ -11,7 +11,8 @@ use std::boxed::Box;
 named!(pub while_loop<Ast>,
     do_parse!(
         ws!(tag!("while")) >>
-        while_conditional: ws!(expression_or_literal_or_identifier_or_struct_or_array) >>
+        while_conditional: ws!(sexpr) >>
+//        while_conditional: ws!(expression_or_literal_or_identifier_or_struct_or_array) >>
         while_body: ws!(body) >>
 
         (Ast::SExpr(SExpression::Loop{

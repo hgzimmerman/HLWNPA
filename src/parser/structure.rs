@@ -28,8 +28,6 @@ named!(pub create_struct_instance<Ast>,
             identifier: Box::new(struct_type),
             struct_datatype: Box::new(body)
         }))
-
-
     )
 );
 
@@ -61,36 +59,7 @@ mod test {
         assert_eq!(expected_struct_ast, value);
     }
 
-    /// TODO move to sexpr tests
-//    #[test]
-//    fn parse_struct_access() {
-//        let input_string = "strucVariable.field";
-//        let (_, value) = match struct_access(input_string.as_bytes()) {
-//            IResult::Done(rest, v) => (rest, v),
-//            IResult::Error(e) => panic!("{}", e),
-//            _ => panic!(),
-//        };
-//        let expected_ast = Ast::SExpr(SExpression::AccessStructField {
-//            identifier: Box::new(Ast::ValueIdentifier("strucVariable".to_string())),
-//            field_identifier: Box::new(Ast::ValueIdentifier("field".to_string())),
-//        });
-//        assert_eq!(expected_ast, value)
-//    }
-//
-//    #[test]
-//    fn parse_struct_access_name() {
-//        let input_string = "structVariable.field";
-//        let (_, value) = match struct_access(input_string.as_bytes()) {
-//            IResult::Done(rest, v) => (rest, v),
-//            IResult::Error(e) => panic!("{}", e),
-//            _ => panic!(),
-//        };
-//        let expected_ast = Ast::SExpr(SExpression::AccessStructField {
-//            identifier: Box::new(Ast::ValueIdentifier("structVariable".to_string())),
-//            field_identifier: Box::new(Ast::ValueIdentifier("field".to_string())),
-//        });
-//        assert_eq!(expected_ast, value)
-//    }
+
 
     #[test]
     fn parse_new_struct() {

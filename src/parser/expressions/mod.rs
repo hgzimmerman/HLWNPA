@@ -921,4 +921,22 @@ mod test {
             value
         )
     }
+
+
+
+    #[test]
+    fn parse_struct_access_name() {
+        let input_string = "structVariable.field";
+        let (_, value) = match sexpr(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+        let expected_ast = Ast::SExpr(SExpression::AccessStructField {
+            identifier: Box::new(Ast::ValueIdentifier("structVariable".to_string())),
+            field_identifier: Box::new(Ast::ValueIdentifier("field".to_string())),
+        });
+        assert_eq!(expected_ast, value)
+    }
+
 }

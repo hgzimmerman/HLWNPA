@@ -19,7 +19,7 @@ fn add_print_function(map: &mut HashMap<String, Datatype>) {
             parameters: Box::new(Ast::ExpressionList(vec![
                 Ast::SExpr(SExpression::TypeAssignment {
                     identifier: Box::new(Ast::ValueIdentifier("to_print".to_string())),
-                    typeInfo: Box::new(Ast::Type(TypeInfo::String)),
+                    type_info: Box::new(Ast::Type(TypeInfo::String)),
                 }),
             ])),
             body: Box::new(Ast::ExpressionList(vec![
@@ -71,7 +71,7 @@ fn expect_print_function_to_be_added_to_global_map() {
         parameters: (Box::new(Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::TypeAssignment {
                 identifier: Box::new(Ast::ValueIdentifier("to_print".to_string())),
-                typeInfo: Box::new(Ast::Type(TypeInfo::String)),
+                type_info: Box::new(Ast::Type(TypeInfo::String)),
             }),
         ]))),
         body: (Box::new(Ast::ExpressionList(vec![

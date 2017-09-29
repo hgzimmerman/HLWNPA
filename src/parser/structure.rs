@@ -3,7 +3,6 @@ use nom::*;
 use ast::{Ast, SExpression};
 use parser::identifier::identifier;
 use parser::body::{type_assignment_body, struct_init_body};
-use datatype::Datatype;
 
 
 named!(pub struct_definition<Ast>,
@@ -47,6 +46,7 @@ named!(pub create_struct_instance<Ast>,
 #[cfg(test)]
 mod test {
 
+    use datatype::Datatype;
     use datatype::TypeInfo;
     use super::*;
 
@@ -63,7 +63,7 @@ mod test {
             struct_type_info: Box::new(Ast::ExpressionList(vec![
                 Ast::SExpr(SExpression::TypeAssignment {
                     identifier: Box::new(Ast::ValueIdentifier("a_number".to_string())),
-                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                    type_info: Box::new(Ast::Type(TypeInfo::Number)),
                 }),
             ])),
         });

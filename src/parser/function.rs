@@ -62,7 +62,7 @@ fn parse_whole_function_number_input_returns_number_test() {
             parameters: Box::new(Ast::ExpressionList(
                 vec![Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
-                        typeInfo: Box::new(Ast::Type ( TypeInfo::Number ))
+                        type_info: Box::new(Ast::Type ( TypeInfo::Number ))
                     })],
             )),
             body: Box::new(Ast::ExpressionList(vec![
@@ -95,7 +95,7 @@ fn parse_whole_function_identifier_input_returns_number_test() {
             parameters: Box::new(Ast::ExpressionList(vec![
                     Ast::SExpr(SExpression::TypeAssignment{
                         identifier: Box::new(Ast::ValueIdentifier ( "a".to_string() )),
-                        typeInfo: Box::new(Ast::ValueIdentifier("Identifier".to_string()))
+                        type_info: Box::new(Ast::ValueIdentifier("Identifier".to_string()))
                     })
                 ])),
             body: Box::new(Ast::ExpressionList(vec![

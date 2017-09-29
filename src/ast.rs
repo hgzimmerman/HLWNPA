@@ -90,7 +90,7 @@ pub enum SExpression {
     Assignment { identifier: Box<Ast>, ast: Box<Ast> },
     TypeAssignment {
         identifier: Box<Ast>,
-        typeInfo: Box<Ast>,
+        type_info: Box<Ast>,
     },
     FieldAssignment { identifier: Box<Ast>, ast: Box<Ast> },
     CreateFunction {
@@ -194,7 +194,7 @@ impl Ast {
                         Ast::SExpr(ref sexpr) => {
                             if let SExpression::CreateFunction {
                                 ref identifier,
-                                ref function_datatype,
+                                function_datatype: ref _function_datatype,
                             } = *sexpr
                             {
                                 if let Ast::ValueIdentifier(ref fn_name) = **identifier {
@@ -336,7 +336,7 @@ impl Ast {
                     } |
                     SExpression::TypeAssignment {
                         identifier: ref lhs,
-                        typeInfo: ref rhs,
+                        type_info: ref rhs,
                     } |
                     SExpression::FieldAssignment {
                         identifier: ref lhs,
@@ -558,7 +558,7 @@ fn declare_struct(
                 if let &Ast::SExpr(ref sexpr) = assignment_expr {
                     if let SExpression::TypeAssignment {
                         identifier: ref field_identifier_expr,
-                        typeInfo: ref field_type_expr,
+                        type_info: ref field_type_expr,
                     } = *sexpr
                     {
                         if let Ast::ValueIdentifier(ref field_id) = **field_identifier_expr {
@@ -707,12 +707,12 @@ fn execute_function(
                                     {
                                         if let SExpression::TypeAssignment {
                                             ref identifier,
-                                            ref typeInfo
+                                            ref type_info
                                         } = *sexpr {
                                             let identifier: Box<Ast> = identifier.clone();
 
                                             //do run-time type-checking, the supplied value should be of the same type as the specified value
-                                            let expected_type: &TypeInfo = match **typeInfo {
+                                            let expected_type: &TypeInfo = match **type_info {
                                                 Ast::Type(ref datatype) => datatype,
                                                 Ast::ValueIdentifier(ref id) => {
                                                     match map.get(id) {
@@ -1092,7 +1092,7 @@ mod test {
                     parameters: Box::new(Ast::ExpressionList(vec![
                         Ast::SExpr(SExpression::TypeAssignment {
                             identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
-                            typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                            type_info: Box::new(Ast::Type(TypeInfo::Number)),
                         }),
                     ])),
                     body: (Box::new(Ast::ValueIdentifier("b".to_string()))), // just return the number passed in.
@@ -1120,13 +1120,13 @@ mod test {
                         Ast::SExpr(SExpression::TypeAssignment {
                             identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
                             // the value's name is b
-                            typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                            type_info: Box::new(Ast::Type(TypeInfo::Number)),
                                     // fn takes a number
                         }),
                         Ast::SExpr(SExpression::TypeAssignment {
                             identifier: Box::new(Ast::ValueIdentifier("c".to_string())),
                             // the value's name is b
-                            typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                            type_info: Box::new(Ast::Type(TypeInfo::Number)),
                                     // fn takes a number
                         }),
                     ])),
@@ -1196,7 +1196,7 @@ mod test {
             struct_type_info: Box::new(Ast::ExpressionList(vec![
                 Ast::SExpr(SExpression::TypeAssignment {
                     identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                    type_info: Box::new(Ast::Type(TypeInfo::Number)),
                 }),
             ])),
         });
@@ -1221,7 +1221,7 @@ mod test {
             struct_type_info: Box::new(Ast::ExpressionList(vec![
                 Ast::SExpr(SExpression::TypeAssignment {
                     identifier: Box::new(Ast::ValueIdentifier("Field1".to_string())),
-                    typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                    type_info: Box::new(Ast::Type(TypeInfo::Number)),
                 }),
             ])),
         });

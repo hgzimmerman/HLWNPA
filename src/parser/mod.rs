@@ -18,7 +18,7 @@ mod literal;
 //use self::literal::literal;
 
 mod utilities;
-use self::utilities::*;
+//use self::utilities::*;
 
 mod assignment;
 use self::assignment::assignment;
@@ -34,7 +34,7 @@ mod control_flow;
 use self::control_flow::{if_expression, while_loop};
 
 mod array;
-use self::array::array_access;
+//use self::array::array_access;
 
 mod structure;
 use self::structure::{struct_definition, /* struct_access,*/ create_struct_instance};
@@ -50,7 +50,6 @@ named!(any_ast<Ast>,
         complete!(assignment) |
         complete!(if_expression) |
         complete!(while_loop) |
-        complete!(array_access) |
         complete!(struct_definition) |
         complete!(create_struct_instance) |
         complete!(function)
@@ -116,7 +115,7 @@ mod test {
                 parameters: Box::new(Ast::ExpressionList(
                     vec![Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                        typeInfo: Box::new(Ast::Type(TypeInfo::Number))
+                        type_info: Box::new(Ast::Type(TypeInfo::Number))
                     })],
                 )),
                 body: Box::new(Ast::ExpressionList(vec![

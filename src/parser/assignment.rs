@@ -23,7 +23,7 @@ named!(pub type_assignment<Ast>,
         id: identifier >>
         tag!(":") >>
         type_info: alt!( complete!(type_signature) | complete!(identifier)) >> // also takes an identifier that will be checked at runtime to verify it is a structure
-        (Ast::SExpr(SExpression::TypeAssignment{identifier: Box::new(id), typeInfo: Box::new(type_info) }))
+        (Ast::SExpr(SExpression::TypeAssignment{identifier: Box::new(id), type_info: Box::new(type_info) }))
 //        (Ast::Expression{ operator: BinaryOperator::TypeAssignment, expr1: Box::new(id), expr2: Box::new(type_info) })
     )
 );
@@ -74,7 +74,7 @@ mod test {
         assert_eq!(
             Ast::SExpr(SExpression::TypeAssignment {
                 identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
-                typeInfo: Box::new(Ast::Type(TypeInfo::Number)),
+                type_info: Box::new(Ast::Type(TypeInfo::Number)),
             }),
             value
         )

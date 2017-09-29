@@ -5,6 +5,7 @@
 
 #![macro_use]
 extern crate nom;
+#[cfg(test)]
 extern crate test;
 extern crate clap;
 

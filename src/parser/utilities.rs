@@ -11,9 +11,6 @@ use parser::control_flow::control_flow;
 use parser::expressions::{sexpr, sexpr_parens};
 
 
-/// Because array_access requires something that resolves something to an array, using recursive combinators would overflow the stack.
-/// So don't use this in array_access.
-/// This decision prevents easy access for nested array notation like: array[30][3]
 named!(pub expression_or_literal_or_identifier_or_struct_or_array<Ast>,
     alt!(
         complete!(sexpr) |
@@ -31,7 +28,7 @@ named!(pub expression_or_literal_or_identifier_or_assignment<Ast>,
     )
 );
 
-/// Any token that cannot recurse into itself (ie contain an expression)
+/// Any token that cannot directly recurse into itself (ie contain an expression as its first token)
 /// nor contains a keyword.
 ///
 /// This is used in the sexpr parser, as anything that could parse an expression could blow up the
@@ -39,7 +36,7 @@ named!(pub expression_or_literal_or_identifier_or_assignment<Ast>,
 named!(pub no_keyword_token_group <Ast>,
     alt!(
         complete!(literal) |
-        complete!(struct_access) |
+        complete!(struct_access) | // TODO just like array_access, struct_access and function_execution can be directly rolled into sexpr.
         complete!(function_execution) |
         complete!(identifier) |
         complete!(sexpr_parens)

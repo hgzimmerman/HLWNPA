@@ -70,7 +70,7 @@ mod test {
     use datatype::{Datatype, TypeInfo};
     use preprocessor::preprocess;
     use std::boxed::Box;
-    use ast::SExpression;
+    use s_expression::SExpression;
 
     /// assign the value 7 to x
     /// create a function that takes a number

@@ -1,4 +1,4 @@
-use ast::ArithmeticOperator;
+use operator::ArithmeticOperator;
 #[allow(unused_imports)]
 use nom::*;
 

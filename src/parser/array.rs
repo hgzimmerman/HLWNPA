@@ -1,4 +1,5 @@
-use ast::{Ast, SExpression};
+use ast::Ast;
+use s_expression::SExpression;
 #[allow(unused_imports)]
 use nom::*;
 use std::boxed::Box;

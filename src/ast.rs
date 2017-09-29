@@ -6,6 +6,8 @@ use std::boxed::Box;
 use std::collections::HashMap;
 use include::read_file_into_ast;
 
+use s_expression::SExpression;
+
 /// Used for finding the main function.
 const MAIN_FUNCTION_NAME: &'static str = "main";
 
@@ -28,106 +30,6 @@ pub enum Ast {
     ValueIdentifier(String), // gets the value mapped to a hashmap
 }
 
-/// There are more Operators used than these (S Expressions use more for control flow),
-/// but these are the ones that directly map to arithmetic symbols.
-#[derive(PartialEq, PartialOrd, Debug, Clone)]
-pub enum ArithmeticOperator {
-    Increment,
-    Decrement,
-    Negate,
-
-    Times,
-    Divide,
-    Modulo,
-
-    Plus,
-    Minus,
-
-    GreaterThan,
-    LessThan,
-    GreaterThanOrEqual,
-    LessThanOrEqual,
-
-    Equals,
-    NotEquals,
-
-    LogicalAnd,
-    LogicalOr,
-}
-
-impl Into<u32> for ArithmeticOperator {
-    fn into(self) -> u32 {
-        use ArithmeticOperator::*;
-        match self {
-            Increment | Decrement | Negate => 0,
-            Times | Divide | Modulo => 1,
-            Plus | Minus => 2,
-            GreaterThan | LessThan | GreaterThanOrEqual | LessThanOrEqual => 3,
-            Equals | NotEquals => 4,
-            LogicalAnd | LogicalOr => 5,
-        }
-    }
-}
-
-/// Operators that store their operands.
-/// The Ast's evaluate() method will preform different logic on the operands depending on the operator.
-#[derive(PartialEq, PartialOrd, Debug, Clone)]
-pub enum SExpression {
-    //BinaryOperators
-    Add(Box<Ast>, Box<Ast>),
-    Subtract(Box<Ast>, Box<Ast>),
-    Multiply(Box<Ast>, Box<Ast>),
-    Divide(Box<Ast>, Box<Ast>),
-    Modulo(Box<Ast>, Box<Ast>),
-    Equals(Box<Ast>, Box<Ast>),
-    NotEquals(Box<Ast>, Box<Ast>),
-    GreaterThan(Box<Ast>, Box<Ast>),
-    LessThan(Box<Ast>, Box<Ast>),
-    GreaterThanOrEqual(Box<Ast>, Box<Ast>),
-    LessThanOrEqual(Box<Ast>, Box<Ast>),
-    LogicalAnd(Box<Ast>, Box<Ast>),
-    LogicalOr(Box<Ast>, Box<Ast>),
-    Assignment { identifier: Box<Ast>, ast: Box<Ast> },
-    TypeAssignment {
-        identifier: Box<Ast>,
-        type_info: Box<Ast>,
-    },
-    FieldAssignment { identifier: Box<Ast>, ast: Box<Ast> },
-    CreateFunction {
-        identifier: Box<Ast>,
-        function_datatype: Box<Ast>,
-    },
-    CreateStruct {
-        identifier: Box<Ast>,
-        struct_datatype: Box<Ast>,
-    },
-    Loop {
-        conditional: Box<Ast>,
-        body: Box<Ast>,
-    },
-    AccessArray {
-        identifier: Box<Ast>,
-        index: Box<Ast>,
-    },
-    StructDeclaration {
-        identifier: Box<Ast>,
-        struct_type_info: Box<Ast>,
-    },
-    AccessStructField {
-        identifier: Box<Ast>,
-        field_identifier: Box<Ast>,
-    },
-    ExecuteFn {
-        identifier: Box<Ast>,
-        parameters: Box<Ast>,
-    },
-    //Unary Operators
-    Print(Box<Ast>),
-    Include(Box<Ast>),
-    Invert(Box<Ast>),
-    Increment(Box<Ast>),
-    Decrement(Box<Ast>),
-}
 
 
 impl Ast {
@@ -806,11 +708,8 @@ fn execute_function(
 }
 
 
-
-
 #[cfg(test)]
 mod test {
-
     use super::*;
 
     #[test]
@@ -902,7 +801,6 @@ mod test {
             ast.evaluate(&mut map).err().unwrap()
         )
     }
-
 
     #[test]
     fn modulo_test() {

@@ -1,7 +1,8 @@
 
 use datatype::{Datatype, TypeInfo};
 use std::collections::HashMap;
-use ast::{Ast, SExpression};
+use ast::Ast;
+use s_expression::SExpression;
 use parser::program;
 
 use nom::IResult;

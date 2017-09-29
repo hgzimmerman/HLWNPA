@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast};
+use ast::Ast;
 use parser::body::body;
 use std::boxed::Box;
 use parser::expressions::sexpr;
@@ -37,7 +37,7 @@ named!(pub if_expression<Ast>,
 mod test {
     use super::*;
     use datatype::Datatype;
-    use ast::SExpression;
+    use s_expression::SExpression;
 
     #[test]
     fn parse_if_statement_test() {

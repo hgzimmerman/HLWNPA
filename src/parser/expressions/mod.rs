@@ -1,7 +1,8 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast, ArithmeticOperator, SExpression};
-
+use ast::Ast;
+use operator::ArithmeticOperator;
+use s_expression::SExpression;
 
 use parser::operators::*;
 use parser::utilities::no_keyword_token_group;

@@ -27,6 +27,8 @@ mod std_functions;
 mod testing;
 mod include;
 mod preprocessor;
+mod operator;
+mod s_expression;
 
 use datatype::Datatype;
 use ast::*;

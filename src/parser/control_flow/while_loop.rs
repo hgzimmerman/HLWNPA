@@ -1,6 +1,7 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast, SExpression};
+use ast::Ast;
+use s_expression::SExpression;
 use parser::body::body;
 use std::boxed::Box;
 use parser::expressions::sexpr;

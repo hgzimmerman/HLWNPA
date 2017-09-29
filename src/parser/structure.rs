@@ -1,6 +1,7 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast, SExpression};
+use ast::Ast;
+use s_expression::SExpression;
 use parser::identifier::identifier;
 use parser::body::{type_assignment_body, struct_init_body};
 

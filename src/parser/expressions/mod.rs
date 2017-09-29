@@ -269,7 +269,7 @@ fn group_sexpr_by_precedence(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast
 #[cfg(test)]
 mod test {
     use super::*;
-    use datatype::Datatype;
+    use datatype::{Datatype,TypeInfo};
 
 
 
@@ -835,5 +835,72 @@ mod test {
         ))),
         value
         );
+    }
+
+    #[test]
+    fn parse_array_access_test() {
+        let input_string = r##"
+        array_identifier[0]
+        "##;
+        let (_, value) = match sexpr(input_string.as_bytes()) {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::AccessArray {
+                identifier: Box::new(Ast::ValueIdentifier("array_identifier".to_string())),
+                index: Box::new(Ast::Literal(Datatype::Number(0))),
+            }),
+            value
+        )
+    }
+    #[test]
+    fn multiple_dimensional_array_access() {
+        let input_string = "
+        x[2][1]
+        ";
+        let (_, ast) = match sexpr(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
+
+        assert_eq!(
+            Ast::SExpr(SExpression::AccessArray {
+                identifier: Box::new(Ast::SExpr(SExpression::AccessArray {
+                    identifier: Box::new(Ast::ValueIdentifier("x".to_string())),
+                    index: Box::new(Ast::Literal(Datatype::Number(2)))
+                })),
+                index: Box::new(Ast::Literal(Datatype::Number(1)))
+            }),
+            ast
+        )
+
+    }
+    #[test]
+    fn parse_array_access_on_new_array_test() {
+        let input_string = r##"
+        [12, 13, 14][0]
+        "##;
+        let (_, value) = match sexpr(input_string.as_bytes()) {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+        assert_eq!(
+            Ast::SExpr(SExpression::AccessArray {
+                identifier: Box::new(Ast::Literal(Datatype::Array {
+                    value: vec![
+                        Datatype::Number(12),
+                        Datatype::Number(13),
+                        Datatype::Number(14),
+                    ],
+                    type_: TypeInfo::Number,
+                })),
+                index: Box::new(Ast::Literal(Datatype::Number(0))),
+            }),
+            value
+        )
     }
 }

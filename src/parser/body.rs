@@ -1,7 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
 use ast::Ast;
-//use parser::utilities::expression_or_literal_or_identifier_or_assignment;
 use parser::assignment::{type_assignment, struct_value_assignment, assignment};
 use parser::control_flow::control_flow;
 use parser::expressions::sexpr;
@@ -33,7 +32,7 @@ named!(pub body<Ast>,
 );
 
 
-//Body that only accepts assignments in the form: a : 4
+///Body that only accepts assignments in the form: a : 4
 named!(pub type_assignment_body<Ast>,
     do_parse!(
         statements : delimited!(
@@ -45,6 +44,8 @@ named!(pub type_assignment_body<Ast>,
     )
 );
 
+///Body that only accepts assignments in the form: a : <TYPE_NAME>
+/// Used for creating a struct's type.
 named!(pub struct_init_body<Ast>,
     do_parse!(
         statements : delimited!(

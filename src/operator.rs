@@ -2,7 +2,8 @@
 /// but these are the ones that directly map to arithmetic symbols.
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum ArithmeticOperator {
-    ArrayAccess, //TODO Need to rename struct because this breaks the naming convention
+    ArrayAccess, //TODO Need to rename this struct because this breaks the naming convention
+    StructAccess,
 
     Increment,
     Decrement,
@@ -31,7 +32,7 @@ impl Into<u32> for ArithmeticOperator {
     fn into(self) -> u32 {
         use self::ArithmeticOperator::*;
         match self {
-            ArrayAccess => 0,
+            ArrayAccess | StructAccess => 0,
             Increment | Decrement | Negate => 1,
             Times | Divide | Modulo => 2,
             Plus | Minus => 3,

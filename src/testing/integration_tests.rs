@@ -352,7 +352,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(Datatype::Number(108), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(180), ast.evaluate(&mut map).unwrap())
     }
 
 

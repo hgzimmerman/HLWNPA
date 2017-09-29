@@ -19,8 +19,7 @@ use parser::expressions::{sexpr, sexpr_parens};
 named!(pub no_keyword_token_group <Ast>,
     alt!(
         complete!(literal) |
-        complete!(struct_access) | // TODO just like array_access, struct_access and function_execution can be directly rolled into sexpr.
-        complete!(function_execution) |
+        complete!(function_execution) | // TODO just like array_access, struct_access and function_execution can be directly rolled into sexpr.
         complete!(identifier) |
         complete!(create_struct_instance) |
         complete!(sexpr_parens)

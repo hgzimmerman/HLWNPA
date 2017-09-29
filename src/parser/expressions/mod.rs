@@ -6,13 +6,14 @@ use s_expression::SExpression;
 
 use parser::operators::*;
 use parser::utilities::no_keyword_token_group;
+use parser::identifier::identifier;
 
 
 named!(pub sexpr<Ast>,
     alt!(
         complete!(do_parse!(
             lhs: no_keyword_token_group >>
-            op_rhss: many0!( alt!(op_and_rhs | array_index)  ) >>
+            op_rhss: many0!( alt!(op_and_rhs | array_index | struct_field)  ) >>
             (group_sexpr_by_precedence(lhs, op_rhss))
         )) |
         // captures !
@@ -58,6 +59,13 @@ named!( array_index<(ArithmeticOperator, Option<Ast>)>,
     )
 );
 
+named!( struct_field<(ArithmeticOperator, Option<Ast>)>,
+    do_parse!(
+        tag!(".") >>
+        field: identifier >>
+        ( (ArithmeticOperator::StructAccess, Some(field)) )
+    )
+);
 
 /// This isn't exactly bulletproof, in that this function could terminate the program if a binary operator is provided without a rhs.
 /// Therefore, this relies on the parser always providing a rhs for binary operators.
@@ -67,6 +75,10 @@ fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast
         ArithmeticOperator::ArrayAccess => Ast::SExpr(SExpression::AccessArray {
             identifier: Box::new(lhs),
             index: Box::new(rhs.expect("rhs should be present"))
+        }),
+        ArithmeticOperator::StructAccess => Ast::SExpr(SExpression::AccessStructField {
+            identifier: Box::new(lhs),
+            field_identifier: Box::new(rhs.expect("rhs should be present"))
         }),
         //Unary
         ArithmeticOperator::Increment => Ast::SExpr(SExpression::Increment(Box::new(lhs))),
@@ -141,6 +153,11 @@ fn retrieve_operator_and_operands(
                     Some(ArithmeticOperator::ArrayAccess),
                     *identifier.clone(),
                     Some(*index.clone())
+                )),
+                SExpression::AccessStructField {ref identifier, ref field_identifier } => Ok((
+                    Some(ArithmeticOperator::StructAccess),
+                    *identifier.clone(),
+                    Some(*field_identifier.clone())
                 )),
                 SExpression::Multiply(ref lhs, ref rhs) => Ok((
                     Some(ArithmeticOperator::Times),

@@ -11,25 +11,6 @@ use parser::control_flow::control_flow;
 use parser::expressions::{sexpr, sexpr_parens};
 
 
-//TODO figure out where this is used, and see if it can be removed
-named!(pub expression_or_literal_or_identifier_or_struct_or_array<Ast>,
-    alt!(
-        complete!(sexpr) |
-        complete!(create_struct_instance) // consider making a combinator without this one, only assignment cares about this.
-    )
-);
-
-
-//TODO figure out where this is used, and see if it can be removed
-named!(pub expression_or_literal_or_identifier_or_assignment<Ast>,
-    alt!(
-        complete!(sexpr) |
-        create_struct_instance |
-        control_flow |
-        assignment
-    )
-);
-
 /// Any token that cannot directly recurse into itself (ie contain an expression as its first token)
 /// nor contains a keyword.
 ///
@@ -41,6 +22,7 @@ named!(pub no_keyword_token_group <Ast>,
         complete!(struct_access) | // TODO just like array_access, struct_access and function_execution can be directly rolled into sexpr.
         complete!(function_execution) |
         complete!(identifier) |
+        complete!(create_struct_instance) |
         complete!(sexpr_parens)
     )
 );

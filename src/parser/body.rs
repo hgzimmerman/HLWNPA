@@ -1,15 +1,17 @@
 #[allow(unused_imports)]
 use nom::*;
 use ast::Ast;
-use parser::utilities::expression_or_literal_or_identifier_or_assignment;
-use parser::assignment::{type_assignment, struct_value_assignment};
+//use parser::utilities::expression_or_literal_or_identifier_or_assignment;
+use parser::assignment::{type_assignment, struct_value_assignment, assignment};
+use parser::control_flow::control_flow;
+use parser::expressions::sexpr;
 
 #[cfg(not(feature = "polite"))]
 named!(pub body<Ast>,
     do_parse!(
         statements : delimited!(
             ws!(char!('{')),
-            many0!(ws!(expression_or_literal_or_identifier_or_assignment)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
+            many0!(ws!(alt_complete!(sexpr| control_flow | assignment ))), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
             ws!(char!('}'))
         ) >>
         (Ast::ExpressionList( statements ))
@@ -22,7 +24,7 @@ named!(pub body<Ast>,
     do_parse!(
         statements : delimited!(
             ws!(alt!(tag!("please") | tag!("{"))),
-            many0!(ws!(expression_or_literal_or_identifier_or_assignment)), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
+            many0!(ws!(alt_complete!( sexpr | control_flow | assignment))), // consider making a ; terminate an expression // Also, multiple ast types are valuable here. define a matcher for those. //todo: should be many1
             ws!(alt!(tag!("thankyou") | tag!("}")))
         ) >>
 

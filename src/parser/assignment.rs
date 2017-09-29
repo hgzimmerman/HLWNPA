@@ -3,8 +3,8 @@ use nom::*;
 use ast::Ast;
 use s_expression::SExpression;
 use parser::identifier::identifier;
-use parser::utilities::expression_or_literal_or_identifier_or_struct_or_array;
 use parser::type_signature::type_signature;
+use parser::expressions::sexpr;
 
 // TODO leave the let binding, possibly as a way to declare a const vs mutable structure
 named!(pub assignment<Ast>,
@@ -12,7 +12,7 @@ named!(pub assignment<Ast>,
         ws!(tag!("let")) >>
         id: ws!(identifier) >>
         ws!(tag!(":="))>>
-        value: ws!(expression_or_literal_or_identifier_or_struct_or_array) >>
+        value: sexpr >>
         (Ast::SExpr(SExpression::Assignment{identifier: Box::new(id), ast: Box::new(value) }))
     )
 );
@@ -33,7 +33,7 @@ named!(pub struct_value_assignment<Ast>,
     do_parse!(
         id: identifier >>
         tag!(":") >>
-        value:  expression_or_literal_or_identifier_or_struct_or_array >>
+        value: sexpr >>
         (Ast::SExpr(SExpression::FieldAssignment{identifier: Box::new(id), ast: Box::new(value) }))
     )
 );

@@ -1,9 +1,8 @@
-use ast::{Ast, SExpression};
+use ast::{Ast};
 
 #[allow(unused_imports)]
 use nom::*;
 
-use std::boxed::Box;
 
 
 mod operators;
@@ -12,7 +11,7 @@ mod expressions;
 use self::expressions::sexpr;
 
 mod identifier;
-use self::identifier::identifier;
+//use self::identifier::identifier;
 
 mod literal;
 //use self::literal::literal;
@@ -26,7 +25,7 @@ use self::assignment::assignment;
 mod type_signature;
 
 mod function;
-use self::function::function; // todo, maybe not have this be pub in the future.
+use self::function::*; // todo, maybe not have this be pub in the future.
 
 mod body;
 
@@ -64,22 +63,7 @@ named!(pub program<Ast>,
     )
 );
 
-named!(pub function_execution<Ast>,
-    do_parse!(
-        function_name: identifier >>
-        arguments: delimited!(
-            ws!(char!('(')),
-//            many0!(ws!(expression_or_literal_or_identifier_or_struct_or_array)),
-            many0!(ws!(sexpr)),
-            ws!(char!(')'))
-        )
-        >>
-        (Ast::SExpr(SExpression::ExecuteFn {
-            identifier: Box::new(function_name), // and identifier
-            parameters: Box::new(Ast::ExpressionList( arguments))
-        }))
-    )
-);
+
 
 #[cfg(test)]
 mod test {
@@ -89,6 +73,9 @@ mod test {
     use test::Bencher;
     use datatype::{Datatype, TypeInfo};
     use preprocessor::preprocess;
+    use std::boxed::Box;
+    use ast::SExpression;
+
     /// assign the value 7 to x
     /// create a function that takes a number
     /// call the function with x

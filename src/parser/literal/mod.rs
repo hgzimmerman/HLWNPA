@@ -27,22 +27,25 @@ named!(pub literal<Ast>,
 
 // TODO create more tests for the literal combinator
 
+#[cfg(test)]
+mod test {
+    use super::*;
+    use datatype::Datatype;
 
-use datatype::Datatype;
-#[test]
-fn verify_literal_with_escapes_in_strings() {
-    let input_string = "
+    #[test]
+    fn verify_literal_with_escapes_in_strings() {
+        let input_string = "
         \"\nHello\nWorld\n\"
         ";
-    let (_, ast) = match literal(input_string.as_bytes()) {
-        IResult::Done(rest, v) => (rest, v),
-        IResult::Error(e) => panic!("Error in parsing: {}", e),
-        IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
-    };
+        let (_, ast) = match literal(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("Error in parsing: {}", e),
+            IResult::Incomplete(i) => panic!("Incomplete parse: {:?}", i),
+        };
 
-    assert_eq!(
-        Ast::Literal(Datatype::String("\nHello\nWorld\n".to_string())),
-        ast
-    )
-
+        assert_eq!(
+            Ast::Literal(Datatype::String("\nHello\nWorld\n".to_string())),
+            ast
+        )
+    }
 }

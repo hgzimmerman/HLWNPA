@@ -31,7 +31,7 @@ use self::function::function; // todo, maybe not have this be pub in the future.
 mod body;
 
 mod control_flow;
-use self::control_flow::{if_expression, while_loop};
+use self::control_flow::control_flow;
 
 mod array;
 //use self::array::array_access;
@@ -48,8 +48,7 @@ named!(any_ast<Ast>,
         complete!(sexpr) | // works as a stand in for tokens groups captured no_keyword_token_group
         complete!(include) |
         complete!(assignment) |
-        complete!(if_expression) |
-        complete!(while_loop) |
+        complete!(control_flow) |
         complete!(struct_definition) |
         complete!(create_struct_instance) |
         complete!(function)

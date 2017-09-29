@@ -205,7 +205,7 @@ fn retrieve_operator_and_operands(
                 _ => (Err("Unsupported SExpression".to_string())),
             }
         }
-        Ast::Literal(ref literal_dt) => Ok((None, Ast::Literal(literal_dt.clone()), None)),
+//        Ast::Literal(ref literal_dt) => Ok((None, Ast::Literal(literal_dt.clone()), None)),
         _ => {
             (Err(
                 "Ast isn't an supported when assigning precedence".to_string(),

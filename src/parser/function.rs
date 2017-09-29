@@ -27,7 +27,10 @@ named!(pub function<Ast>,
         function_name: identifier >>
         arguments: delimited!(
             ws!(char!('(')),
-            many0!(ws!(type_assignment)), // TODO consider adding commas between parameters
+            separated_list_complete!(
+                ws!(char!(',')),
+                ws!(type_assignment)
+            ),
             ws!(char!(')'))
         ) >>
         return_type: function_return_type >>
@@ -50,7 +53,10 @@ named!(pub function_execution<Ast>,
         function_name: identifier >>
         arguments: delimited!(
             ws!(char!('(')),
-            many0!(ws!(sexpr)), // TODO consider adding commas between parameters
+            separated_list_complete!(
+                ws!(char!(',')),
+                ws!(sexpr)
+            ),
             ws!(char!(')'))
         )
         >>

@@ -105,10 +105,10 @@ mod test {
         use nom::IResult;
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let input_string = "
-     fn add_two_numbers ( a : Number b : Number) -> Number {
+     fn add_two_numbers ( a : Number, b : Number) -> Number {
          a + b
      }
-     add_two_numbers(8 3)";
+     add_two_numbers(8, 3)";
         let (_, ast) = match program(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("{}", e),
@@ -125,10 +125,11 @@ mod test {
         let mut map: HashMap<String, Datatype> = HashMap::new();
         let input_string = "
      let a := 2
-     fn add_two_numbers ( a : Number b : Number) -> Number {
-        a +  b
+     fn add_two_numbers ( a : Number, b : Number) -> Number {
+        let a := a +  b
+        a
      }
-     add_two_numbers(8 3)
+     add_two_numbers(8, 3)
      a
      ";
         let (_, ast) = match program(input_string.as_bytes()) {

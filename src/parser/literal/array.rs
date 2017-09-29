@@ -47,10 +47,10 @@ named!(pub array_literal<Ast>,
 );
 
 named!(array_values<Vec<Ast> >,
-  separated_list_complete!(
-    ws!(tag!(",")),
-    literal
-  )
+    separated_list_complete!(
+        ws!(tag!(",")),
+        literal
+    )
 );
 
 #[test]

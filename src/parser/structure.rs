@@ -73,7 +73,6 @@ mod test {
 
     #[test]
     fn parse_struct_access() {
-        // TODO: structVariable.field fails, because identifier's reserved words forbids "struct" as a sequence of characters as an identifier. It should allow it _in_ the identifier, it just cant be the identifier itself.
         let input_string = "strucVariable.field";
         let (_, value) = match struct_access(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
@@ -89,7 +88,6 @@ mod test {
 
     #[test]
     fn parse_struct_access_name() {
-        // TODO: structVariable.field fails, because identifier's reserved words forbids "struct" as a sequence of characters as an identifier. It should allow it _in_ the identifier, it just cant be the identifier itself.
         let input_string = "structVariable.field";
         let (_, value) = match struct_access(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),

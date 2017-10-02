@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::{Ast, ArithmeticOperator, SExpression};
+use ast::{Ast, Operator, SExpression};
 
 use parser::operators::*;
 use parser::{expression_or_literal_or_identifier_or_struct_or_array,
@@ -167,7 +167,7 @@ named!(sexpr_boolean<Ast>,
 /// then pass that group to this function, ensuring that they will be evaluated left to right,
 /// completely avoiding the problem of recursively trying to parse the same expression, and blowing
 /// out the stack in the process.
-fn create_sexpr_group_left(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast>)>) -> Ast {
+fn create_sexpr_group_left(lhs: Ast, rhss: Vec<(Operator, Option<Ast>)>) -> Ast {
     let mut lhs = lhs;
     for op_and_rhs in rhss {
         let (op, rhs) = op_and_rhs.clone();

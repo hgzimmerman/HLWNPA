@@ -1,7 +1,7 @@
 /// There are more Operators used than these (S Expressions use more for control flow),
 /// but these are the ones that directly map to arithmetic symbols.
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
-pub enum ArithmeticOperator {
+pub enum Operator {
     ArrayAccess, //TODO Need to rename this struct because this breaks the naming convention
     StructAccess,
     ExecuteFunction,
@@ -30,9 +30,9 @@ pub enum ArithmeticOperator {
     LogicalOr,
 }
 
-impl Into<u32> for ArithmeticOperator {
+impl Into<u32> for Operator {
     fn into(self) -> u32 {
-        use self::ArithmeticOperator::*;
+        use self::Operator::*;
         match self {
             ArrayAccess | StructAccess | ExecuteFunction => 0,
             Increment | Decrement | Negate | Invert => 1,

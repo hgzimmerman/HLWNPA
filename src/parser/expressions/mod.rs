@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 use nom::*;
 use ast::Ast;
-use operator::ArithmeticOperator;
+use operator::Operator;
 use s_expression::SExpression;
 
 use parser::operators::*;
@@ -22,7 +22,7 @@ named!(pub sexpr<Ast>,
 );
 
 /// Grab the righthand side
-named!(op_and_rhs<(ArithmeticOperator, Option<Ast>)>,
+named!(op_and_rhs<(Operator, Option<Ast>)>,
     alt_complete!(
         do_parse!(
             op: arithmetic_binary_operator >>
@@ -53,28 +53,28 @@ named!(pub sexpr_parens<Ast>,
 );
 
 /// Get an index into an array.
-named!( array_index<(ArithmeticOperator, Option<Ast>)>,
+named!( array_index<(Operator, Option<Ast>)>,
     do_parse!(
         index: delimited!(
             ws!(char!('[')),
             ws!(sexpr),
             ws!(char!(']'))
         ) >>
-        ( (ArithmeticOperator::ArrayAccess, Some(index)) )
+        ( (Operator::ArrayAccess, Some(index)) )
     )
 );
 
 /// Get a field belonging to a struct
-named!( struct_field<(ArithmeticOperator, Option<Ast>)>,
+named!( struct_field<(Operator, Option<Ast>)>,
     do_parse!(
         tag!(".") >>
         field: identifier >>
-        ( (ArithmeticOperator::StructAccess, Some(field)) )
+        ( (Operator::StructAccess, Some(field)) )
     )
 );
 
 
-named!( function_arguments<(ArithmeticOperator, Option<Ast>)>,
+named!( function_arguments<(Operator, Option<Ast>)>,
     do_parse!(
         arguments: delimited!(
             ws!(char!('(')),
@@ -84,83 +84,83 @@ named!( function_arguments<(ArithmeticOperator, Option<Ast>)>,
             ),
             ws!(char!(')'))
         ) >>
-        ( ArithmeticOperator::ExecuteFunction, Some(Ast::ExpressionList(arguments)))
+        ( Operator::ExecuteFunction, Some(Ast::ExpressionList(arguments)))
     )
 );
 
 
 /// This isn't exactly bulletproof, in that this function could terminate the program if a binary operator is provided without a rhs.
 /// Therefore, this relies on the parser always providing a rhs for binary operators.
-fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast {
+fn create_sexpr(operator: Operator, lhs: Ast, rhs: Option<Ast>) -> Ast {
     match operator {
         //Language Features
-        ArithmeticOperator::ArrayAccess => Ast::SExpr(SExpression::AccessArray {
+        Operator::ArrayAccess => Ast::SExpr(SExpression::AccessArray {
             identifier: Box::new(lhs),
             index: Box::new(rhs.expect("rhs should be present"))
         }),
-        ArithmeticOperator::StructAccess => Ast::SExpr(SExpression::AccessStructField {
+        Operator::StructAccess => Ast::SExpr(SExpression::AccessStructField {
             identifier: Box::new(lhs),
             field_identifier: Box::new(rhs.expect("rhs should be present"))
         }),
-        ArithmeticOperator::ExecuteFunction=> Ast::SExpr(SExpression::ExecuteFn  {
+        Operator::ExecuteFunction=> Ast::SExpr(SExpression::ExecuteFn  {
             identifier: Box::new(lhs),
             parameters: Box::new(rhs.expect("rhs should be present"))
         }),
         //Unary
-        ArithmeticOperator::Increment => Ast::SExpr(SExpression::Increment(Box::new(lhs))),
-        ArithmeticOperator::Decrement => Ast::SExpr(SExpression::Decrement(Box::new(lhs))),
-        ArithmeticOperator::Invert => Ast::SExpr(SExpression::Invert(Box::new(lhs))),
-        ArithmeticOperator::Negate => Ast::SExpr(SExpression::Negate(Box::new(lhs))),
+        Operator::Increment => Ast::SExpr(SExpression::Increment(Box::new(lhs))),
+        Operator::Decrement => Ast::SExpr(SExpression::Decrement(Box::new(lhs))),
+        Operator::Invert => Ast::SExpr(SExpression::Invert(Box::new(lhs))),
+        Operator::Negate => Ast::SExpr(SExpression::Negate(Box::new(lhs))),
         //Binary
-        ArithmeticOperator::Plus => Ast::SExpr(SExpression::Add(
+        Operator::Plus => Ast::SExpr(SExpression::Add(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::Minus => Ast::SExpr(SExpression::Subtract(
+        Operator::Minus => Ast::SExpr(SExpression::Subtract(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::Times => Ast::SExpr(SExpression::Multiply(
+        Operator::Times => Ast::SExpr(SExpression::Multiply(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::Divide => Ast::SExpr(SExpression::Divide(
+        Operator::Divide => Ast::SExpr(SExpression::Divide(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::Modulo => Ast::SExpr(SExpression::Modulo(
+        Operator::Modulo => Ast::SExpr(SExpression::Modulo(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::Equals => Ast::SExpr(SExpression::Equals(
+        Operator::Equals => Ast::SExpr(SExpression::Equals(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::NotEquals => Ast::SExpr(SExpression::NotEquals(
+        Operator::NotEquals => Ast::SExpr(SExpression::NotEquals(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::GreaterThan => Ast::SExpr(SExpression::GreaterThan(
+        Operator::GreaterThan => Ast::SExpr(SExpression::GreaterThan(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::LessThan => Ast::SExpr(SExpression::LessThan(
+        Operator::LessThan => Ast::SExpr(SExpression::LessThan(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::GreaterThanOrEqual => Ast::SExpr(SExpression::GreaterThanOrEqual(
+        Operator::GreaterThanOrEqual => Ast::SExpr(SExpression::GreaterThanOrEqual(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::LessThanOrEqual => Ast::SExpr(SExpression::LessThanOrEqual(
+        Operator::LessThanOrEqual => Ast::SExpr(SExpression::LessThanOrEqual(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::LogicalAnd => Ast::SExpr(SExpression::LogicalAnd(
+        Operator::LogicalAnd => Ast::SExpr(SExpression::LogicalAnd(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
-        ArithmeticOperator::LogicalOr => Ast::SExpr(SExpression::LogicalOr(
+        Operator::LogicalOr => Ast::SExpr(SExpression::LogicalOr(
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
@@ -172,105 +172,105 @@ fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast
 /// This method if given that LHS, will deconstruct it into its component parts so they can be used construct a new grouping.
 fn retrieve_operator_and_operands(
     ast: &Ast,
-) -> Result<(Option<ArithmeticOperator>, Ast, Option<Ast>), String> {
+) -> Result<(Option<Operator>, Ast, Option<Ast>), String> {
     match *ast {
         Ast::SExpr(ref sexpr) => {
             match *sexpr {
                 SExpression::AccessArray {ref identifier, ref index } => Ok((
-                    Some(ArithmeticOperator::ArrayAccess),
+                    Some(Operator::ArrayAccess),
                     *identifier.clone(),
                     Some(*index.clone())
                 )),
                 SExpression::AccessStructField {ref identifier, ref field_identifier } => Ok((
-                    Some(ArithmeticOperator::StructAccess),
+                    Some(Operator::StructAccess),
                     *identifier.clone(),
                     Some(*field_identifier.clone())
                 )),
                 SExpression::ExecuteFn {ref identifier, ref parameters } => Ok((
-                    Some(ArithmeticOperator::ExecuteFunction),
+                    Some(Operator::ExecuteFunction),
                     *identifier.clone(),
                     Some(*parameters.clone())
                 )),
                 SExpression::Multiply(ref lhs, ref rhs) => Ok((
-                    Some(ArithmeticOperator::Times),
+                    Some(Operator::Times),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::Divide(ref lhs, ref rhs) => Ok((
-                    Some(ArithmeticOperator::Divide),
+                    Some(Operator::Divide),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::Modulo(ref lhs, ref rhs) => Ok((
-                    Some(ArithmeticOperator::Modulo),
+                    Some(Operator::Modulo),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::Add(ref lhs, ref rhs) => Ok((
-                    Some(ArithmeticOperator::Plus),
+                    Some(Operator::Plus),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::Subtract(ref lhs, ref rhs) => Ok((
-                    Some(ArithmeticOperator::Minus),
+                    Some(Operator::Minus),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::Equals(ref lhs, ref rhs) => Ok((
-                    Some(ArithmeticOperator::Equals),
+                    Some(Operator::Equals),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::NotEquals(ref lhs, ref rhs) => Ok((
-                    Some(ArithmeticOperator::NotEquals),
+                    Some(Operator::NotEquals),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::GreaterThan(ref lhs, ref rhs) => Ok((
-                    Some(ArithmeticOperator::GreaterThan),
+                    Some(Operator::GreaterThan),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::LessThan(ref lhs, ref rhs) => Ok((
-                    Some(ArithmeticOperator::LessThan),
+                    Some(Operator::LessThan),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::GreaterThanOrEqual(ref lhs, ref rhs) => Ok((
                     Some(
-                        ArithmeticOperator::GreaterThanOrEqual,
+                        Operator::GreaterThanOrEqual,
                     ),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::LessThanOrEqual(ref lhs, ref rhs) => Ok((
                     Some(
-                        ArithmeticOperator::LessThanOrEqual,
+                        Operator::LessThanOrEqual,
                     ),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::LogicalAnd(ref lhs, ref rhs) => Ok((
-                    Some(ArithmeticOperator::LogicalAnd),
+                    Some(Operator::LogicalAnd),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::LogicalOr(ref lhs, ref rhs) => Ok((
-                    Some(ArithmeticOperator::LogicalOr),
+                    Some(Operator::LogicalOr),
                     *lhs.clone(),
                     Some(*rhs.clone()),
                 )),
                 SExpression::Invert(ref lhs) => {
-                    (Ok((Some(ArithmeticOperator::Invert), *lhs.clone(), None)))
+                    (Ok((Some(Operator::Invert), *lhs.clone(), None)))
                 }
                 SExpression::Negate(ref lhs) => {
-                    (Ok((Some(ArithmeticOperator::Negate), *lhs.clone(), None)))
+                    (Ok((Some(Operator::Negate), *lhs.clone(), None)))
                 },
                 SExpression::Increment(ref lhs) => {
-                    (Ok((Some(ArithmeticOperator::Increment), *lhs.clone(), None)))
+                    (Ok((Some(Operator::Increment), *lhs.clone(), None)))
                 }
                 SExpression::Decrement(ref lhs) => {
-                    (Ok((Some(ArithmeticOperator::Decrement), *lhs.clone(), None)))
+                    (Ok((Some(Operator::Decrement), *lhs.clone(), None)))
                 }
                 _ => (Err("Unsupported SExpression".to_string())),
             }
@@ -285,11 +285,11 @@ fn retrieve_operator_and_operands(
 }
 
 
-fn group_sexpr_by_precedence(lhs: Ast, rhss: Vec<(ArithmeticOperator, Option<Ast>)>) -> Ast {
+fn group_sexpr_by_precedence(lhs: Ast, rhss: Vec<(Operator, Option<Ast>)>) -> Ast {
     let mut lhs = lhs;
     let mut previous_op_value: u32 = 0;
     for op_and_rhs in rhss {
-        let (op, rhs): (ArithmeticOperator, Option<Ast>) = op_and_rhs;
+        let (op, rhs): (Operator, Option<Ast>) = op_and_rhs;
         let op_value: u32 = op.clone().into();
         // the a lower value indicates it has more precedence.
         if op_value < previous_op_value {

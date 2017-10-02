@@ -1,118 +1,118 @@
-use operator::ArithmeticOperator;
+use operator::Operator;
 #[allow(unused_imports)]
 use nom::*;
 
-named!(plus<ArithmeticOperator>,
+named!(plus<Operator>,
     value!(
-        ArithmeticOperator::Plus,
+        Operator::Plus,
         tag!("+")
     )
 );
-named!(minus<ArithmeticOperator>,
+named!(minus<Operator>,
     value!(
-        ArithmeticOperator::Minus,
+        Operator::Minus,
         tag!("-")
     )
 );
 
-named!(multiply<ArithmeticOperator>,
+named!(multiply<Operator>,
      value!(
-        ArithmeticOperator::Times,
+        Operator::Times,
         tag!("*")
     )
 );
-named!(divide<ArithmeticOperator>,
+named!(divide<Operator>,
     value!(
-        ArithmeticOperator::Divide,
+        Operator::Divide,
         tag!("/")
     )
 );
-named!(modulo<ArithmeticOperator>,
+named!(modulo<Operator>,
     value!(
-        ArithmeticOperator::Modulo,
+        Operator::Modulo,
         tag!("%")
     )
 );
-named!(equals<ArithmeticOperator>,
+named!(equals<Operator>,
     value!(
-        ArithmeticOperator::Equals,
+        Operator::Equals,
         tag!("==")
     )
 );
-named!(not_equals<ArithmeticOperator>,
+named!(not_equals<Operator>,
     value!(
-        ArithmeticOperator::NotEquals,
+        Operator::NotEquals,
         tag!("!=")
     )
 );
-named!(greater_than<ArithmeticOperator>,
+named!(greater_than<Operator>,
     value!(
-        ArithmeticOperator::GreaterThan,
+        Operator::GreaterThan,
         tag!(">")
     )
 );
-named!(less_than<ArithmeticOperator>,
+named!(less_than<Operator>,
     value!(
-        ArithmeticOperator::LessThan,
+        Operator::LessThan,
         tag!("<")
     )
 );
-named!(greater_than_or_eq<ArithmeticOperator>,
+named!(greater_than_or_eq<Operator>,
     value!(
-        ArithmeticOperator::GreaterThanOrEqual,
+        Operator::GreaterThanOrEqual,
         tag!(">=")
     )
 );
-named!(less_than_or_eq<ArithmeticOperator>,
+named!(less_than_or_eq<Operator>,
     value!(
-        ArithmeticOperator::LessThanOrEqual,
+        Operator::LessThanOrEqual,
         tag!("<=")
     )
 );
-named!(logical_and<ArithmeticOperator>,
+named!(logical_and<Operator>,
     value!(
-        ArithmeticOperator::LogicalAnd,
+        Operator::LogicalAnd,
         tag!("&&")
     )
 );
-named!(logical_or<ArithmeticOperator>,
+named!(logical_or<Operator>,
     value!(
-        ArithmeticOperator::LogicalOr,
+        Operator::LogicalOr,
         tag!("||")
     )
 );
 
 
-named!(pub invert<ArithmeticOperator>,
+named!(pub invert<Operator>,
     value!(
-        ArithmeticOperator::Invert,
+        Operator::Invert,
         tag!("!")
     )
 );
 
-named!(pub negate<ArithmeticOperator>,
+named!(pub negate<Operator>,
     value!(
-        ArithmeticOperator::Negate,
+        Operator::Negate,
         tag!("-")
     )
 );
 
-named!(increment<ArithmeticOperator>,
+named!(increment<Operator>,
     value!(
-        ArithmeticOperator::Increment,
+        Operator::Increment,
         tag!("++")
 
     )
 );
-named!(decrement<ArithmeticOperator>,
+named!(decrement<Operator>,
     value!(
-        ArithmeticOperator::Decrement,
+        Operator::Decrement,
         tag!("--")
     )
 );
 
 
-named!( pub arithmetic_binary_operator<ArithmeticOperator>,
+named!( pub arithmetic_binary_operator<Operator>,
     ws!(alt!(
 
         multiply |
@@ -135,7 +135,7 @@ named!( pub arithmetic_binary_operator<ArithmeticOperator>,
     ))
 );
 
-named!( pub arithmetic_unary_operator<ArithmeticOperator>,
+named!( pub arithmetic_unary_operator<Operator>,
     ws!(alt!(
         increment |
         decrement

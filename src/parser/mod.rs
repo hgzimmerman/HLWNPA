@@ -30,7 +30,7 @@ mod control_flow;
 use self::control_flow::control_flow;
 
 mod structure;
-use self::structure::{struct_definition, /* struct_access,*/ create_struct_instance};
+use self::structure::{struct_definition, create_struct_instance};
 
 mod include;
 use self::include::include;

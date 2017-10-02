@@ -10,33 +10,37 @@ use parser::identifier::identifier;
 
 
 named!(pub sexpr<Ast>,
-    alt!(
-        complete!(do_parse!(
+    alt_complete!(
+        do_parse!(
             lhs: no_keyword_token_group >>
             op_rhss: many0!( alt!(op_and_rhs | array_index | struct_field | function_arguments )  ) >>
             (group_sexpr_by_precedence(lhs, op_rhss))
-        )) |
-        // captures !
-        complete!(do_parse!(
-            operator: alt!(negate | invert) >>
-            lhs:  no_keyword_token_group >>
-            (create_sexpr(operator, lhs, None))
-        ))
+        ) |
+        // captures ! or - and a lhs
+        unary_operator_and_operand
     )
 );
 
 /// Grab the righthand side
 named!(op_and_rhs<(ArithmeticOperator, Option<Ast>)>,
-    alt!(
-        complete!(do_parse!(
+    alt_complete!(
+        do_parse!(
             op: arithmetic_binary_operator >>
             rhs: no_keyword_token_group >>
             ((op, Some(rhs)))
-        )) |
-        complete!(do_parse!(
+        ) |
+        do_parse!(
             op: arithmetic_unary_operator >>
             ((op, None))
-        ))
+        )
+    )
+);
+
+named!(pub unary_operator_and_operand<Ast>,
+    do_parse!(
+        operator: alt!(negate | invert) >>
+        lhs: no_keyword_token_group >>
+        (create_sexpr(operator, lhs, None))
     )
 );
 
@@ -525,6 +529,35 @@ mod test {
         )
     }
 
+
+    #[test]
+    fn sexpr_parse_negate_then_add() {
+        let (_, value) = match sexpr(b"-40 + -20") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+
+        use std::collections::HashMap;
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+
+        assert_eq!(
+            Ast::SExpr(SExpression::Add(
+                Box::new(Ast::SExpr(SExpression::Negate(
+                    Box::new(Ast::Literal(Datatype::Number(40))),
+                ))),
+                Box::new(Ast::SExpr(SExpression::Negate(
+                    Box::new(Ast::Literal(Datatype::Number(20))),
+                ))),
+            )),
+
+            value
+        );
+        assert_eq!(
+            Datatype::Number(-60),
+            value.evaluate(&mut map).unwrap()
+        )
+    }
 
     #[test]
     fn sexpr_parse_logical_and() {

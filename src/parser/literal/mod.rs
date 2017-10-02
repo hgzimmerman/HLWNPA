@@ -19,12 +19,12 @@ use ast::Ast;
 
 /// put all literal types here
 named!(pub literal<Ast>,
-    alt!(
-        complete!(array_literal) |
-        complete!(float_literal) |
-        complete!(number_literal) |
-        complete!(string_literal) |
-        complete!(bool_literal)
+    alt_complete!(
+        array_literal |
+        float_literal |
+        number_literal |
+        string_literal |
+        bool_literal
     )
 );
 
@@ -83,6 +83,7 @@ mod test {
         )
     }
 
+    // This behavior should cause the consuming parser to fail.
     #[test]
     fn space_in_float_causes_number_parse_instead() {
         let input_string = "40. 5";

@@ -8,7 +8,7 @@ use parser::identifier::identifier;
 use parser::structure::create_struct_instance;
 //use parser::function::function_execution;
 //use parser::control_flow::control_flow;
-use parser::expressions::{sexpr_parens};
+use parser::expressions::{sexpr_parens, unary_operator_and_operand};
 
 
 /// Any token that cannot directly recurse into itself (ie contain an expression as its first token)
@@ -21,6 +21,7 @@ named!(pub no_keyword_token_group <Ast>,
         complete!(literal) |
         complete!(identifier) |
         complete!(create_struct_instance) |
-        complete!(sexpr_parens)
+        complete!(sexpr_parens) |
+        complete!(unary_operator_and_operand)
     )
 );

@@ -3,6 +3,7 @@ use ast::Ast;
 use nom::*;
 use datatype::{Datatype, TypeInfo};
 use super::literal;
+use parser::literal::number_literal;
 
 pub const TYPE_MISMATCH_ERROR: u32 = 10001;
 
@@ -52,6 +53,15 @@ named!(array_values<Vec<Ast> >,
         literal
     )
 );
+
+//named!(range<Vec<Ast> >,
+//    do_parse!(
+//        start: number_literal >>
+//        ws!(tag!("..")) >>
+//        end: number_literal >>
+//        (range(start, end).map(|x| Ast::Literal(Datatype::Number(x))).collect())
+//    )
+//);
 
 #[test]
 fn parse_array_bool_literal_test() {

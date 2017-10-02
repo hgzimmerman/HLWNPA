@@ -16,9 +16,7 @@ I then proceeded to graft things onto the AST and syntax parser once I had a min
 * A few runtime error messages.
 * No early return from functions. The last statement in the body of a function, if, or loop block will be returned.
 * Type System. Runtime checking only.
-* Functions and structs must be declared in the order they are used.
 * I don't think I have support for functions returning arrays.
-* No floating point support, only signed 32 bit integers for the moment.
 
 
 # Actual Features
@@ -72,7 +70,7 @@ Returns: `Number(11)`
 * ~~S-Expressions currently always evaluate from right to left, the parser should be able to organize the operations so that multiplication ocurrs before addition if given `3 * 3 + 1`. That should result as 10, instead of 12.~~ S-Expressions will be parsed left to right with operator precedence `( *, /, %) > ( +, -) > ( >=, <=, >, <) > (==, !=)`. A sub-expression can be wrapped in `()`  and will evaluate first before continuing to the next operator and tokens.
 * ~~S-Expression parsing with precedence is very slow. This is because the parser would try to match a LHS and an operator for every supported operator, before it found that only a single number or variable had to be parsed.~~ Rewrote the S-Expression parser. Now only about 2x overhead over no precedence logic for simple programs versus the 100x or more for the prior parser.
 * ~~`&&` and `||` operators are not implemented yet. They should have the least precedence.~~
-* Introduce Floats.
+* ~~Introduce Floats.~~
 * Introduce mutability rules. `const` vs. `let`.
 * Prevent reassignment of Struct and Function names. Currently, you are allowed to set the identifier for a struct's type to be a number, this has wonky concequences for the type system.
 * Investigate Nom's custom error messages. 

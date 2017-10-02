@@ -31,12 +31,13 @@ named!(array_ts<Ast>,
     do_parse!(
         contained_type: delimited!(
             char!('['),
-            type_signature, // TODO find a way to support custom types
+            type_signature, // TODO find a way to support custom types directly in the type_signature parser and datatype.
             char!(']')
         ) >>
         (Ast::Type(TypeInfo::Array(Box::new( get_type_from_ast(contained_type)) )))
     )
 );
+
 
 /// From an AST extract the type info.
 /// Can panic.

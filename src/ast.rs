@@ -583,6 +583,8 @@ fn execute_function(
     map: &HashMap<String, Datatype>,
 ) -> LangResult {
     let mut cloned_map = map.clone(); // clone the map, to create a temporary new "stack" for the life of the function
+    //TODO instead of cloning the map, preprocess the ast to determine what values need to be copied from the map, and only copy them into a new map.
+    //TODO This will cut down on the number of clone operations that are required, it may make programs with smaller amounts of allocated memory slower, but bigger stacked programs will be faster.
 
     // evaluate the parameters
     let evaluated_parameters: Vec<Datatype> = match *function {

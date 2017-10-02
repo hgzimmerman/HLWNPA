@@ -608,6 +608,28 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         assert_eq!(Datatype::Number(0), ast.evaluate(&mut map).unwrap())
     }
 
+    #[test]
+    fn for_loop_eval() {
+        use std::collections::HashMap;
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let input_string = r#"
+        let b := 0
+        for i in [1,2,3] {
+           let b := b + i
+        }
+        b
+         "#;
+        use std_functions::add_std_functions;
+        use parser::program;
+        add_std_functions(&mut map);
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+       assert_eq!(Datatype::Number(6), ast.evaluate(&mut map).unwrap());
+    }
 
 
     mod benches {
@@ -695,5 +717,6 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
             b.iter(|| loop_1000_times_program());
         }
     }
+
 
 }

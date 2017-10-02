@@ -49,6 +49,7 @@ pub enum SExpression {
         identifier: Box<Ast>,
         index: Box<Ast>,
     },
+    GetArrayLength ( Box<Ast> ),
     StructDeclaration {
         identifier: Box<Ast>,
         struct_type_info: Box<Ast>,

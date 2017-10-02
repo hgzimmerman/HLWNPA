@@ -320,7 +320,17 @@ impl Ast {
                             }
                         }
                     }
-
+                    SExpression::GetArrayLength(ref lhs) => {
+                        match lhs.evaluate(map)? {
+                            Datatype::Array {
+                                ref value,
+                                type_: ref _type
+                            } => {
+                                Ok(Datatype::Number(value.len() as i32))
+                            }
+                            _ => Err(LangError::TriedToGetLengthOfNonArray)
+                        }
+                    }
                     SExpression::StructDeclaration {
                         identifier: ref lhs,
                         struct_type_info: ref rhs,

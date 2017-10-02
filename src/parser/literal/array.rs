@@ -4,6 +4,8 @@ use nom::*;
 use datatype::{Datatype, TypeInfo};
 use super::literal;
 use parser::literal::number_literal;
+use s_expression::SExpression;
+use parser::expressions::sexpr;
 
 pub const TYPE_MISMATCH_ERROR: u32 = 10001;
 
@@ -54,14 +56,22 @@ named!(array_values<Vec<Ast> >,
     )
 );
 
-//named!(range<Vec<Ast> >,
-//    do_parse!(
-//        start: number_literal >>
-//        ws!(tag!("..")) >>
-//        end: number_literal >>
-//        (range(start, end).map(|x| Ast::Literal(Datatype::Number(x))).collect())
-//    )
-//);
+/// Matches syntax like [0..10] to create an array with the first value of 0, and the last value of 10.
+named!(range<Ast>,
+    delimited!(
+        char!('['),
+        do_parse!(
+            start: sexpr >> // should be either a number, or function, or sexpr or an identifier that resolves to a number
+            ws!(tag!("..")) >>
+            end: sexpr >>
+            ( Ast::SExpr( SExpression::Range{start: Box::new(start), end: Box::new(end) } ) )
+        ),
+        char!(']')
+    )
+);
+
+
+
 
 #[test]
 fn parse_array_bool_literal_test() {
@@ -109,4 +119,20 @@ fn parse_array_multiple_number_literal_test() {
         _ => panic!(),
     };
     assert_eq!(Ast::Literal ( Datatype::Array{value: vec![Datatype::Number(12), Datatype::Number(13), Datatype::Number(14)], type_: TypeInfo::Number}), value)
+}
+
+#[test]
+fn parse_array_range() {
+    let (_, value) = match range(b"[10..20]") {
+        IResult::Done(r, v) => (r, v),
+        IResult::Error(e) => panic!("{:?}", e),
+        _ => panic!(),
+    };
+    let expected = Ast::SExpr(SExpression::Range {
+        start: Box::new(Ast::Literal(Datatype::Number(10))),
+        end: Box::new(Ast::Literal(Datatype::Number(20)))
+    });
+
+    assert_eq!(expected, value)
+
 }

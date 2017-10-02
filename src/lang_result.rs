@@ -43,5 +43,6 @@ pub enum LangError {
     InitState,
     CouldNotReadFile { filename: String, reason: String },
     CouldNotParseFile { filename: String, reason: String },
-    TriedToGetLengthOfNonArray
+    TriedToGetLengthOfNonArray,
+    RangeValueIsntNumber
 }

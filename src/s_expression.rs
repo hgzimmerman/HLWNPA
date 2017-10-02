@@ -50,6 +50,10 @@ pub enum SExpression {
         index: Box<Ast>,
     },
     GetArrayLength ( Box<Ast> ),
+    Range{
+        start: Box<Ast>,
+        end: Box<Ast>
+    },
     StructDeclaration {
         identifier: Box<Ast>,
         struct_type_info: Box<Ast>,

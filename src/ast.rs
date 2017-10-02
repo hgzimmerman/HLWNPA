@@ -331,6 +331,24 @@ impl Ast {
                             _ => Err(LangError::TriedToGetLengthOfNonArray)
                         }
                     }
+                    SExpression::Range { ref start, ref end} => {
+                        let start_val: i32 = match start.evaluate(map)? {
+                            Datatype::Number(num) => num,
+                            _ => return Err(LangError::RangeValueIsntNumber)
+                        };
+                        let end_val: i32 = match start.evaluate(map)? {
+                            Datatype::Number(num) => num,
+                            _ => return Err(LangError::RangeValueIsntNumber)
+                        };
+                        let mut new_array = vec![];
+                        for i in start_val..end_val {
+                            new_array.push(Datatype::Number(i))
+                        }
+                        Ok(Datatype::Array {
+                            value: new_array,
+                            type_: TypeInfo::Number
+                        })
+                    },
                     SExpression::StructDeclaration {
                         identifier: ref lhs,
                         struct_type_info: ref rhs,

@@ -2,7 +2,7 @@
 /// but these are the ones that directly map to arithmetic symbols.
 #[derive(PartialEq, PartialOrd, Debug, Clone)]
 pub enum Operator {
-    ArrayAccess, //TODO Need to rename this struct because this breaks the naming convention
+    ArrayAccess,
     StructAccess,
     ExecuteFunction,
 

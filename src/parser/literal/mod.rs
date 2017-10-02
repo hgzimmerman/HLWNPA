@@ -28,7 +28,6 @@ named!(pub literal<Ast>,
     )
 );
 
-// TODO create more tests for the literal combinator
 
 #[cfg(test)]
 mod test {

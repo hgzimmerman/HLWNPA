@@ -37,14 +37,14 @@ use self::include::include;
 
 ///Anything that generates an AST node.
 named!(any_ast<Ast>,
-    alt!(
-        complete!(sexpr) | // works as a stand in for tokens groups captured no_keyword_token_group
-        complete!(include) |
-        complete!(assignment) |
-        complete!(control_flow) |
-        complete!(struct_definition) |
-        complete!(create_struct_instance) |
-        complete!(function)
+    alt_complete!(
+        sexpr | // works as a stand in for tokens groups captured no_keyword_token_group
+        include |
+        assignment |
+        control_flow |
+        struct_definition |
+        create_struct_instance |
+        function
     ) // Order is very important here
 );
 

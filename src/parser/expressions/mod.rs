@@ -18,7 +18,7 @@ named!(pub sexpr<Ast>,
         )) |
         // captures !
         complete!(do_parse!(
-            operator: negate >>
+            operator: alt!(negate | invert) >>
             lhs:  no_keyword_token_group >>
             (create_sexpr(operator, lhs, None))
         ))
@@ -105,7 +105,8 @@ fn create_sexpr(operator: ArithmeticOperator, lhs: Ast, rhs: Option<Ast>) -> Ast
         //Unary
         ArithmeticOperator::Increment => Ast::SExpr(SExpression::Increment(Box::new(lhs))),
         ArithmeticOperator::Decrement => Ast::SExpr(SExpression::Decrement(Box::new(lhs))),
-        ArithmeticOperator::Negate => Ast::SExpr(SExpression::Invert(Box::new(lhs))),
+        ArithmeticOperator::Invert => Ast::SExpr(SExpression::Invert(Box::new(lhs))),
+        ArithmeticOperator::Negate => Ast::SExpr(SExpression::Negate(Box::new(lhs))),
         //Binary
         ArithmeticOperator::Plus => Ast::SExpr(SExpression::Add(
             Box::new(lhs),
@@ -256,8 +257,11 @@ fn retrieve_operator_and_operands(
                     Some(*rhs.clone()),
                 )),
                 SExpression::Invert(ref lhs) => {
-                    (Ok((Some(ArithmeticOperator::Negate), *lhs.clone(), None)))
+                    (Ok((Some(ArithmeticOperator::Invert), *lhs.clone(), None)))
                 }
+                SExpression::Negate(ref lhs) => {
+                    (Ok((Some(ArithmeticOperator::Negate), *lhs.clone(), None)))
+                },
                 SExpression::Increment(ref lhs) => {
                     (Ok((Some(ArithmeticOperator::Increment), *lhs.clone(), None)))
                 }
@@ -483,7 +487,7 @@ mod test {
     }
 
     #[test]
-    fn sexpr_parse_negate() {
+    fn sexpr_parse_invert() {
         let (_, value) = match sexpr(b"!true") {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),
@@ -496,6 +500,31 @@ mod test {
             value
         );
     }
+
+
+    #[test]
+    fn sexpr_parse_negate() {
+        let (_, value) = match sexpr(b"-40") {
+            IResult::Done(r, v) => (r, v),
+            IResult::Error(e) => panic!("{:?}", e),
+            _ => panic!(),
+        };
+
+        use std::collections::HashMap;
+        let mut map: HashMap<String, Datatype> = HashMap::new();
+
+        assert_eq!(
+        Ast::SExpr(SExpression::Negate(
+            Box::new(Ast::Literal(Datatype::Number(40))),
+        )),
+        value
+        );
+        assert_eq!(
+            Datatype::Number(-40),
+            value.evaluate(&mut map).unwrap()
+        )
+    }
+
 
     #[test]
     fn sexpr_parse_logical_and() {

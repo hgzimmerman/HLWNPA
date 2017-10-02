@@ -8,7 +8,8 @@ pub enum ArithmeticOperator {
 
     Increment,
     Decrement,
-    Negate,
+    Negate, // -
+    Invert, // !
 
     Times,
     Divide,
@@ -34,7 +35,7 @@ impl Into<u32> for ArithmeticOperator {
         use self::ArithmeticOperator::*;
         match self {
             ArrayAccess | StructAccess | ExecuteFunction => 0,
-            Increment | Decrement | Negate => 1,
+            Increment | Decrement | Negate | Invert => 1,
             Times | Divide | Modulo => 2,
             Plus | Minus => 3,
             GreaterThan | LessThan | GreaterThanOrEqual | LessThanOrEqual => 4,

@@ -10,6 +10,7 @@ pub enum LangError {
     UnsupportedArithimaticOperation,
     ConditionOnNonBoolean,
     InvertNonBoolean,
+    NegateNotNumber,
     DecrementNonNumber,
     IncrementNonNumber,
     ExecuteNonFunction,

@@ -362,6 +362,13 @@ impl Ast {
                             }),
                         }
                     }
+                    SExpression::Negate(ref expr) => {
+                        match expr.evaluate(map)? {
+                            Datatype::Number(num) => Ok(Datatype::Number(-num)),
+                            Datatype::Float(float) => Ok(Datatype::Float(-float)),
+                            _ => Err(LangError::NegateNotNumber)
+                        }
+                    }
                     SExpression::Invert(ref expr) => {
                         match expr.evaluate(map)? {
                             Datatype::Bool(bool) => Ok(Datatype::Bool(!bool)),

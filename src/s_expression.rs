@@ -23,6 +23,7 @@ pub enum SExpression {
     Print(Box<Ast>),
     Include(Box<Ast>),
     Invert(Box<Ast>),
+    Negate(Box<Ast>),
     Increment(Box<Ast>),
     Decrement(Box<Ast>),
     // Language Features

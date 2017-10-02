@@ -83,12 +83,20 @@ named!(logical_or<ArithmeticOperator>,
 );
 
 
-named!(pub negate<ArithmeticOperator>,
+named!(pub invert<ArithmeticOperator>,
     value!(
-        ArithmeticOperator::Negate,
+        ArithmeticOperator::Invert,
         tag!("!")
     )
 );
+
+named!(pub negate<ArithmeticOperator>,
+    value!(
+        ArithmeticOperator::Negate,
+        tag!("-")
+    )
+);
+
 named!(increment<ArithmeticOperator>,
     value!(
         ArithmeticOperator::Increment,

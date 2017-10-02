@@ -1,4 +1,4 @@
-pub mod number; // TODO move number_raw to other file/module so this can remove the "pub"
+mod number;
 use self::number::number_literal;
 
 mod string;

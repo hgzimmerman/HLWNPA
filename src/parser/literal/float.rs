@@ -18,6 +18,7 @@ named!(float_structure<String>,
         basis: digit >>
         char!('.') >>
         decimal: digit >>
+        // These unwraps are safe, because u8 slices accepted by digit() will always be accepted by from_utf8
         (str::from_utf8(basis).unwrap().to_string() + "." + str::from_utf8(decimal).unwrap())
     )
 );

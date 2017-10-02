@@ -27,6 +27,7 @@ fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
             identifier: Box::new(Ast::ValueIdentifier("index".to_string())), // todo, change the index id to some randomly generated hash value
             ast: Box::new(Ast::Literal(Datatype::Number(0))) // 0 index
         }),
+
         Ast::SExpr(SExpression::Loop {
             conditional: Box::new(Ast::SExpr(SExpression::LessThan (
                 Box::new(Ast::ValueIdentifier("index".to_string())),
@@ -36,7 +37,7 @@ fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
                 Ast::SExpr(SExpression::Assignment {
                     identifier: Box::new(identifier),
                     ast: Box::new(Ast::SExpr(SExpression::AccessArray {
-                        identifier: Box::new(array),
+                        identifier: Box::new(array), //TODO this could create a new array for every iteration. I should target this with a pre-optimizer before the program executes.
                         index: Box::new(Ast::ValueIdentifier("index".to_string())),
                     }))
                 }), // Assign the value at the index to the given identifier

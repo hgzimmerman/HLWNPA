@@ -336,7 +336,7 @@ impl Ast {
                             Datatype::Number(num) => num,
                             _ => return Err(LangError::RangeValueIsntNumber)
                         };
-                        let end_val: i32 = match start.evaluate(map)? {
+                        let end_val: i32 = match end.evaluate(map)? {
                             Datatype::Number(num) => num,
                             _ => return Err(LangError::RangeValueIsntNumber)
                         };

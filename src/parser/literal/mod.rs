@@ -8,7 +8,7 @@ mod boolean;
 use self::boolean::bool_literal;
 
 mod array;
-use self::array::array_literal;
+use self::array::*;
 
 mod float;
 use self::float::float_literal;
@@ -21,6 +21,7 @@ use ast::Ast;
 named!(pub literal<Ast>,
     alt_complete!(
         array_literal |
+        array_range |
         float_literal |
         number_literal |
         string_literal |

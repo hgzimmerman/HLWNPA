@@ -7,6 +7,7 @@ use std::str;
 named!(normal_reserved_words,
     alt!(
         tag!("let") | tag!("fn") | tag!("if") | tag!("else") |
+        tag!("for") |
         tag!("while") | tag!("true") | tag!("false") |
         tag!("struct") |
         tag!("new") | tag!("include")

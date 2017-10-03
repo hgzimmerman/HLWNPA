@@ -8,6 +8,7 @@ extern crate nom;
 #[cfg(test)]
 extern crate test;
 extern crate clap;
+extern crate uuid;
 
 use clap::{Arg, App};
 use nom::IResult;

@@ -6,7 +6,7 @@ authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 [dependencies]
 nom = "3.2.0"
 clap = "2.26.0"
-
+uuid = { version = "0.4", features = ["v4"] }
 
 [features]
 default = []

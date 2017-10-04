@@ -3,7 +3,6 @@ use ast::Ast;
 use nom::*;
 use datatype::{Datatype, TypeInfo};
 use super::literal;
-use parser::literal::number_literal;
 use s_expression::SExpression;
 use parser::expressions::sexpr;
 

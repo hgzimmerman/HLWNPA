@@ -22,8 +22,3 @@ named!(pub no_keyword_token_group <Ast>,
         unary_operator_and_operand // allows the s-expr to grap negated parameters
     )
 );
-
-
-fn generate_uuid() {
-    
-}

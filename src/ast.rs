@@ -8,7 +8,6 @@ use include::read_file_into_ast;
 
 use s_expression::SExpression;
 use std::rc::Rc;
-use std::borrow::Borrow;
 
 /// Used for finding the main function.
 const MAIN_FUNCTION_NAME: &'static str = "main";

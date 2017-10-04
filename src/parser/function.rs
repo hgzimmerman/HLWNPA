@@ -7,7 +7,6 @@ use parser::body::body;
 use parser::type_signature::type_signature;
 use datatype::{Datatype,};
 use parser::assignment::type_assignment;
-use parser::expressions::sexpr;
 
 
 /// Either a Type or an identifier that can be resolved to a Struct's Type

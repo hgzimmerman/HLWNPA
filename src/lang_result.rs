@@ -1,6 +1,6 @@
 
 use datatype::{Datatype, TypeInfo};
-pub type LangResult = Result<Datatype, LangError>;
+pub type LangResult<'a> = Result<&'a Datatype, LangError>;
 
 #[derive(PartialEq, Debug)]
 pub enum LangError {

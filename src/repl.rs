@@ -20,10 +20,10 @@ fn read<'a>(read_string: &'a str) -> IResult<&'a [u8], Ast> {
 }
 
 // Evaluates the AST
-fn evaluate(
+fn evaluate<'b>(
     possibly_parsed_ast: IResult<&[u8], Ast>,
     map: &mut HashMap<String, Datatype>,
-) -> LangResult {
+) -> LangResult<'b> {
 
     match possibly_parsed_ast {
         IResult::Done(_, ast) => ast.evaluate(map),

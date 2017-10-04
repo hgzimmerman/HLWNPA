@@ -174,9 +174,9 @@ impl PartialOrd for Datatype {
 
 
 
-impl Sub for Datatype {
-    type Output = LangResult;
-    fn sub(self, other: Datatype) -> LangResult {
+impl <'a>Sub for &'a Datatype {
+    type Output = LangResult<'a>;
+    fn sub(self, other: &'a Datatype) -> LangResult<'a>{
         match self {
             Datatype::Number(lhs) => {
                 match other {
@@ -197,9 +197,9 @@ impl Sub for Datatype {
     }
 }
 
-impl Add for Datatype {
-    type Output = LangResult;
-    fn add(self, other: Datatype) -> LangResult {
+impl <'a>Add for &'a Datatype {
+    type Output = LangResult<'a>;
+    fn add(self, other: &'a Datatype) -> LangResult<'a> {
         match self {
             Datatype::Number(lhs) => {
                 match other {
@@ -240,9 +240,9 @@ impl Add for Datatype {
     }
 }
 
-impl Mul for Datatype {
-    type Output = LangResult;
-    fn mul(self, other: Datatype) -> LangResult {
+impl <'a>Mul for &'a Datatype {
+    type Output = LangResult<'a>;
+    fn mul(self, other: &'a Datatype) -> LangResult<'a> {
         match self {
             Datatype::Number(lhs) => {
                 match other {
@@ -263,9 +263,9 @@ impl Mul for Datatype {
     }
 }
 
-impl Div for Datatype {
-    type Output = LangResult;
-    fn div(self, other: Datatype) -> LangResult {
+impl <'a>Div for &'a Datatype {
+    type Output = LangResult<'a>;
+    fn div(self, other: &'a Datatype) -> LangResult<'a> {
         match self {
             Datatype::Number(lhs) => {
                 match other {
@@ -308,11 +308,11 @@ impl Div for Datatype {
     }
 }
 
-impl Rem for Datatype {
-    type Output = LangResult;
-    fn rem(self, other: Datatype) -> LangResult {
+impl <'a>Rem for &'a Datatype {
+    type Output = LangResult<'a>;
+    fn rem(self, other: &'a Datatype) -> LangResult<'a> {
         match self {
-            Datatype::Number(lhs) => {
+            &Datatype::Number(lhs) => {
                 match other {
                     Datatype::Number(rhs) => return Ok(Datatype::Number(lhs % rhs)),
                     _ => return Err(LangError::UnsupportedArithimaticOperation),

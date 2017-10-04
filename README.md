@@ -20,10 +20,12 @@ I then proceeded to graft things onto the AST and syntax parser once I had a min
 
 # Actual Features
 * REPL.
-* Supports Functions, while loops, if statements, as well as the primative types: Number (signed 32 bit), String, Booleans, and Arrays (partially). As well as Structs.
-* Assignment: `let value := 4 * 6`
-* While loops: `while value < 100 { value + 1 }`
-* Array Ranges: `[0..3]` produces an array `[0,1,2]`.
+* Primative types: Number (signed 32 bit), Float (64 bit), String, Booleans, and Arrays (only containing primatives at the moment). As well as Structs.
+* Assignment: `let value := 4 * 6`.
+* While loops: `while value < 100 { value + 1 }`.
+* Arrays: `let a := [0,1,2,3]`.
+* Array ranges: `[0..3]` produces an array `[0,1,2]`.
+* Array access: a[2].
 * For loops: `for n in [0..3] { println(n + "") }`.
 * Functions: 
 ```
@@ -31,22 +33,24 @@ fn function_name (parameter1: Number, parameter2: Float) -> Float {
    parameter1 + parameter2 
 }
 ```
-and
-```
-function_name(3, 1.3)
-```
+* Function execution: `function_name(3, 1.3)`.
 * Structs:
 ```
 struct struct_name {
    field1: Number, field2: Number
 }
 ```
-and
+* Struct instantiation
 ```
-new struct_name {
+let instance := new struct_name {
    field1: 4, field2: 5
 }
 ```
+* Struct access
+```
+instance.field1 + instance.field.2
+```
+
 Currently there is no association of functions with structs.
 * Includes in the form of `include <filename>`. The filename path is relative to where the interpreter is called from and requires the full file name (including `.hlw`).
 * Operator precedence.

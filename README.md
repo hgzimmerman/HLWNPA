@@ -26,19 +26,25 @@ I then proceeded to graft things onto the AST and syntax parser once I had a min
 * Array Ranges: `[0..3]` produces an array `[0,1,2]`.
 * For loops: `for n in [0..3] { println(n + "") }`.
 * Functions: 
-```fn function_name (parameter1: Number, parameter2: Float) -> Float { 
+```
+fn function_name (parameter1: Number, parameter2: Float) -> Float { 
    parameter1 + parameter2 
-}``` 
+}
+```
 and
 `fn_name(3, 1.3)`
 * Structs:
-```struct struct_name {
+```
+struct struct_name {
    field1: Number, field2: Number
-}```
-and 
-```new struct_name {
+}
+```
+and
+```
+new struct_name {
    field1: 4, field2: 5
-}```.
+}
+```
 Currently there is no association of functions with structs.
 * Includes in the form of `include <filename>`. The filename path is relative to where the interpreter is called from and requires the full file name (including `.hlw`).
 * Operator precedence.

@@ -25,7 +25,7 @@ named!(pub for_loop<Ast>,
 fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
     // Create a unique value to hold the index that should never collide if this is called repeatedly.
     let index_uuid: String = Uuid::new(UuidVersion::Random).unwrap().hyphenated().to_string();
-
+    let length_uuid: String = Uuid::new(UuidVersion::Random).unwrap().hyphenated().to_string();
     //Depending if the array is an identifier, or if some significant amount of computation is required to produce an array,
     // optimize the AST to not not require a double-identifier lookup.
     match array {
@@ -35,10 +35,16 @@ fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
                     identifier: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
                     ast: Box::new(Ast::Literal(Datatype::Number(0))) // 0 index
                 }),
+
+
+                Ast::SExpr(SExpression::Assignment {
+                    identifier: Box::new(Ast::ValueIdentifier(length_uuid.clone())),
+                    ast: Box::new(Ast::SExpr(SExpression::GetArrayLength(Box::new(Ast::ValueIdentifier(array_id.clone())))))
+                }),
                 Ast::SExpr(SExpression::Loop {
                     conditional: Box::new(Ast::SExpr(SExpression::LessThan (
                         Box::new(Ast::ValueIdentifier(index_uuid.clone())),
-                        Box::new(Ast::SExpr(SExpression::GetArrayLength(Box::new(Ast::ValueIdentifier(array_id.clone())))))
+                        Box::new( Ast::ValueIdentifier(length_uuid))
                     ) )),
                     body: Box::new(Ast::ExpressionList(vec![
                         Ast::SExpr(SExpression::Assignment {

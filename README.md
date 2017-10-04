@@ -32,7 +32,9 @@ fn function_name (parameter1: Number, parameter2: Float) -> Float {
 }
 ```
 and
-`fn_name(3, 1.3)`
+```
+function_name(3, 1.3)
+```
 * Structs:
 ```
 struct struct_name {

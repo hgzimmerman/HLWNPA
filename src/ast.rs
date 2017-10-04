@@ -345,7 +345,7 @@ impl Ast {
 //                            new_array.push(Datatype::Number(i))
 //                        }
                         let new_array = (start_val..end_val).map(|x| Datatype::Number(x)).collect();
-                        println!("creating array");
+//                        println!("creating array");
                         Ok(Datatype::Array {
                             value: new_array,
                             type_: TypeInfo::Number

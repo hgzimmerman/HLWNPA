@@ -62,6 +62,8 @@ fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
         _ => {
             // Use this uuid to store the creation of the array. This way, the array can be created once, instead of being created in the conditional
             let array_uuid: String = Uuid::new(UuidVersion::Random).unwrap().hyphenated().to_string();
+
+            let length_uuid: String = Uuid::new(UuidVersion::Random).unwrap().hyphenated().to_string();
             Ast::ExpressionList(vec![
                 Ast::SExpr(SExpression::Assignment {
                     identifier: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
@@ -76,11 +78,16 @@ fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
                     ast: Box::new(array)
                 }),
 
+                Ast::SExpr(SExpression::Assignment {
+                    identifier: Box::new(Ast::ValueIdentifier(length_uuid.clone())),
+                    ast: Box::new(Ast::SExpr(SExpression::GetArrayLength(Box::new(Ast::ValueIdentifier(array_uuid.clone())))))
+                }),
+
                 Ast::SExpr(SExpression::Loop {
                     conditional: Box::new(Ast::SExpr(SExpression::LessThan (
                         Box::new(Ast::ValueIdentifier(index_uuid.clone())),
                         //TODO  This checks for the array length on every loop iteration, this is "safe", but I could also store it in a variable, as long as the array cant be grown or shrunk.
-                        Box::new(Ast::SExpr(SExpression::GetArrayLength(Box::new(Ast::ValueIdentifier(array_uuid.clone())))))
+                        Box::new(Ast::ValueIdentifier(length_uuid))
                     ) )),
                     body: Box::new(Ast::ExpressionList(vec![
                         Ast::SExpr(SExpression::Assignment {

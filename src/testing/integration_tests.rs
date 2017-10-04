@@ -716,6 +716,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
 
             b.iter(|| loop_1000_times_program());
         }
+
         #[bench]
         fn for_loop_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
@@ -740,6 +741,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
 
             b.iter(|| loop_1000_times_program());
         }
+
         #[bench]
         fn for_loop_alt_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
@@ -818,48 +820,102 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
 
             b.iter(|| loop_1000_times_program());
         }
-    }
 
-    #[bench]
-    fn array_range_then_access_parse_and_execute_program_bench(b: &mut Bencher) {
-        fn loop_1000_times_program() {
-            use nom::IResult;
-            let mut map: HashMap<String, Datatype> = HashMap::new();
-            let input_string = r##"
+        #[bench]
+        fn while_loop_similar_to_for_no_array_access_with_id_conditional_parse_and_execute_program_bench(b: &mut Bencher) {
+            fn loop_1000_times_program() {
+                use nom::IResult;
+                let mut map: HashMap<String, Datatype> = HashMap::new();
+                let input_string = r##"
+                let c := 0
+                let index := 0
+                let array := [1..1001]
+                let length := 1000
+                while index < length {
+                    let c := c + 1
+                    let index := index + 1
+                }
+                c
+                "##;
+                let (_, ast) = match program(input_string.as_bytes()) {
+                    IResult::Done(rest, v) => (rest, v),
+                    IResult::Error(e) => panic!("{}", e),
+                    _ => panic!(),
+                };
+
+                assert_eq!(Datatype::Number(1000), ast.evaluate(&mut map).unwrap());
+            }
+
+            b.iter(|| loop_1000_times_program());
+        }
+
+        #[bench]
+        fn similar_to_for_no_array_access_without_while_loop_parse_and_execute_program_bench(b: &mut Bencher) {
+            fn loop_1000_times_program() {
+                use nom::IResult;
+                let mut map: HashMap<String, Datatype> = HashMap::new();
+                let input_string = r##"
+                let c := 0
+                let index := 0
+                let array := [1..1001]
+                let length := 1000
+
+                c
+                "##;
+                let (_, ast) = match program(input_string.as_bytes()) {
+                    IResult::Done(rest, v) => (rest, v),
+                    IResult::Error(e) => panic!("{}", e),
+                    _ => panic!(),
+                };
+
+                assert_eq!(Datatype::Number(0), ast.evaluate(&mut map).unwrap());
+            }
+
+            b.iter(|| loop_1000_times_program());
+        }
+
+
+        #[bench]
+        fn array_range_then_access_parse_and_execute_program_bench(b: &mut Bencher) {
+            fn loop_1000_times_program() {
+                use nom::IResult;
+                let mut map: HashMap<String, Datatype> = HashMap::new();
+                let input_string = r##"
                 let a := [1..1001]
                 a[0]
+                5
                 "##;
-            let (_, ast) = match program(input_string.as_bytes()) {
-                IResult::Done(rest, v) => (rest, v),
-                IResult::Error(e) => panic!("{}", e),
-                _ => panic!(),
-            };
+                let (_, ast) = match program(input_string.as_bytes()) {
+                    IResult::Done(rest, v) => (rest, v),
+                    IResult::Error(e) => panic!("{}", e),
+                    _ => panic!(),
+                };
 
-            assert_eq!(Datatype::Number(1), ast.evaluate(&mut map).unwrap());
+                assert_eq!(Datatype::Number(5), ast.evaluate(&mut map).unwrap());
+            }
+
+            b.iter(|| loop_1000_times_program());
         }
 
-        b.iter(|| loop_1000_times_program());
-    }
-    #[bench]
-    fn array_range_parse_and_execute_program_bench(b: &mut Bencher) {
-        fn loop_1000_times_program() {
-            use nom::IResult;
-            let mut map: HashMap<String, Datatype> = HashMap::new();
-            let input_string = r##"
+        #[bench]
+        fn array_range_parse_and_execute_program_bench(b: &mut Bencher) {
+            fn loop_1000_times_program() {
+                use nom::IResult;
+                let mut map: HashMap<String, Datatype> = HashMap::new();
+                let input_string = r##"
                 let a := [1..1001]
-                a
+                5
                 "##;
-            let (_, ast) = match program(input_string.as_bytes()) {
-                IResult::Done(rest, v) => (rest, v),
-                IResult::Error(e) => panic!("{}", e),
-                _ => panic!(),
-            };
-            ast.evaluate(&mut map).unwrap();
-            //assert_eq!(Datatype::Number(1), ast.evaluate(&mut map).unwrap());
+                let (_, ast) = match program(input_string.as_bytes()) {
+                    IResult::Done(rest, v) => (rest, v),
+                    IResult::Error(e) => panic!("{}", e),
+                    _ => panic!(),
+                };
+                ast.evaluate(&mut map).unwrap();
+                //assert_eq!(Datatype::Number(1), ast.evaluate(&mut map).unwrap());
+            }
+
+            b.iter(|| loop_1000_times_program());
         }
-
-        b.iter(|| loop_1000_times_program());
     }
-
-
 }

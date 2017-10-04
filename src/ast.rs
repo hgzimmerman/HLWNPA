@@ -340,10 +340,12 @@ impl Ast {
                             Datatype::Number(num) => num,
                             _ => return Err(LangError::RangeValueIsntNumber)
                         };
-                        let mut new_array = vec![];
-                        for i in start_val..end_val {
-                            new_array.push(Datatype::Number(i))
-                        }
+//                        let mut new_array = vec![];
+//                        for i in start_val..end_val {
+//                            new_array.push(Datatype::Number(i))
+//                        }
+                        let new_array = (start_val..end_val).map(|x| Datatype::Number(x)).collect();
+                        println!("creating array");
                         Ok(Datatype::Array {
                             value: new_array,
                             type_: TypeInfo::Number

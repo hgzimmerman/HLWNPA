@@ -23,48 +23,85 @@ named!(pub for_loop<Ast>,
 );
 
 fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
-
     // Create a unique value to hold the index that should never collide if this is called repeatedly.
     let index_uuid: String = Uuid::new(UuidVersion::Random).unwrap().hyphenated().to_string();
-    let array_uuid: String = Uuid::new(UuidVersion::Random).unwrap().hyphenated().to_string();
 
-    Ast::ExpressionList(vec![
-        Ast::SExpr(SExpression::Assignment {
-            identifier: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
-            ast: Box::new(Ast::Literal(Datatype::Number(0))) // 0 index
-        }),
-        // Hide the Array behind this assignment, so accessing it incurrs a constant cost
-        // (if we initialize an array then iterate through it, we only create it once,
-        // instead of creating a new array for every loop iteration like a prior implementation in all cases except
-        // you guessed it, by accessing it through an id.)
-        // TODO conditionally create this new assignment if the array AST passed in  is NOT already an identifier, if it is, there is no reason to hide it behind another identifier.
-        Ast::SExpr(SExpression::Assignment {
-            identifier: Box::new(Ast::ValueIdentifier(array_uuid.clone())),
-            ast: Box::new(array)
-        }),
-        Ast::SExpr(SExpression::Loop {
-            conditional: Box::new(Ast::SExpr(SExpression::LessThan (
-                Box::new(Ast::ValueIdentifier(index_uuid.clone())),
-                Box::new(Ast::SExpr(SExpression::GetArrayLength(Box::new(Ast::ValueIdentifier(array_uuid.clone())))))
-            ) )),
-            body: Box::new(Ast::ExpressionList(vec![
+    //Depending if the array is an identifier, or if some significant amount of computation is required to produce an array,
+    // optimize the AST to not not require a double-identifier lookup.
+    match array {
+        Ast::ValueIdentifier(array_id) => {
+            Ast::ExpressionList(vec![
                 Ast::SExpr(SExpression::Assignment {
-                    identifier: Box::new(identifier),
-                    ast: Box::new(Ast::SExpr(SExpression::AccessArray {
-                        identifier: Box::new(Ast::ValueIdentifier(array_uuid)),
-                        index: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
-                    }))
-                }), // Assign the value at the index to the given identifier
-                for_body, // execute the specified body
-                Ast::SExpr(
-                    SExpression::Assignment {
-                        identifier: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
-                        ast: Box::new(Ast::SExpr(SExpression::Increment(Box::new(Ast::ValueIdentifier(index_uuid)))))
-                    }
-                ) // increment the index
-            ]))
-        })
-    ])
+                    identifier: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
+                    ast: Box::new(Ast::Literal(Datatype::Number(0))) // 0 index
+                }),
+                Ast::SExpr(SExpression::Loop {
+                    conditional: Box::new(Ast::SExpr(SExpression::LessThan (
+                        Box::new(Ast::ValueIdentifier(index_uuid.clone())),
+                        Box::new(Ast::SExpr(SExpression::GetArrayLength(Box::new(Ast::ValueIdentifier(array_id.clone())))))
+                    ) )),
+                    body: Box::new(Ast::ExpressionList(vec![
+                        Ast::SExpr(SExpression::Assignment {
+                            identifier: Box::new(identifier),
+                            ast: Box::new(Ast::SExpr(SExpression::AccessArray {
+                                identifier: Box::new(Ast::ValueIdentifier(array_id)), // Because we already have an identifier, we can just use it here. No need to declare another variable earlier
+                                index: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
+                            }))
+                        }), // Assign the value at the index to the given identifier
+                        for_body, // execute the specified body
+                        Ast::SExpr(
+                            SExpression::Assignment {
+                                identifier: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
+                                ast: Box::new(Ast::SExpr(SExpression::Increment(Box::new(Ast::ValueIdentifier(index_uuid)))))
+                            }
+                        ) // increment the index
+                    ]))
+                })
+            ])
+        }
+        _ => {
+            // Use this uuid to store the creation of the array. This way, the array can be created once, instead of being created in the conditional
+            let array_uuid: String = Uuid::new(UuidVersion::Random).unwrap().hyphenated().to_string();
+            Ast::ExpressionList(vec![
+                Ast::SExpr(SExpression::Assignment {
+                    identifier: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
+                    ast: Box::new(Ast::Literal(Datatype::Number(0))) // 0 index
+                }),
+                // Hide the Array behind this variable, so accessing it incurs a constant cost
+                // (if we initialize an array then iterate through it, we only create it once,
+                // instead of creating a new array for every loop iteration like a prior implementation in all cases except
+                // you guessed it, by accessing it through an id.)
+                Ast::SExpr(SExpression::Assignment {
+                    identifier: Box::new(Ast::ValueIdentifier(array_uuid.clone())),
+                    ast: Box::new(array)
+                }),
+
+                Ast::SExpr(SExpression::Loop {
+                    conditional: Box::new(Ast::SExpr(SExpression::LessThan (
+                        Box::new(Ast::ValueIdentifier(index_uuid.clone())),
+                        //TODO  This checks for the array length on every loop iteration, this is "safe", but I could also store it in a variable, as long as the array cant be grown or shrunk.
+                        Box::new(Ast::SExpr(SExpression::GetArrayLength(Box::new(Ast::ValueIdentifier(array_uuid.clone())))))
+                    ) )),
+                    body: Box::new(Ast::ExpressionList(vec![
+                        Ast::SExpr(SExpression::Assignment {
+                            identifier: Box::new(identifier),
+                            ast: Box::new(Ast::SExpr(SExpression::AccessArray {
+                                identifier: Box::new(Ast::ValueIdentifier(array_uuid)), // Use the identifier to the initialized array that was created earlier
+                                index: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
+                            }))
+                        }), // Assign the value at the index to the given identifier
+                        for_body, // execute the specified body
+                        Ast::SExpr(
+                            SExpression::Assignment {
+                                identifier: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
+                                ast: Box::new(Ast::SExpr(SExpression::Increment(Box::new(Ast::ValueIdentifier(index_uuid)))))
+                            }
+                        ) // increment the index
+                    ]))
+                })
+            ])
+        }
+    }
 }
 
 

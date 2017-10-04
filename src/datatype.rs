@@ -20,7 +20,7 @@ pub enum Datatype {
     Float(f64),
     String(String),
     Array {
-        value: Vec<Datatype>,
+        value: Vec<Datatype>,// TODO consider making this a Vec<Rc<Datatype>> so that accessing the values can just copy the RC pointer instead of the datatype itself?
         type_: TypeInfo, // the type of data allowed in the array.
     },
     Bool(bool),

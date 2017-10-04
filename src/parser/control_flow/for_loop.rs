@@ -26,23 +26,32 @@ fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
 
     // Create a unique value to hold the index that should never collide if this is called repeatedly.
     let index_uuid: String = Uuid::new(UuidVersion::Random).unwrap().hyphenated().to_string();
+    let array_uuid: String = Uuid::new(UuidVersion::Random).unwrap().hyphenated().to_string();
 
     Ast::ExpressionList(vec![
         Ast::SExpr(SExpression::Assignment {
             identifier: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
             ast: Box::new(Ast::Literal(Datatype::Number(0))) // 0 index
         }),
-
+        // Hide the Array behind this assignment, so accessing it incurrs a constant cost
+        // (if we initialize an array then iterate through it, we only create it once,
+        // instead of creating a new array for every loop iteration like a prior implementation in all cases except
+        // you guessed it, by accessing it through an id.)
+        // TODO conditionally create this new assignment if the array AST passed in  is NOT already an identifier, if it is, there is no reason to hide it behind another identifier.
+        Ast::SExpr(SExpression::Assignment {
+            identifier: Box::new(Ast::ValueIdentifier(array_uuid.clone())),
+            ast: Box::new(array)
+        }),
         Ast::SExpr(SExpression::Loop {
             conditional: Box::new(Ast::SExpr(SExpression::LessThan (
                 Box::new(Ast::ValueIdentifier(index_uuid.clone())),
-                Box::new(Ast::SExpr(SExpression::GetArrayLength(Box::new(array.clone()))))
+                Box::new(Ast::SExpr(SExpression::GetArrayLength(Box::new(Ast::ValueIdentifier(array_uuid.clone())))))
             ) )),
             body: Box::new(Ast::ExpressionList(vec![
                 Ast::SExpr(SExpression::Assignment {
                     identifier: Box::new(identifier),
                     ast: Box::new(Ast::SExpr(SExpression::AccessArray {
-                        identifier: Box::new(array), //TODO this could create a new array for every iteration if the array is initialized here. I should target this with a pre-optimizer before the program executes.
+                        identifier: Box::new(Ast::ValueIdentifier(array_uuid)),
                         index: Box::new(Ast::ValueIdentifier(index_uuid.clone())),
                     }))
                 }), // Assign the value at the index to the given identifier

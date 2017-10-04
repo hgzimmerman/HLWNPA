@@ -9,6 +9,7 @@ use parser::identifier::identifier;
 use datatype::Datatype;
 use uuid::Uuid;
 use uuid::UuidVersion;
+use std::rc::Rc;
 
 named!(pub for_loop<Ast>,
     do_parse!(
@@ -137,7 +138,7 @@ fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
         let expected_ast = create_for_loop(
             Ast::ValueIdentifier("i".to_string()),
             Ast::Literal(Datatype::Array {
-                value: vec![Datatype::Number(0), Datatype::Number(2)],
+                value: vec![Rc::new(Datatype::Number(0)), Rc::new(Datatype::Number(2))],
                 type_: TypeInfo::Number
             }),
             Ast::ExpressionList(vec![Ast::Literal(Datatype::Number(3))])

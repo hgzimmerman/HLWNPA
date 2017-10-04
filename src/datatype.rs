@@ -20,7 +20,7 @@ pub enum Datatype {
     Float(f64),
     String(String),
     Array {
-        value: Vec<Datatype>,// TODO consider making this a Vec<Rc<Datatype>> so that accessing the values can just copy the RC pointer instead of the datatype itself?
+        value: Vec<Rc<Datatype>>,// TODO consider making this a Vec<Rc<Datatype>> so that accessing the values can just copy the RC pointer instead of the datatype itself?
         type_: TypeInfo, // the type of data allowed in the array.
     },
     Bool(bool),
@@ -438,21 +438,21 @@ fn datatype_equality_tests() {
     );
     assert_eq!(
         Datatype::Array {
-            value: vec![Datatype::Bool(true)],
+            value: vec![Rc::new(Datatype::Bool(true))],
             type_: TypeInfo::Bool,
         },
         Datatype::Array {
-            value: vec![Datatype::Bool(true)],
+            value: vec![Rc::new(Datatype::Bool(true))],
             type_: TypeInfo::Bool,
         }
     );
     assert_ne!(
         Datatype::Array {
-            value: vec![Datatype::Bool(true)],
+            value: vec![Rc::new(Datatype::Bool(true))],
             type_: TypeInfo::Bool,
         },
         Datatype::Array {
-            value: vec![Datatype::Bool(true), Datatype::Bool(true)],
+            value: vec![Rc::new(Datatype::Bool(true)), Rc::new(Datatype::Bool(true))],
             type_: TypeInfo::Number,
         }
     );

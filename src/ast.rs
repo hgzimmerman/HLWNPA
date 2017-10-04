@@ -305,7 +305,7 @@ impl Ast {
                                     Datatype::Number(resolved_index) => {
                                         if resolved_index >= 0 {
                                             match value.get(resolved_index as usize) {
-                                                Some(indexed_result) => Ok(Rc::new(indexed_result.clone())), // cannot mutate the interior of the array.
+                                                Some(indexed_rc_to_value) => Ok(indexed_rc_to_value.clone()),
                                                 None => Err(LangError::OutOfBoundsArrayAccess),
                                             }
                                         } else {
@@ -342,11 +342,7 @@ impl Ast {
                             Datatype::Number(num) => num,
                             _ => return Err(LangError::RangeValueIsntNumber)
                         };
-//                        let mut new_array = vec![];
-//                        for i in start_val..end_val {
-//                            new_array.push(Datatype::Number(i))
-//                        }
-                        let new_array = (start_val..end_val).map(|x| Datatype::Number(x)).collect();
+                        let new_array = (start_val..end_val).map(|x| Rc::new(Datatype::Number(x)) ).collect();
 //                        println!("creating array");
                         Ok(Rc::new(Datatype::Array {
                             value: new_array,
@@ -1105,9 +1101,9 @@ mod test {
         let ast: Ast = Ast::SExpr(SExpression::AccessArray {
             identifier: Box::new(Ast::Literal(Datatype::Array {
                 value: vec![
-                    Datatype::Number(12),
-                    Datatype::Number(14),
-                    Datatype::Number(16),
+                    Rc::new(Datatype::Number(12)),
+                    Rc::new(Datatype::Number(14)),
+                    Rc::new(Datatype::Number(16)),
                 ],
                 type_: TypeInfo::Number,
             })),
@@ -1122,9 +1118,9 @@ mod test {
         let ast: Ast = Ast::SExpr(SExpression::AccessArray {
             identifier: Box::new(Ast::Literal(Datatype::Array {
                 value: vec![
-                    Datatype::Number(12),
-                    Datatype::Number(14),
-                    Datatype::Number(16),
+                    Rc::new(Datatype::Number(12)),
+                    Rc::new(Datatype::Number(14)),
+                    Rc::new(Datatype::Number(16)),
                 ],
                 type_: TypeInfo::Number,
             })),

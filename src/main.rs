@@ -17,6 +17,7 @@ use std::collections::HashMap;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::OpenOptions;
+use std::rc::Rc;
 
 mod datatype;
 mod lang_result;
@@ -86,7 +87,7 @@ fn main() {
 
                     match program(preprocessed_program.as_bytes()) {
                         IResult::Done(_, ast) => {
-                            let mut map: HashMap<String, Datatype> = HashMap::new();
+                            let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
                             std_functions::add_std_functions(&mut map);
                             let ast = ast.hoist_functions_and_structs();
 

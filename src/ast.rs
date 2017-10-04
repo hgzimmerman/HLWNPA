@@ -7,6 +7,8 @@ use std::collections::HashMap;
 use include::read_file_into_ast;
 
 use s_expression::SExpression;
+use std::rc::Rc;
+use std::borrow::Borrow;
 
 /// Used for finding the main function.
 const MAIN_FUNCTION_NAME: &'static str = "main";
@@ -117,7 +119,7 @@ impl Ast {
 
     /// Calls the main function.
     /// This should be used if a main function has been determined to exist.
-    pub fn execute_main(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
+    pub fn execute_main(&self, map: &mut HashMap<String, Rc<Datatype>>) -> LangResult {
         let executing_ast = Ast::SExpr(SExpression::ExecuteFn {
             identifier: Box::new(Ast::ValueIdentifier(MAIN_FUNCTION_NAME.to_string())),
             parameters: Box::new(Ast::ExpressionList(vec![])),
@@ -129,115 +131,117 @@ impl Ast {
 
     /// Recurse down the AST, evaluating expressions where possible, turning them into Literals that contain Datatypes.
     /// If no errors are encountered, the whole AST should resolve to become a single Datatype, which is then returned.
-    pub fn evaluate(&self, map: &mut HashMap<String, Datatype>) -> LangResult {
+    pub fn evaluate(&self, map: &mut HashMap<String, Rc<Datatype>>) -> LangResult {
         match *self {
             Ast::SExpr(ref sexpr) => {
                 match *sexpr {
-                    SExpression::Add(ref lhs, ref rhs) => lhs.evaluate(map)? + rhs.evaluate(map)?,
+                    SExpression::Add(ref lhs, ref rhs) => {
+                        lhs.evaluate(map)?.as_ref().clone() + rhs.evaluate(map)?.as_ref().clone()
+                    }
                     SExpression::Subtract(ref lhs, ref rhs) => {
-                        lhs.evaluate(map)? - rhs.evaluate(map)?
+                        lhs.evaluate(map)?.as_ref().clone() - rhs.evaluate(map)?.as_ref().clone()
                     }
                     SExpression::Multiply(ref lhs, ref rhs) => {
-                        lhs.evaluate(map)? * rhs.evaluate(map)?
+                        lhs.evaluate(map)?.as_ref().clone() * rhs.evaluate(map)?.as_ref().clone()
                     }
                     SExpression::Divide(ref lhs, ref rhs) => {
-                        lhs.evaluate(map)? / rhs.evaluate(map)?
+                        lhs.evaluate(map)?.as_ref().clone() / rhs.evaluate(map)?.as_ref().clone()
                     }
                     SExpression::Modulo(ref lhs, ref rhs) => {
-                        lhs.evaluate(map)? % rhs.evaluate(map)?
+                        lhs.evaluate(map)?.as_ref().clone() % rhs.evaluate(map)?.as_ref().clone()
                     }
                     SExpression::Equals(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? == rhs.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
+                            return Ok(Rc::new(Datatype::Bool(true)));
                         } else {
-                            return Ok(Datatype::Bool(false));
+                            return Ok(Rc::new(Datatype::Bool(false)));
                         }
                     }
                     SExpression::NotEquals(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? != rhs.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
+                            return Ok(Rc::new(Datatype::Bool(true)));
                         } else {
-                            return Ok(Datatype::Bool(false));
+                            return Ok(Rc::new(Datatype::Bool(false)));
                         }
                     }
                     SExpression::GreaterThan(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? > rhs.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
+                            return Ok(Rc::new(Datatype::Bool(true)));
                         } else {
-                            return Ok(Datatype::Bool(false));
+                            return Ok(Rc::new(Datatype::Bool(false)));
                         }
                     }
                     SExpression::LessThan(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? < rhs.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
+                            return Ok(Rc::new(Datatype::Bool(true)));
                         } else {
-                            return Ok(Datatype::Bool(false));
+                            return Ok(Rc::new(Datatype::Bool(false)));
                         }
                     }
                     SExpression::GreaterThanOrEqual(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? >= rhs.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
+                            return Ok(Rc::new(Datatype::Bool(true)));
                         } else {
-                            return Ok(Datatype::Bool(false));
+                            return Ok(Rc::new(Datatype::Bool(false)));
                         }
                     }
                     SExpression::LessThanOrEqual(ref lhs, ref rhs) => {
                         if lhs.evaluate(map)? <= rhs.evaluate(map)? {
-                            return Ok(Datatype::Bool(true));
+                            return Ok(Rc::new(Datatype::Bool(true)));
                         } else {
-                            return Ok(Datatype::Bool(false));
+                            return Ok(Rc::new(Datatype::Bool(false)));
                         }
                     }
                     SExpression::LogicalAnd(ref lhs, ref rhs) => {
-                        let lhs_bool: bool = match rhs.evaluate(map)? {
+                        let lhs_bool: bool = match *rhs.evaluate(map)? {
                             Datatype::Bool(b) => b,
                             _ => {
                                 return Err(LangError::TypeError {
                                     expected: (TypeInfo::Bool),
-                                    found: (TypeInfo::from(lhs.evaluate(&mut map.clone())?)),
+                                    found: (TypeInfo::from(lhs.evaluate(&mut map.clone())?.as_ref().clone())),
                                 })
                             }
                         };
-                        let rhs_bool: bool = match rhs.evaluate(map)? {
+                        let rhs_bool: bool = match *rhs.evaluate(map)? {
                             Datatype::Bool(b) => b,
                             _ => {
                                 return Err(LangError::TypeError {
                                     expected: (TypeInfo::Bool),
-                                    found: (TypeInfo::from(rhs.evaluate(&mut map.clone())?)),
+                                    found: (TypeInfo::from(rhs.evaluate(&mut map.clone())?.as_ref().clone())),
                                 })
                             }
                         };
 
                         if lhs_bool && rhs_bool {
-                            return Ok(Datatype::Bool(true));
+                            return Ok(Rc::new(Datatype::Bool(true)));
                         } else {
-                            return Ok(Datatype::Bool(false));
+                            return Ok(Rc::new(Datatype::Bool(false)));
                         }
                     }
                     SExpression::LogicalOr(ref lhs, ref rhs) => {
-                        let lhs_bool: bool = match rhs.evaluate(map)? {
+                        let lhs_bool: bool = match *rhs.evaluate(map)? {
                             Datatype::Bool(b) => b,
                             _ => {
                                 return Err(LangError::TypeError {
                                     expected: (TypeInfo::Bool),
-                                    found: (TypeInfo::from(lhs.evaluate(&mut map.clone())?)),
+                                    found: (TypeInfo::from(lhs.evaluate(&mut map.clone())?.as_ref().clone())),
                                 })
                             }
                         };
-                        let rhs_bool: bool = match rhs.evaluate(map)? {
+                        let rhs_bool: bool = match *rhs.evaluate(map)? {
                             Datatype::Bool(b) => b,
                             _ => {
                                 return Err(LangError::TypeError {
                                     expected: (TypeInfo::Bool),
-                                    found: (TypeInfo::from(rhs.evaluate(&mut map.clone())?)),
+                                    found: (TypeInfo::from(rhs.evaluate(&mut map.clone())?.as_ref().clone())),
                                 })
                             }
                         };
 
                         if lhs_bool || rhs_bool {
-                            return Ok(Datatype::Bool(true));
+                            return Ok(Rc::new(Datatype::Bool(true)));
                         } else {
-                            return Ok(Datatype::Bool(false));
+                            return Ok(Rc::new(Datatype::Bool(false)));
                         }
                     }
                     SExpression::Assignment {
@@ -270,13 +274,12 @@ impl Ast {
                         ref conditional,
                         ref body,
                     } => {
-                        let mut evaluated_loop: Datatype = Datatype::None;
-                        let cloned_conditional = *conditional.clone();
+                        let mut evaluated_loop: Rc<Datatype> = Rc::new(Datatype::None);
                         loop {
-                            let condition: Datatype = cloned_conditional.evaluate(map)?;
-                            match condition {
-                                Datatype::Bool(b) => {
-                                    if b {
+                            let condition: &Datatype = &*conditional.evaluate(map)?;
+                            match *condition {
+                                Datatype::Bool(ref b) => {
+                                    if *b {
                                         evaluated_loop = body.evaluate(map)?; // This doesn't clone the map, so it can mutate the "stack" of its context
                                     } else {
                                         break;
@@ -284,7 +287,7 @@ impl Ast {
                                 }
                                 _ => {
                                     return Err(LangError::ConditionalNotBoolean(
-                                        TypeInfo::from(condition),
+                                        TypeInfo::from(condition.clone()),
                                     ))
                                 }
                             }
@@ -295,48 +298,48 @@ impl Ast {
                         ref identifier,
                         ref index,
                     } => {
-                        let datatype: Datatype = identifier.evaluate(map)?;
-                        match datatype {
-                            Datatype::Array { value, .. } => {
-                                let possible_index = index.evaluate(map)?;
-                                match possible_index {
+                        let datatype: &Datatype = &*identifier.evaluate(map)?;
+                        match *datatype {
+                            Datatype::Array { ref value, .. } => {
+                                let possible_index: Rc<Datatype> = index.evaluate(map)?;
+                                match *possible_index {
                                     Datatype::Number(resolved_index) => {
                                         if resolved_index >= 0 {
                                             match value.get(resolved_index as usize) {
-                                                Some(indexed_result) => Ok(indexed_result.clone()), // cannot mutate the interior of the array.
+                                                Some(indexed_result) => Ok(Rc::new(indexed_result.clone())), // cannot mutate the interior of the array.
                                                 None => Err(LangError::OutOfBoundsArrayAccess),
                                             }
                                         } else {
                                             Err(LangError::NegativeIndex(resolved_index))
                                         }
                                     }
-                                    _ => Err(LangError::InvalidIndexType(possible_index)),
+                                    _ => Err(LangError::InvalidIndexType(possible_index.as_ref().clone())),
                                 }
                             }
                             _ => {
                                 return Err(
-                                    LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype)),
+                                    LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype.clone())),
                                 )
                             }
                         }
                     }
                     SExpression::GetArrayLength(ref lhs) => {
-                        match lhs.evaluate(map)? {
+                        match *lhs.evaluate(map)? {
                             Datatype::Array {
                                 ref value,
                                 type_: ref _type
                             } => {
-                                Ok(Datatype::Number(value.len() as i32))
+                                Ok(Rc::new(Datatype::Number(value.len() as i32)))
                             }
                             _ => Err(LangError::TriedToGetLengthOfNonArray)
                         }
                     }
                     SExpression::Range { ref start, ref end} => {
-                        let start_val: i32 = match start.evaluate(map)? {
+                        let start_val: i32 = match *start.evaluate(map)? {
                             Datatype::Number(num) => num,
                             _ => return Err(LangError::RangeValueIsntNumber)
                         };
-                        let end_val: i32 = match end.evaluate(map)? {
+                        let end_val: i32 = match *end.evaluate(map)? {
                             Datatype::Number(num) => num,
                             _ => return Err(LangError::RangeValueIsntNumber)
                         };
@@ -346,10 +349,10 @@ impl Ast {
 //                        }
                         let new_array = (start_val..end_val).map(|x| Datatype::Number(x)).collect();
 //                        println!("creating array");
-                        Ok(Datatype::Array {
+                        Ok(Rc::new(Datatype::Array {
                             value: new_array,
                             type_: TypeInfo::Number
-                        })
+                        }))
                     },
                     SExpression::StructDeclaration {
                         identifier: ref lhs,
@@ -370,7 +373,7 @@ impl Ast {
                     SExpression::Print(ref expr) => {
                         let datatype_to_print = expr.evaluate(map)?;
                         if let Ast::ValueIdentifier(ref identifier) = **expr {
-                            if let Datatype::Struct { .. } = datatype_to_print {
+                            if let Datatype::Struct { .. } = *datatype_to_print {
                                 print!("{}{}", identifier, datatype_to_print)
                             } else {
                                 print!("{}", datatype_to_print);
@@ -381,9 +384,9 @@ impl Ast {
                         Ok(datatype_to_print)
                     }
                     SExpression::Include(ref expr) => {
-                        match expr.evaluate(map)? {
-                            Datatype::String(filename) => {
-                                let new_ast: Ast = read_file_into_ast(filename)?;
+                        match *expr.evaluate(map)? {
+                            Datatype::String(ref filename) => {
+                                let new_ast: Ast = read_file_into_ast(filename.clone())?;
                                 new_ast.evaluate(map) // move the new AST into the current AST
                             }
                             _ => Err(LangError::CouldNotReadFile {
@@ -393,27 +396,27 @@ impl Ast {
                         }
                     }
                     SExpression::Negate(ref expr) => {
-                        match expr.evaluate(map)? {
-                            Datatype::Number(num) => Ok(Datatype::Number(-num)),
-                            Datatype::Float(float) => Ok(Datatype::Float(-float)),
+                        match *expr.evaluate(map)? {
+                            Datatype::Number(num) => Ok(Rc::new(Datatype::Number(-num))),
+                            Datatype::Float(float) => Ok(Rc::new(Datatype::Float(-float))),
                             _ => Err(LangError::NegateNotNumber)
                         }
                     }
                     SExpression::Invert(ref expr) => {
-                        match expr.evaluate(map)? {
-                            Datatype::Bool(bool) => Ok(Datatype::Bool(!bool)),
+                        match *expr.evaluate(map)? {
+                            Datatype::Bool(bool) => Ok(Rc::new(Datatype::Bool(!bool))),
                             _ => Err(LangError::InvertNonBoolean),
                         }
                     }
                     SExpression::Increment(ref expr) => {
-                        match expr.evaluate(map)? {
-                            Datatype::Number(number) => Ok(Datatype::Number(number + 1)),
+                        match *expr.evaluate(map)? {
+                            Datatype::Number(number) => Ok(Rc::new(Datatype::Number(number + 1))),
                             _ => Err(LangError::IncrementNonNumber),
                         }
                     }
                     SExpression::Decrement(ref expr) => {
-                        match expr.evaluate(map)? {
-                            Datatype::Number(number) => Ok(Datatype::Number(number - 1)),
+                        match *expr.evaluate(map)? {
+                            Datatype::Number(number) => Ok(Rc::new(Datatype::Number(number - 1))),
                             _ => Err(LangError::DecrementNonNumber),
                         }
                     }
@@ -422,7 +425,7 @@ impl Ast {
 
             //Evaluate multiple expressions and return the result of the last one.
             Ast::ExpressionList(ref expressions) => {
-                let mut val: Datatype = Datatype::None; // TODO, consider making this return an error if the expressions vector is empty
+                let mut val: Rc<Datatype> = Rc::new(Datatype::None); // TODO, consider making this return an error if the expressions vector is empty
                 for e in expressions {
                     val = e.evaluate(map)?;
                 }
@@ -433,14 +436,14 @@ impl Ast {
                 ref true_expr,
                 ref false_expr,
             } => {
-                match condition.evaluate(map)? {
+                match *condition.evaluate(map)? {
                     Datatype::Bool(bool) => {
                         match bool {
                             true => Ok(true_expr.evaluate(map)?),
                             false => {
                                 match *false_expr {
                                     Some(ref e) => Ok(e.evaluate(map)?),
-                                    _ => Ok(Datatype::None),
+                                    _ => Ok(Rc::new(Datatype::None)),
                                 }
                             }
                         }
@@ -448,11 +451,11 @@ impl Ast {
                     _ => Err(LangError::ConditionOnNonBoolean),
                 }
             }
-            Ast::Literal(ref datatype) => Ok(datatype.clone()),
+            Ast::Literal(ref datatype) => Ok(Rc::new(datatype.clone())),
             Ast::Type(ref datatype) => Err(LangError::TriedToEvaluateTypeInfo(datatype.clone())), // you shouldn't try to evaluate the datatype,
             Ast::ValueIdentifier(ref ident) => {
                 match map.get(ident) {
-                    Some(value) => Ok(value.clone()),
+                    Some(value) => Ok(value.clone()), // This produces an Rc<>
                     None => Err(LangError::VariableDoesntExist(
                         format!("Variable `{}` hasn't been assigned yet", ident),
                     )),
@@ -469,13 +472,13 @@ impl Ast {
 fn access_struct_field(
     struct_identifier: &Ast,
     field_identifier: &Ast,
-    map: &mut HashMap<String, Datatype>,
+    map: &mut HashMap<String, Rc<Datatype>>,
 ) -> LangResult {
     // if struct_identifier produces a struct when evaluated
-    if let Datatype::Struct { map: struct_map } = struct_identifier.evaluate(map)? {
+    if let Datatype::Struct { map: ref struct_map } = *struct_identifier.evaluate(map)? {
         if let Ast::ValueIdentifier(ref field_identifier) = *field_identifier {
             match struct_map.get(field_identifier) {
-                Some(struct_field_datatype) => return Ok(struct_field_datatype.clone()),
+                Some(struct_field_datatype) => return Ok(Rc::new(struct_field_datatype.clone())),
                 None => return Err(LangError::StructFieldDoesntExist),
             }
         } else {
@@ -494,7 +497,7 @@ fn access_struct_field(
 fn declare_struct(
     identifier: &Ast,
     struct_type_assignments: &Ast,
-    map: &mut HashMap<String, Datatype>,
+    map: &mut HashMap<String, Rc<Datatype>>,
 ) -> LangResult {
     if let Ast::ValueIdentifier(ref struct_type_identifier) = *identifier {
         if let Ast::ExpressionList(ref expressions) = *struct_type_assignments {
@@ -525,7 +528,7 @@ fn declare_struct(
                 }
             }
             let new_struct_type = TypeInfo::Struct { map: struct_map };
-            let retval = Datatype::StructType(new_struct_type);
+            let retval = Rc::new(Datatype::StructType(new_struct_type));
             map.insert(struct_type_identifier.clone(), retval.clone());
             return Ok(retval);
         } else {
@@ -543,9 +546,9 @@ fn declare_struct(
 /// Get the expected type for each supplied assignment from the first map and check it against the type of data provided.
 /// Insert the data into the new map.
 /// Create a new struct instance from the new map, and return it.
-fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) -> LangResult {
+fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Rc<Datatype>>) -> LangResult {
     // This expects the expr1 to be an Identifier that resolves to be a struct definition, or the struct definition itself.
-    if let Datatype::StructType(TypeInfo::Struct { map: struct_type_map }) = expr1.evaluate(map)? {
+    if let Datatype::StructType(TypeInfo::Struct { map: ref struct_type_map }) = *expr1.evaluate(map)? {
         // It expects that the righthand side should be a series of expressions that assign values to fields (that have already been specified in the StructType)
         if let Ast::ExpressionList(ref assignment_expressions) = *expr2 {
             let mut new_struct_map: HashMap<String, Datatype> = HashMap::new();
@@ -563,7 +566,7 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
                                 Some(struct_type) => struct_type,
                                 None => return Err(LangError::IdentifierDoesntExist), // todo find better error message
                             };
-                            let value_to_be_assigned: Datatype = assignment_expr2.evaluate(map)?;
+                            let value_to_be_assigned: &Datatype = &*assignment_expr2.evaluate(map)?;
 
                             // check if the value to be assigned matches the expected type
                             let to_be_assigned_type: TypeInfo =
@@ -572,7 +575,7 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
                                 // now add the value to the new struct's map
                                 new_struct_map.insert(
                                     field_identifier.clone(),
-                                    value_to_be_assigned,
+                                    value_to_be_assigned.clone(),
                                 );
                             } else {
                                 return Err(LangError::TypeError {
@@ -590,7 +593,7 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
                     return Err(LangError::NonAssignmentInStructInit);
                 }
             }
-            return Ok(Datatype::Struct { map: new_struct_map }); // Return the new struct.
+            return Ok(Rc::new(Datatype::Struct { map: new_struct_map })); // Return the new struct.
         } else {
             return Err(LangError::StructBodyNotSupplied); // not entirely accurate
         }
@@ -610,16 +613,16 @@ fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut HashMap<String, Datatype>) 
 fn execute_function(
     identifier: &Ast,
     function: &Ast,
-    map: &HashMap<String, Datatype>,
+    map: &HashMap<String, Rc<Datatype>>,
 ) -> LangResult {
     let mut cloned_map = map.clone(); // clone the map, to create a temporary new "stack" for the life of the function
     //TODO instead of cloning the map, preprocess the ast to determine what values need to be copied from the map, and only copy them into a new map.
     //TODO This will cut down on the number of clone operations that are required, it may make programs with smaller amounts of allocated memory slower, but bigger stacked programs will be faster.
 
     // evaluate the parameters
-    let evaluated_parameters: Vec<Datatype> = match *function {
+    let evaluated_parameters: Vec<Rc<Datatype>> = match *function {
         Ast::ExpressionList(ref expressions) => {
-            let mut evaluated_expressions: Vec<Datatype> = vec![];
+            let mut evaluated_expressions: Vec<Rc<Datatype>> = vec![];
             for e in expressions {
                 match e.evaluate(&mut cloned_map) {
                     Ok(dt) => evaluated_expressions.push(dt),
@@ -633,23 +636,23 @@ fn execute_function(
 
 
     // Take an existing function by (by grabbing the function using an identifier, which should resolve to a function)
-    match identifier.evaluate(&mut cloned_map)? {
+    match *identifier.evaluate(&mut cloned_map)? {
         Datatype::Function {
-            parameters,
-            body,
-            return_type,
+            ref parameters,
+            ref body,
+            ref return_type,
         } => {
-            match *parameters {
+            match **parameters {
                 // The parameters should be in the form: ExpressionList(expression_with_fn_assignment, expression_with_fn_assignment, ...) This way, functions should be able to support arbitrary numbers of parameters.
-                Ast::ExpressionList(expressions) => {
+                Ast::ExpressionList(ref expressions) => {
                     // zip the values of the evaluated parameters into the expected parameters for the function
                     if evaluated_parameters.len() == expressions.len() {
                         // Replace the right hand side of the expression (which should be an Ast::Type with a computed literal.
                         let rhs_replaced_with_evaluated_parameters_results: Vec<Result<Ast, LangError>> = expressions
                             .iter()
                             .zip(evaluated_parameters)
-                            .map(|expressions_with_parameters: (&Ast, Datatype)| {
-                                let (expression, datatype) = expressions_with_parameters; // assign out of tuple.
+                            .map(|expressions_with_parameters: (&Ast, Rc<Datatype>)| {
+                                let (expression, datatype): (&Ast, Rc<Datatype>) = expressions_with_parameters; // assign out of tuple.
                                 if let Ast::SExpr(
                                     ref sexpr
                                 ) = *expression
@@ -667,7 +670,7 @@ fn execute_function(
                                                     match map.get(id) {
                                                         // get what should be a struct out of the stack
                                                         Some(datatype) => {
-                                                            if let Datatype::StructType(ref struct_type_info) = *datatype {
+                                                            if let Datatype::StructType(ref struct_type_info) = **datatype {
                                                                 struct_type_info
                                                             } else {
                                                                 return Err(LangError::ExpectedIdentifierToBeStructType {
@@ -681,17 +684,17 @@ fn execute_function(
                                                 _ => return Err(LangError::ExpectedDataTypeInfo),
                                             };
                                             // Convert the datatype into a TypeInfo and check it against the expected type
-                                            if expected_type != &TypeInfo::from(datatype.clone()) {
+                                            if expected_type != &TypeInfo::from(datatype.as_ref().clone()) {
                                                 return Err(LangError::TypeError {
                                                     expected: expected_type.clone(),
-                                                    found: TypeInfo::from(datatype),
+                                                    found: TypeInfo::from(datatype.as_ref().clone()),
                                                 });
                                             }
                                             // Return a new FunctionParameterAssignment Expression with the same identifier
                                             // pointing to a literal that was reduced from the expression passed in as a parameter.
                                             return Ok(Ast::SExpr(SExpression::FieldAssignment {
                                                 identifier: identifier,
-                                                ast: Box::new(Ast::Literal(datatype))
+                                                ast: Box::new(Ast::Literal(datatype.as_ref().clone()))
                                             }))
                                         } else {
                                             return Err(LangError::InvalidFunctionPrototypeFormatting);
@@ -713,13 +716,14 @@ fn execute_function(
                     }
 
                     // Evaluate the body of the function
-                    let output: Datatype = body.evaluate(&mut cloned_map)?;
-                    let expected_return_type: TypeInfo = match *return_type {
-                        Ast::Type(type_) => type_,
+                    let output: Rc<Datatype> = body.evaluate(&mut cloned_map)?;
+                    let expected_return_type: TypeInfo = match **return_type {
+                        Ast::Type(ref type_) => type_.clone(),
                         Ast::ValueIdentifier(ref id) => {
                             match map.get(id) {
                                 Some(datatype) => {
-                                    if let Datatype::StructType(ref struct_type_info) = *datatype {
+                                    let datatype: &Datatype = &**datatype;
+                                    if let &Datatype::StructType(ref struct_type_info) = datatype {
                                         struct_type_info.clone()
                                     } else {
                                         return Err(LangError::ExpectedIdentifierToBeStructType {
@@ -733,7 +737,7 @@ fn execute_function(
                         _ => return Err(LangError::ExpectedDataTypeInfo),
                     };
 
-                    if TypeInfo::from(output.clone()) == expected_return_type {
+                    if TypeInfo::from(output.as_ref().clone()) == expected_return_type {
                         return Ok(output);
                     } else {
                         return Err(LangError::ReturnTypeDoesNotMatchReturnValue);
@@ -753,17 +757,17 @@ mod test {
 
     #[test]
     fn plus_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::Add(
             Box::new(Ast::Literal(Datatype::Number(3))),
             Box::new(Ast::Literal(Datatype::Number(6))),
         ));
-        assert_eq!(Datatype::Number(9), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(9), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn string_plus_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::Add(
             Box::new(
                 Ast::Literal(Datatype::String("Hello".to_string())),
@@ -774,63 +778,63 @@ mod test {
         ));
         assert_eq!(
             Datatype::String("Hello World!".to_string()),
-            ast.evaluate(&mut map).unwrap()
+            *ast.evaluate(&mut map).unwrap()
         )
     }
 
     #[test]
     fn minus_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::Subtract(
             Box::new(Ast::Literal(Datatype::Number(6))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
-        assert_eq!(Datatype::Number(3), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(3), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn minus_negative_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::Subtract(
             Box::new(Ast::Literal(Datatype::Number(3))),
             Box::new(Ast::Literal(Datatype::Number(6))),
         ));
-        assert_eq!(Datatype::Number(-3), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(-3), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn multiplication_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::Multiply(
             Box::new(Ast::Literal(Datatype::Number(6))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
-        assert_eq!(Datatype::Number(18), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(18), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn division_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::Divide(
             Box::new(Ast::Literal(Datatype::Number(6))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
-        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(2), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn integer_division_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::Divide(
             Box::new(Ast::Literal(Datatype::Number(5))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
-        assert_eq!(Datatype::Number(1), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(1), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn division_by_zero_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::Divide(
             Box::new(Ast::Literal(Datatype::Number(5))),
             Box::new(Ast::Literal(Datatype::Number(0))),
@@ -843,83 +847,83 @@ mod test {
 
     #[test]
     fn modulo_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::Modulo(
             Box::new(Ast::Literal(Datatype::Number(8))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
-        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(2), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn equality_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::Equals(
             Box::new(Ast::Literal(Datatype::Number(3))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
-        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Bool(true), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn greater_than_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::GreaterThan(
             Box::new(Ast::Literal(Datatype::Number(4))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
-        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Bool(true), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn less_than_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::LessThan(
             Box::new(Ast::Literal(Datatype::Number(2))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
-        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Bool(true), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn greater_than_or_equal_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::GreaterThanOrEqual(
             Box::new(Ast::Literal(Datatype::Number(4))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
-        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
+        assert_eq!(Datatype::Bool(true), *ast.evaluate(&mut map).unwrap());
 
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let equals_ast = Ast::SExpr(SExpression::GreaterThanOrEqual(
             Box::new(Ast::Literal(Datatype::Number(5))),
             Box::new(Ast::Literal(Datatype::Number(5))),
         ));
-        assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
+        assert_eq!(Datatype::Bool(true), *equals_ast.evaluate(&mut map).unwrap());
     }
 
     #[test]
     fn less_than_or_equal_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::SExpr(SExpression::LessThanOrEqual(
             Box::new(Ast::Literal(Datatype::Number(2))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
-        assert_eq!(Datatype::Bool(true), ast.evaluate(&mut map).unwrap());
+        assert_eq!(Datatype::Bool(true), *ast.evaluate(&mut map).unwrap());
 
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let equals_ast = Ast::SExpr(SExpression::LessThanOrEqual(
             Box::new(Ast::Literal(Datatype::Number(5))),
             Box::new(Ast::Literal(Datatype::Number(5))),
         ));
-        assert_eq!(Datatype::Bool(true), equals_ast.evaluate(&mut map).unwrap());
+        assert_eq!(Datatype::Bool(true), *equals_ast.evaluate(&mut map).unwrap());
     }
 
     /// Assign the value 6 to the identifier "a"
     /// Recall that identifier and add it to 5
     #[test]
     fn assignment_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -930,7 +934,7 @@ mod test {
                 Box::new(Ast::Literal(Datatype::Number(5))),
             )),
         ]);
-        assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(11), *ast.evaluate(&mut map).unwrap())
     }
 
 
@@ -939,7 +943,7 @@ mod test {
     /// Recall the value in "b" and add it to 5.
     #[test]
     fn variable_copy_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -954,7 +958,7 @@ mod test {
                 Box::new(Ast::Literal(Datatype::Number(5))),
             )),
         ]);
-        assert_eq!(Datatype::Number(11), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(11), *ast.evaluate(&mut map).unwrap())
     }
 
     /// Assign the value 6 to a.
@@ -962,7 +966,7 @@ mod test {
     /// Recall the value in a and add it to 5, the value of a should be 3, equalling 8.
     #[test]
     fn reassignment_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -977,34 +981,34 @@ mod test {
                 Box::new(Ast::Literal(Datatype::Number(5))),
             )),
         ]);
-        assert_eq!(Datatype::Number(8), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(8), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn conditional_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::Conditional {
             condition: Box::new(Ast::Literal(Datatype::Bool(true))),
             true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
             false_expr: None,
         };
-        assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(7), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn conditional_with_else_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::Conditional {
             condition: Box::new(Ast::Literal(Datatype::Bool(false))),
             true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
             false_expr: Some(Box::new(Ast::Literal(Datatype::Number(2)))),
         };
-        assert_eq!(Datatype::Number(2), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(2), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn basic_function_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -1024,12 +1028,12 @@ mod test {
                     // provide the function parameters
             }),
         ]);
-        assert_eq!(Datatype::Number(32), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(32), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn function_with_parameter_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -1050,13 +1054,13 @@ mod test {
                 parameters: Box::new(Ast::ExpressionList(vec![Ast::Literal(Datatype::Number(7))])),
             }),
         ]);
-        assert_eq!(Datatype::Number(7), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(7), *ast.evaluate(&mut map).unwrap())
     }
 
 
     #[test]
     fn function_with_two_parameters_addition_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
@@ -1093,12 +1097,12 @@ mod test {
                 ])),
             }),
         ]);
-        assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(12), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn array_access_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast: Ast = Ast::SExpr(SExpression::AccessArray {
             identifier: Box::new(Ast::Literal(Datatype::Array {
                 value: vec![
@@ -1110,12 +1114,12 @@ mod test {
             })),
             index: Box::new(Ast::Literal(Datatype::Number(0))), // get the first element
         });
-        assert_eq!(Datatype::Number(12), ast.evaluate(&mut map).unwrap())
+        assert_eq!(Datatype::Number(12), *ast.evaluate(&mut map).unwrap())
     }
 
     #[test]
     fn array_incorrect_access_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast: Ast = Ast::SExpr(SExpression::AccessArray {
             identifier: Box::new(Ast::Literal(Datatype::Array {
                 value: vec![
@@ -1135,7 +1139,7 @@ mod test {
 
     #[test]
     fn struct_declaration_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast: Ast = Ast::SExpr(SExpression::StructDeclaration {
             identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             struct_type_info: Box::new(Ast::ExpressionList(vec![
@@ -1152,7 +1156,7 @@ mod test {
         inner_struct_hash_map.insert("Field1".to_string(), TypeInfo::Number);
         expected_map.insert(
             "MyStruct".to_string(),
-            Datatype::StructType(TypeInfo::Struct { map: inner_struct_hash_map }),
+            Rc::new(Datatype::StructType(TypeInfo::Struct { map: inner_struct_hash_map })),
         );
         assert_eq!(expected_map, map)
     }
@@ -1160,7 +1164,7 @@ mod test {
 
     #[test]
     fn struct_creation_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let declaration_ast: Ast = Ast::SExpr(SExpression::StructDeclaration {
             identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             struct_type_info: Box::new(Ast::ExpressionList(vec![
@@ -1183,13 +1187,13 @@ mod test {
             ])),
         });
 
-        let struct_instance = creation_ast.evaluate(&mut map).unwrap();
+        let struct_instance = &*creation_ast.evaluate(&mut map).unwrap();
 
         let mut inner_struct_hash_map = HashMap::new();
         inner_struct_hash_map.insert("Field1".to_string(), Datatype::Number(8));
 
         assert_eq!(
-            Datatype::Struct { map: inner_struct_hash_map },
+            &Datatype::Struct { map: inner_struct_hash_map },
             struct_instance
         )
     }
@@ -1197,7 +1201,7 @@ mod test {
 
     #[test]
     fn function_hoisting_test() {
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -1251,7 +1255,7 @@ mod test {
         assert_eq!(hoisted_ast, expected_hoisted_ast);
         assert_eq!(
             Datatype::Number(32),
-            hoisted_ast.evaluate(&mut map).unwrap()
+            *hoisted_ast.evaluate(&mut map).unwrap()
         );
     }
 

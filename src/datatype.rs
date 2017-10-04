@@ -12,7 +12,7 @@ use Ast;
 
 use std::collections::HashMap;
 use std::fmt;
-
+use std::rc::Rc;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Datatype {
@@ -57,6 +57,12 @@ impl fmt::Display for Datatype {
         }
     }
 }
+
+//impl PartialOrd for &Datatype {
+//    fn partial_cmp(&self, other: &Rhs) -> Option<Ordering> {
+//        self.partial_cmp(other)
+//    }
+//}
 
 impl PartialOrd for Datatype {
     fn partial_cmp(&self, rhs: &Datatype) -> Option<Ordering> {
@@ -180,15 +186,15 @@ impl Sub for Datatype {
         match self {
             Datatype::Number(lhs) => {
                 match other {
-                    Datatype::Number(rhs) => return Ok(Datatype::Number(lhs - rhs)),
-                    Datatype::Float(rhs) => return Ok(Datatype::Float(lhs as f64 - rhs)),
+                    Datatype::Number(rhs) => return Ok(Rc::new(Datatype::Number(lhs - rhs))),
+                    Datatype::Float(rhs) => return Ok(Rc::new(Datatype::Float(lhs as f64 - rhs))),
                     _ => Err(LangError::UnsupportedArithimaticOperation),
                 }
             }
             Datatype::Float(lhs) => {
                 match other {
-                    Datatype::Number(rhs) => return Ok(Datatype::Float(lhs - rhs as f64)),
-                    Datatype::Float(rhs) => return Ok(Datatype::Float(lhs - rhs)),
+                    Datatype::Number(rhs) => return Ok(Rc::new(Datatype::Float(lhs - rhs as f64))),
+                    Datatype::Float(rhs) => return Ok(Rc::new(Datatype::Float(lhs - rhs))),
                     _ => Err(LangError::UnsupportedArithimaticOperation),
                 }
             }
@@ -196,6 +202,12 @@ impl Sub for Datatype {
         }
     }
 }
+//impl <'a>Sub for &'a Datatype {
+//    type Output = LangResult;
+//    fn sub(self, rhs: &Datatype) -> LangResult {
+//        Datatype::sub(*self, *rhs)
+//    }
+//}
 
 impl Add for Datatype {
     type Output = LangResult;
@@ -203,34 +215,34 @@ impl Add for Datatype {
         match self {
             Datatype::Number(lhs) => {
                 match other {
-                    Datatype::Number(rhs) => return Ok(Datatype::Number(lhs + rhs)),
+                    Datatype::Number(rhs) => return Ok(Rc::new(Datatype::Number(lhs + rhs))),
                     Datatype::String(rhs) => {
-                        return Ok(Datatype::String(format!("{}{}", lhs, rhs))); // add the string to the number.
+                        return Ok(Rc::new(Datatype::String(format!("{}{}", lhs, rhs)))); // add the string to the number.
                     },
-                    Datatype::Float(rhs) => return Ok(Datatype::Float(lhs as f64 + rhs)),
+                    Datatype::Float(rhs) => return Ok(Rc::new(Datatype::Float(lhs as f64 + rhs))),
                     _ => return Err(LangError::UnsupportedArithimaticOperation),
                 }
             }
             Datatype::Float(lhs) => {
                 match other {
-                    Datatype::Number(rhs) => return Ok(Datatype::Float(lhs + rhs as f64)),
+                    Datatype::Number(rhs) => return Ok(Rc::new(Datatype::Float(lhs + rhs as f64))),
                     Datatype::String(rhs) => {
-                        return Ok(Datatype::String(format!("{}{}", lhs, rhs))); // add the string to the number.
+                        return Ok(Rc::new(Datatype::String(format!("{}{}", lhs, rhs)))); // add the string to the number.
                     }
-                    Datatype::Float(rhs) => return Ok(Datatype::Float(lhs + rhs)),
+                    Datatype::Float(rhs) => return Ok(Rc::new(Datatype::Float(lhs + rhs))),
                     _ => return Err(LangError::UnsupportedArithimaticOperation),
                 }
             }
             Datatype::String(lhs) => {
                 match other {
                     Datatype::Number(rhs) => {
-                        return Ok(Datatype::String(format!("{}{}", lhs, rhs))); // add the number to the string
+                        return Ok(Rc::new(Datatype::String(format!("{}{}", lhs, rhs)))); // add the number to the string
                     }
                     Datatype::Float(rhs) => {
-                        return Ok(Datatype::String(format!("{}{}", lhs, rhs))); // add the number to the string
+                        return Ok(Rc::new(Datatype::String(format!("{}{}", lhs, rhs)))); // add the number to the string
                     }
                     Datatype::String(rhs) => {
-                        return Ok(Datatype::String(format!("{}{}", lhs, rhs))); // add the string to the string
+                        return Ok(Rc::new(Datatype::String(format!("{}{}", lhs, rhs)))); // add the string to the string
                     }
                     _ => return Err(LangError::UnsupportedArithimaticOperation),
                 }
@@ -239,6 +251,12 @@ impl Add for Datatype {
         }
     }
 }
+//impl <'a>Add for &'a Datatype {
+//    type Output = LangResult;
+//    fn add(self, rhs: &Datatype) -> LangResult {
+//        Datatype::add(*self, *rhs)
+//    }
+//}
 
 impl Mul for Datatype {
     type Output = LangResult;
@@ -246,15 +264,15 @@ impl Mul for Datatype {
         match self {
             Datatype::Number(lhs) => {
                 match other {
-                    Datatype::Number(rhs) => return Ok(Datatype::Number(lhs * rhs)),
-                    Datatype::Float(rhs) => return Ok(Datatype::Float(lhs as f64 * rhs)),
+                    Datatype::Number(rhs) => return Ok(Rc::new(Datatype::Number(lhs * rhs))),
+                    Datatype::Float(rhs) => return Ok(Rc::new(Datatype::Float(lhs as f64 * rhs))),
                     _ => return Err(LangError::UnsupportedArithimaticOperation),
                 }
             }
             Datatype::Float(lhs) => {
                 match other {
-                    Datatype::Number(rhs) => return Ok(Datatype::Float(lhs * rhs as f64)),
-                    Datatype::Float(rhs) => return Ok(Datatype::Float(lhs * rhs)),
+                    Datatype::Number(rhs) => return Ok(Rc::new(Datatype::Float(lhs * rhs as f64))),
+                    Datatype::Float(rhs) => return Ok(Rc::new(Datatype::Float(lhs * rhs))),
                     _ => return Err(LangError::UnsupportedArithimaticOperation),
                 }
             }
@@ -262,6 +280,12 @@ impl Mul for Datatype {
         }
     }
 }
+//impl <'a>Mul for &'a Datatype {
+//    type Output = LangResult;
+//    fn mul(self, rhs: &Datatype) -> LangResult {
+//        Datatype::mul(*self, *rhs)
+//    }
+//}
 
 impl Div for Datatype {
     type Output = LangResult;
@@ -273,14 +297,14 @@ impl Div for Datatype {
                         if rhs == 0 {
                             return Err(LangError::DivideByZero);
                         }
-                        return Ok(Datatype::Number(lhs / rhs));
+                        return Ok(Rc::new(Datatype::Number(lhs / rhs)));
                     }
                     Datatype::Float(rhs) => {
                         let lhs = lhs as f64;
                         if rhs == 0.0 {
                             return Err(LangError::DivideByZero);
                         }
-                        return Ok(Datatype::Float(lhs / rhs));
+                        return Ok(Rc::new(Datatype::Float(lhs / rhs)));
                     }
                     _ => return Err(LangError::UnsupportedArithimaticOperation),
                 }
@@ -292,13 +316,13 @@ impl Div for Datatype {
                         if rhs == 0.0 {
                             return Err(LangError::DivideByZero);
                         }
-                        return Ok(Datatype::Float(lhs / rhs));
+                        return Ok(Rc::new(Datatype::Float(lhs / rhs)));
                     }
                     Datatype::Float(rhs) => {
                         if rhs == 0.0 {
                             return Err(LangError::DivideByZero);
                         }
-                        return Ok(Datatype::Float(lhs / rhs));
+                        return Ok(Rc::new(Datatype::Float(lhs / rhs)));
                     }
                     _ => return Err(LangError::UnsupportedArithimaticOperation),
                 }
@@ -307,6 +331,12 @@ impl Div for Datatype {
         }
     }
 }
+//impl <'a>Div for &'a Datatype {
+//    type Output = LangResult;
+//    fn div(self, rhs: &Datatype) -> LangResult {
+//        Datatype::div(*self, *rhs)
+//    }
+//}
 
 impl Rem for Datatype {
     type Output = LangResult;
@@ -314,7 +344,7 @@ impl Rem for Datatype {
         match self {
             Datatype::Number(lhs) => {
                 match other {
-                    Datatype::Number(rhs) => return Ok(Datatype::Number(lhs % rhs)),
+                    Datatype::Number(rhs) => return Ok(Rc::new(Datatype::Number(lhs % rhs))),
                     _ => return Err(LangError::UnsupportedArithimaticOperation),
                 }
             }
@@ -322,6 +352,12 @@ impl Rem for Datatype {
         }
     }
 }
+//impl Rem for Rc<Datatype> {
+//    type Output = LangResult;
+//    fn rem(self, rhs: Rc<Datatype>) -> LangResult {
+//        Datatype::rem(*self, *rhs)
+//    }
+//}
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum TypeInfo {
@@ -397,7 +433,7 @@ fn datatype_equality_tests() {
         Datatype::Float(0.0)
     );
     assert_eq!(
-        (Datatype::Float(0.0) + Datatype::Number(1)).unwrap(),
+        *(Datatype::Float(0.0) + Datatype::Number(1)).unwrap(),
         Datatype::Float(1.0)
     );
     assert_eq!(

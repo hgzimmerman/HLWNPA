@@ -321,7 +321,7 @@ fn group_sexpr_by_precedence(lhs: Ast, rhss: Vec<(Operator, Option<Ast>)>) -> As
 mod test {
     use super::*;
     use datatype::{Datatype,TypeInfo};
-
+    use std::rc::Rc;
 
 
     #[test]
@@ -421,8 +421,8 @@ mod test {
             _ => panic!(),
         };
         use std::collections::HashMap;
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        assert_eq!(Datatype::Number(29), value.evaluate(&mut map).unwrap());
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
+        assert_eq!(Datatype::Number(29), *value.evaluate(&mut map).unwrap());
         assert_eq!(
         Ast::SExpr(SExpression::Add(
             Box::new(Ast::SExpr(SExpression::Add (
@@ -515,7 +515,7 @@ mod test {
         };
 
         use std::collections::HashMap;
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
 
         assert_eq!(
         Ast::SExpr(SExpression::Negate(
@@ -525,7 +525,7 @@ mod test {
         );
         assert_eq!(
             Datatype::Number(-40),
-            value.evaluate(&mut map).unwrap()
+            *value.evaluate(&mut map).unwrap()
         )
     }
 
@@ -539,7 +539,7 @@ mod test {
         };
 
         use std::collections::HashMap;
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
 
         assert_eq!(
             Ast::SExpr(SExpression::Add(
@@ -555,7 +555,7 @@ mod test {
         );
         assert_eq!(
             Datatype::Number(-60),
-            value.evaluate(&mut map).unwrap()
+            *value.evaluate(&mut map).unwrap()
         )
     }
 
@@ -809,7 +809,7 @@ mod test {
         };
 
         use std::collections::HashMap;
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
         assert_eq!(
             Ast::SExpr(SExpression::Add(
                 Box::new(Ast::SExpr(SExpression::Multiply(
@@ -823,7 +823,7 @@ mod test {
             )),
             value
         );
-        assert_eq!( Datatype::Number(61), value.evaluate(&mut map).unwrap());
+        assert_eq!( Datatype::Number(61), *value.evaluate(&mut map).unwrap());
     }
 
     #[test]
@@ -892,8 +892,8 @@ mod test {
         };
 
         use std::collections::HashMap;
-        let mut map: HashMap<String, Datatype> = HashMap::new();
-        assert_eq!(value.evaluate(&mut map).unwrap(), Datatype::Number(15));
+        let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
+        assert_eq!(*value.evaluate(&mut map).unwrap(), Datatype::Number(15));
         assert_eq!(
             Ast::SExpr(SExpression::Divide(
                 Box::new(Ast::SExpr(SExpression::Multiply(

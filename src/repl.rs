@@ -10,7 +10,7 @@ use std::io;
 use std::io::Write;
 
 use std_functions;
-
+use std::rc::Rc;
 use preprocessor::preprocess;
 
 
@@ -22,7 +22,7 @@ fn read<'a>(read_string: &'a str) -> IResult<&'a [u8], Ast> {
 // Evaluates the AST
 fn evaluate(
     possibly_parsed_ast: IResult<&[u8], Ast>,
-    map: &mut HashMap<String, Datatype>,
+    map: &mut HashMap<String, Rc<Datatype>>,
 ) -> LangResult {
 
     match possibly_parsed_ast {
@@ -50,7 +50,7 @@ fn print(possibly_evaluated_program: LangResult) {
 }
 
 /// It is expected that the incoming map already has the std_functions added.
-pub fn repl(mut map: &mut HashMap<String, Datatype>) {
+pub fn repl(mut map: &mut HashMap<String, Rc<Datatype>>) {
     use std::io;
     use std::io::prelude::*;
     let stdin = io::stdin();
@@ -64,14 +64,14 @@ pub fn repl(mut map: &mut HashMap<String, Datatype>) {
 
 /// Creates the map, adds standard functions to it and runs the repl with it.
 pub fn create_repl() {
-    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
     std_functions::add_std_functions(&mut map);
 
     repl(&mut map)
 }
 
 
-fn prep(a: &mut &str, map: &mut HashMap<String, Datatype>) {
+fn prep(a: &mut &str, map: &mut HashMap<String, Rc<Datatype>>) {
     let preprocessed = preprocess(a);
     let parsed = read(preprocessed.as_str());
     let evaled = evaluate(parsed, map);

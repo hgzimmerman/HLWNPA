@@ -4,16 +4,17 @@ use std::collections::HashMap;
 use ast::Ast;
 use s_expression::SExpression;
 use parser::program;
+use std::rc::Rc;
 
 use nom::IResult;
 
-pub fn add_std_functions(map: &mut HashMap<String, Datatype>) {
+pub fn add_std_functions(map: &mut HashMap<String, Rc<Datatype>>) {
     add_print_function(map);
     add_println_function(map);
 }
 
 
-fn add_print_function(map: &mut HashMap<String, Datatype>) {
+fn add_print_function(map: &mut HashMap<String, Rc<Datatype>>) {
     let ast: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("print".to_string())),
         function_datatype: Box::new(Ast::Literal(Datatype::Function {
@@ -34,7 +35,7 @@ fn add_print_function(map: &mut HashMap<String, Datatype>) {
     ast.evaluate(map).expect("Couldn't add print()");
 }
 
-fn add_println_function(map: &mut HashMap<String, Datatype>) {
+fn add_println_function(map: &mut HashMap<String, Rc<Datatype>>) {
 
     // implement the println using the print function.
     let input_function = "
@@ -65,9 +66,9 @@ fn add_println_function(map: &mut HashMap<String, Datatype>) {
 
 #[test]
 fn expect_print_function_to_be_added_to_global_map() {
-    let mut map: HashMap<String, Datatype> = HashMap::new();
+    let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
     add_print_function(&mut map);
-    let mut expected_map: HashMap<String, Datatype> = HashMap::new();
+    let mut expected_map: HashMap<String, Rc<Datatype>> = HashMap::new();
     let print_fn: Datatype = Datatype::Function {
         parameters: (Box::new(Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::TypeAssignment {
@@ -82,6 +83,6 @@ fn expect_print_function_to_be_added_to_global_map() {
         ]))),
         return_type: (Box::new(Ast::Type(TypeInfo::String))),
     };
-    expected_map.insert("print".to_string(), print_fn);
+    expected_map.insert("print".to_string(), Rc::new(print_fn));
     assert_eq!(expected_map, map);
 }

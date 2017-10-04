@@ -1,7 +1,7 @@
 # HLWNPA - Henry's Language With No Pronounceable Acronym
 I started this project to see what I could acomplish in about a week's worth of work, without any prior knowledge about language design.
 What I got looked sort of like a programming language.
-I have since continued to work on this language, adding additional features it didn't have after the first week, like hoisting, file includes and operator precedence.
+I have since continued to work on this language, adding additional features it didn't have after the first week.
 
 
 # Process
@@ -14,15 +14,44 @@ I then proceeded to graft things onto the AST and syntax parser once I had a min
 * Nothing to limit reassignment. If you want to assign a number to a function name, there is nothing stopping you.
 * No meaningful parser error messages. If your syntax isn't 100% accurate, there is very little to indicate what you did wrong. Sometimes the program will parse, but may leave out a section of the AST without errors if syntax isn't exact. The result is if you define a function incorrectly, that function will not exist, and you won't know until you try to call it.
 * A few runtime error messages.
-* No early return from functions. The last statement in the body of a function, if, or loop block will be returned.
+* No early return from functions. The last statement in the body of a function, if, loop block will be returned.
 * Type System. Runtime checking only.
-* I don't think I have support for functions returning arrays.
 
 
 # Actual Features
 * REPL.
-* Supports Functions, while loops, if statements, as well as the primative types: Number (signed 32 bit), String, Booleans, and Arrays (partially). As well as Structs.
-* Assignment looks like: `let value := 4 * 6`
+* Primative types: Number (signed 32 bit), Float (64 bit), String, Booleans, and Arrays (only containing primatives at the moment). As well as Structs.
+* Assignment: `let value := 4 * 6`.
+* While loops: `while value < 100 { value + 1 }`.
+* Arrays: `let a := [0,1,2,3]`.
+* Array ranges: `[0..3]` produces an array `[0,1,2]`.
+* Array access: a[2].
+* For loops: `for n in [0..3] { println(n + "") }`.
+* Functions: 
+```
+fn function_name (parameter1: Number, parameter2: Float) -> Float { 
+   parameter1 + parameter2 
+}
+```
+* Function execution: `function_name(3, 1.3)`.
+* Structs:
+```
+struct struct_name {
+   field1: Number, field2: Number
+}
+```
+* Struct instantiation
+```
+let instance := new struct_name {
+   field1: 4, field2: 5
+}
+```
+* Struct access
+```
+instance.field1 + instance.field.2
+```
+
+Currently there is no association of functions with structs.
 * Includes in the form of `include <filename>`. The filename path is relative to where the interpreter is called from and requires the full file name (including `.hlw`).
 * Operator precedence.
 

@@ -58,11 +58,6 @@ impl fmt::Display for Datatype {
     }
 }
 
-//impl PartialOrd for &Datatype {
-//    fn partial_cmp(&self, other: &Rhs) -> Option<Ordering> {
-//        self.partial_cmp(other)
-//    }
-//}
 
 impl PartialOrd for Datatype {
     fn partial_cmp(&self, rhs: &Datatype) -> Option<Ordering> {
@@ -202,12 +197,6 @@ impl Sub for Datatype {
         }
     }
 }
-//impl <'a>Sub for &'a Datatype {
-//    type Output = LangResult;
-//    fn sub(self, rhs: &Datatype) -> LangResult {
-//        Datatype::sub(*self, *rhs)
-//    }
-//}
 
 impl Add for Datatype {
     type Output = LangResult;
@@ -251,12 +240,6 @@ impl Add for Datatype {
         }
     }
 }
-//impl <'a>Add for &'a Datatype {
-//    type Output = LangResult;
-//    fn add(self, rhs: &Datatype) -> LangResult {
-//        Datatype::add(*self, *rhs)
-//    }
-//}
 
 impl Mul for Datatype {
     type Output = LangResult;
@@ -280,12 +263,6 @@ impl Mul for Datatype {
         }
     }
 }
-//impl <'a>Mul for &'a Datatype {
-//    type Output = LangResult;
-//    fn mul(self, rhs: &Datatype) -> LangResult {
-//        Datatype::mul(*self, *rhs)
-//    }
-//}
 
 impl Div for Datatype {
     type Output = LangResult;
@@ -331,12 +308,7 @@ impl Div for Datatype {
         }
     }
 }
-//impl <'a>Div for &'a Datatype {
-//    type Output = LangResult;
-//    fn div(self, rhs: &Datatype) -> LangResult {
-//        Datatype::div(*self, *rhs)
-//    }
-//}
+
 
 impl Rem for Datatype {
     type Output = LangResult;
@@ -352,12 +324,6 @@ impl Rem for Datatype {
         }
     }
 }
-//impl Rem for Rc<Datatype> {
-//    type Output = LangResult;
-//    fn rem(self, rhs: Rc<Datatype>) -> LangResult {
-//        Datatype::rem(*self, *rhs)
-//    }
-//}
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum TypeInfo {

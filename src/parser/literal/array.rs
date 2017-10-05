@@ -5,6 +5,7 @@ use datatype::{Datatype, TypeInfo};
 use super::literal;
 use s_expression::SExpression;
 use parser::expressions::sexpr;
+use std::rc::Rc;
 
 pub const TYPE_MISMATCH_ERROR: u32 = 10001;
 
@@ -20,7 +21,7 @@ named!(pub array_literal<Ast>,
         (
             Ast::Literal( Datatype::Array {
                 value: array.iter().map(|arr_member| match arr_member {
-                    &Ast::Literal(ref datatype) => datatype.clone(), // get the datatype out of a borrowed context
+                    &Ast::Literal(ref datatype) => Rc::new(datatype.clone()), // get the datatype out of a borrowed context
                     _ => unreachable!() // Because the literal function defined in literal/mod.rs only returns literals, we know that this is unreachable.
                 }).collect(),
 
@@ -79,7 +80,7 @@ fn parse_array_bool_literal_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Literal ( Datatype::Array{value: vec![Datatype::Bool(true)], type_: TypeInfo::Bool}), value)
+    assert_eq!(Ast::Literal ( Datatype::Array{value: vec![Rc::new(Datatype::Bool(true))], type_: TypeInfo::Bool}), value)
 }
 
 #[test]
@@ -89,7 +90,14 @@ fn parse_array_multiple_bool_literal_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Literal ( Datatype::Array{value: vec![Datatype::Bool(true), Datatype::Bool(true), Datatype::Bool(false)], type_: TypeInfo::Bool}), value)
+    assert_eq!(Ast::Literal ( Datatype::Array{
+        value: vec![
+            Rc::new(Datatype::Bool(true)),
+            Rc::new(Datatype::Bool(true)),
+            Rc::new(Datatype::Bool(false))
+        ],
+        type_: TypeInfo::Bool}),
+    value)
 }
 
 
@@ -117,7 +125,14 @@ fn parse_array_multiple_number_literal_test() {
         IResult::Error(e) => panic!("{:?}", e),
         _ => panic!(),
     };
-    assert_eq!(Ast::Literal ( Datatype::Array{value: vec![Datatype::Number(12), Datatype::Number(13), Datatype::Number(14)], type_: TypeInfo::Number}), value)
+    assert_eq!(Ast::Literal ( Datatype::Array{
+        value: vec![
+            Rc::new(Datatype::Number(12)),
+            Rc::new(Datatype::Number(13)),
+            Rc::new(Datatype::Number(14))
+        ],
+        type_: TypeInfo::Number}),
+    value)
 }
 
 #[test]

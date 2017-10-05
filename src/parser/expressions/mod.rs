@@ -997,9 +997,9 @@ mod test {
             Ast::SExpr(SExpression::AccessArray {
                 identifier: Box::new(Ast::Literal(Datatype::Array {
                     value: vec![
-                        Datatype::Number(12),
-                        Datatype::Number(13),
-                        Datatype::Number(14),
+                        Rc::new(Datatype::Number(12)),
+                        Rc::new(Datatype::Number(13)),
+                        Rc::new(Datatype::Number(14)),
                     ],
                     type_: TypeInfo::Number,
                 })),

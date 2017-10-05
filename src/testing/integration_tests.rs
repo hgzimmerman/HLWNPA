@@ -256,9 +256,9 @@ mod test {
         assert_eq!(
             Datatype::Array {
                 value: vec![
-                    Datatype::Number(23),
-                    Datatype::Number(43),
-                    Datatype::Number(11),
+                    Rc::new(Datatype::Number(23)),
+                    Rc::new(Datatype::Number(43)),
+                    Rc::new(Datatype::Number(11)),
                 ],
                 type_: TypeInfo::Number,
             },

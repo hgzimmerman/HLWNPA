@@ -7,6 +7,7 @@ use parser::body::body;
 use parser::type_signature::type_signature;
 use datatype::{Datatype,};
 use parser::assignment::type_assignment;
+use std::rc::Rc;
 
 
 /// Either a Type or an identifier that can be resolved to a Struct's Type
@@ -138,7 +139,7 @@ mod test {
                 ])),
                 body: Box::new(Ast::ExpressionList(vec![
                     Ast::Literal(Datatype::Array{
-                        value: vec!(Datatype::Number(0)),
+                        value: vec!(Rc::new(Datatype::Number(0))),
                         type_: TypeInfo::Number
                     })
                 ])),

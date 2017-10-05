@@ -220,7 +220,7 @@ fn create_sexpr_group_left(lhs: Ast, rhss: Vec<(Operator, Option<Ast>)>) -> Ast 
             IResult::Incomplete(i) => panic!("{:?}", i),
         };
         use std::collections::HashMap;
-        let mut map: HashMap<String, Datatype> = HashMap::new();
+        let mut map: HashMap<String, Datatype> = VariableStore::new();
         assert_eq!(value.evaluate(&mut map).unwrap(), Datatype::Number(3));
         assert_eq!(
             Ast::SExpr(SExpression::Divide(

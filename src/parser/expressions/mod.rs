@@ -421,7 +421,7 @@ mod test {
             _ => panic!(),
         };
         use std::collections::HashMap;
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         assert_eq!(Datatype::Number(29), *value.evaluate(&mut map).unwrap());
         assert_eq!(
         Ast::SExpr(SExpression::Add(
@@ -515,7 +515,7 @@ mod test {
         };
 
         use std::collections::HashMap;
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
 
         assert_eq!(
         Ast::SExpr(SExpression::Negate(
@@ -539,7 +539,7 @@ mod test {
         };
 
         use std::collections::HashMap;
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
 
         assert_eq!(
             Ast::SExpr(SExpression::Add(
@@ -809,7 +809,7 @@ mod test {
         };
 
         use std::collections::HashMap;
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         assert_eq!(
             Ast::SExpr(SExpression::Add(
                 Box::new(Ast::SExpr(SExpression::Multiply(
@@ -892,7 +892,7 @@ mod test {
         };
 
         use std::collections::HashMap;
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         assert_eq!(*value.evaluate(&mut map).unwrap(), Datatype::Number(15));
         assert_eq!(
             Ast::SExpr(SExpression::Divide(

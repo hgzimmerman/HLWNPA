@@ -15,7 +15,7 @@ use std::fmt;
 use std::rc::Rc;
 
 pub type RcDatatype = Rc<Datatype>;
-pub type VariableStore = HashMap<String, RcDatatype>;
+pub type VariableStore = HashMap<String, RcDatatype>; // Simplified interface to the map used to store Datatypes behind identifiers (String).
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Datatype {
@@ -370,7 +370,7 @@ impl From<Datatype> for TypeInfo {
                 }
                 TypeInfo::Struct { map: type_map }
             }
-            Datatype::StructType(_) => TypeInfo::StructType,
+            Datatype::StructType(_) => TypeInfo::StructType, // Generally isn't useful.
         }
     }
 }

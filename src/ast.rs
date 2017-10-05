@@ -753,7 +753,7 @@ mod test {
 
     #[test]
     fn plus_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::Add(
             Box::new(Ast::Literal(Datatype::Number(3))),
             Box::new(Ast::Literal(Datatype::Number(6))),
@@ -763,7 +763,7 @@ mod test {
 
     #[test]
     fn string_plus_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::Add(
             Box::new(
                 Ast::Literal(Datatype::String("Hello".to_string())),
@@ -780,7 +780,7 @@ mod test {
 
     #[test]
     fn minus_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::Subtract(
             Box::new(Ast::Literal(Datatype::Number(6))),
             Box::new(Ast::Literal(Datatype::Number(3))),
@@ -790,7 +790,7 @@ mod test {
 
     #[test]
     fn minus_negative_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::Subtract(
             Box::new(Ast::Literal(Datatype::Number(3))),
             Box::new(Ast::Literal(Datatype::Number(6))),
@@ -800,7 +800,7 @@ mod test {
 
     #[test]
     fn multiplication_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::Multiply(
             Box::new(Ast::Literal(Datatype::Number(6))),
             Box::new(Ast::Literal(Datatype::Number(3))),
@@ -810,7 +810,7 @@ mod test {
 
     #[test]
     fn division_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::Divide(
             Box::new(Ast::Literal(Datatype::Number(6))),
             Box::new(Ast::Literal(Datatype::Number(3))),
@@ -820,7 +820,7 @@ mod test {
 
     #[test]
     fn integer_division_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::Divide(
             Box::new(Ast::Literal(Datatype::Number(5))),
             Box::new(Ast::Literal(Datatype::Number(3))),
@@ -830,7 +830,7 @@ mod test {
 
     #[test]
     fn division_by_zero_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::Divide(
             Box::new(Ast::Literal(Datatype::Number(5))),
             Box::new(Ast::Literal(Datatype::Number(0))),
@@ -843,7 +843,7 @@ mod test {
 
     #[test]
     fn modulo_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::Modulo(
             Box::new(Ast::Literal(Datatype::Number(8))),
             Box::new(Ast::Literal(Datatype::Number(3))),
@@ -853,7 +853,7 @@ mod test {
 
     #[test]
     fn equality_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::Equals(
             Box::new(Ast::Literal(Datatype::Number(3))),
             Box::new(Ast::Literal(Datatype::Number(3))),
@@ -863,7 +863,7 @@ mod test {
 
     #[test]
     fn greater_than_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::GreaterThan(
             Box::new(Ast::Literal(Datatype::Number(4))),
             Box::new(Ast::Literal(Datatype::Number(3))),
@@ -873,7 +873,7 @@ mod test {
 
     #[test]
     fn less_than_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::LessThan(
             Box::new(Ast::Literal(Datatype::Number(2))),
             Box::new(Ast::Literal(Datatype::Number(3))),
@@ -883,14 +883,14 @@ mod test {
 
     #[test]
     fn greater_than_or_equal_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::GreaterThanOrEqual(
             Box::new(Ast::Literal(Datatype::Number(4))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
         assert_eq!(Datatype::Bool(true), *ast.evaluate(&mut map).unwrap());
 
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let equals_ast = Ast::SExpr(SExpression::GreaterThanOrEqual(
             Box::new(Ast::Literal(Datatype::Number(5))),
             Box::new(Ast::Literal(Datatype::Number(5))),
@@ -900,14 +900,14 @@ mod test {
 
     #[test]
     fn less_than_or_equal_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::SExpr(SExpression::LessThanOrEqual(
             Box::new(Ast::Literal(Datatype::Number(2))),
             Box::new(Ast::Literal(Datatype::Number(3))),
         ));
         assert_eq!(Datatype::Bool(true), *ast.evaluate(&mut map).unwrap());
 
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let equals_ast = Ast::SExpr(SExpression::LessThanOrEqual(
             Box::new(Ast::Literal(Datatype::Number(5))),
             Box::new(Ast::Literal(Datatype::Number(5))),
@@ -919,7 +919,7 @@ mod test {
     /// Recall that identifier and add it to 5
     #[test]
     fn assignment_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -939,7 +939,7 @@ mod test {
     /// Recall the value in "b" and add it to 5.
     #[test]
     fn variable_copy_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -962,7 +962,7 @@ mod test {
     /// Recall the value in a and add it to 5, the value of a should be 3, equalling 8.
     #[test]
     fn reassignment_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -982,7 +982,7 @@ mod test {
 
     #[test]
     fn conditional_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::Conditional {
             condition: Box::new(Ast::Literal(Datatype::Bool(true))),
             true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
@@ -993,7 +993,7 @@ mod test {
 
     #[test]
     fn conditional_with_else_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::Conditional {
             condition: Box::new(Ast::Literal(Datatype::Bool(false))),
             true_expr: Box::new(Ast::Literal(Datatype::Number(7))),
@@ -1004,7 +1004,7 @@ mod test {
 
     #[test]
     fn basic_function_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -1029,7 +1029,7 @@ mod test {
 
     #[test]
     fn function_with_parameter_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
@@ -1056,7 +1056,7 @@ mod test {
 
     #[test]
     fn function_with_two_parameters_addition_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("add_two_numbers".to_string())),
@@ -1098,7 +1098,7 @@ mod test {
 
     #[test]
     fn array_access_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast: Ast = Ast::SExpr(SExpression::AccessArray {
             identifier: Box::new(Ast::Literal(Datatype::Array {
                 value: vec![
@@ -1115,7 +1115,7 @@ mod test {
 
     #[test]
     fn array_incorrect_access_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast: Ast = Ast::SExpr(SExpression::AccessArray {
             identifier: Box::new(Ast::Literal(Datatype::Array {
                 value: vec![
@@ -1135,7 +1135,7 @@ mod test {
 
     #[test]
     fn struct_declaration_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast: Ast = Ast::SExpr(SExpression::StructDeclaration {
             identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             struct_type_info: Box::new(Ast::ExpressionList(vec![
@@ -1147,7 +1147,7 @@ mod test {
         });
 
         let _ = ast.evaluate(&mut map); // execute the ast to add the struct entry to the global stack map.
-        let mut expected_map = HashMap::new();
+        let mut expected_map = VariableStore::new();
         let mut inner_struct_hash_map = HashMap::new();
         inner_struct_hash_map.insert("Field1".to_string(), TypeInfo::Number);
         expected_map.insert(
@@ -1160,7 +1160,7 @@ mod test {
 
     #[test]
     fn struct_creation_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let declaration_ast: Ast = Ast::SExpr(SExpression::StructDeclaration {
             identifier: Box::new(Ast::ValueIdentifier("MyStruct".to_string())),
             struct_type_info: Box::new(Ast::ExpressionList(vec![
@@ -1197,7 +1197,7 @@ mod test {
 
     #[test]
     fn function_hoisting_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let ast = Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::Assignment {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),

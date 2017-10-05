@@ -87,7 +87,7 @@ fn main() {
 
                     match program(preprocessed_program.as_bytes()) {
                         IResult::Done(_, ast) => {
-                            let mut map: VariableStore = HashMap::new();
+                            let mut map: VariableStore = VariableStore::new();
                             std_functions::add_std_functions(&mut map);
                             let ast = ast.hoist_functions_and_structs();
 

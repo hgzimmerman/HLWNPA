@@ -10,7 +10,7 @@ mod test {
     //#[test]
     //fn function_parse_and_execute_separately_integration_test() {
     //    use nom::IResult;
-    //    let mut map: VariableStore = HashMap::new();
+    //    let mut map: VariableStore = VariableStore::new();
     //
     //    let input_string = "fn add8ToValue ( a : Number ) -> Number { ( a + 8 ) }";
     //    let (_, ast_with_function) = match function(input_string.as_bytes()) {
@@ -38,7 +38,7 @@ mod test {
 
     #[test]
     fn program_parse_and_execute_integration_test_1() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = "
      let x := 7
      fn test_function ( a : Number ) -> Number {  a + 8  }
@@ -55,7 +55,7 @@ mod test {
 
     #[test]
     fn program_parse_and_execute_integration_test_2() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = "
      fn test_function ( a : Number ) -> Number { a + 8  }
      test_function(8)";
@@ -70,7 +70,7 @@ mod test {
 
     #[test]
     fn program_parse_and_execute_integration_test_3() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = "
      fn test_function ( a : Number ) -> Number { a + 8 }
      test_function( 6 + 2 )";
@@ -86,7 +86,7 @@ mod test {
     /// Test multiple line functions
     #[test]
     fn program_parse_and_execute_integration_test_4() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = "
      fn test_function ( a : Number ) -> Number {
          a + 8
@@ -104,7 +104,7 @@ mod test {
     #[test]
     fn program_multiple_parameter_function_integration_test() {
         use nom::IResult;
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = "
      fn add_two_numbers ( a : Number, b : Number) -> Number {
          a + b
@@ -123,7 +123,7 @@ mod test {
     #[test]
     fn program_function_internals_does_not_clobber_outer_stack_integration_test() {
         use nom::IResult;
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = "
      let a := 2
      fn add_two_numbers ( a : Number, b : Number) -> Number {
@@ -148,7 +148,7 @@ mod test {
     #[test]
     fn program_string_coercion_integration_test() {
         use nom::IResult;
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
      let x := "Hi "
      fn test_function ( a : String ) -> String {  a + 5  }
@@ -169,7 +169,7 @@ mod test {
     #[test]
     fn program_if_test() {
         use nom::IResult;
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         // the while loop should increment the x once
         let input_string = r##"
      let x := 3
@@ -189,7 +189,7 @@ mod test {
     #[test]
     fn program_while_loop_test() {
         use nom::IResult;
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         // the while loop should reassign x to be something else;
         let input_string = r##"
      let x := 3
@@ -208,7 +208,7 @@ mod test {
 
     #[test]
     fn program_while_loop_false_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         // the while body should not execute
         let input_string = r##"
         let x := 42
@@ -227,7 +227,7 @@ mod test {
 
     #[test]
     fn program_parse_literal_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         // the while body should not execute
         let input_string = r##"
         32
@@ -243,7 +243,7 @@ mod test {
 
     #[test]
     fn program_parse_and_verify_array_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         [23, 43, 11]
         "##;
@@ -268,7 +268,7 @@ mod test {
 
     #[test]
     fn program_parse_struct_and_something_after_it() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         struct MyStruct {
             a : Number
@@ -287,7 +287,7 @@ mod test {
 
     #[test]
     fn program_parse_struct_and_access_field() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         struct MyStruct {
             a : Number
@@ -310,7 +310,7 @@ mod test {
 
     #[test]
     fn program_parse_struct_and_access_field_via_assignment() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         struct MyStruct {
             a : Number
@@ -334,7 +334,7 @@ mod test {
 
     #[test]
     fn program_parse_struct_with_multiple_fields_and_access_fields_in_expression() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         struct MyStruct {
             a : Number
@@ -360,7 +360,7 @@ mod test {
 
     #[test]
     fn program_parse_struct_with_multiple_fields_and_access_fields_in_function() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         struct MyStruct {
             a : Number
@@ -389,7 +389,7 @@ mod test {
 
     #[test]
 fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_with_internal_assignment(){
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         struct MyStruct {
             a : Number
@@ -421,7 +421,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
 
     #[test]
     fn program_parse_struct_with_multiple_fields_and_return_struct_from_function() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         struct MyStruct {
             a : Number
@@ -452,7 +452,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
 
     #[test]
     fn program_verify_that_struct_maps_dont_interfere_with_global_stack_map() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         struct MyStruct {
             a : Number
@@ -485,7 +485,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
 
     #[test]
     fn program_verify_that_struct_maps_dont_interfere_with_function_maps() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         struct MyStruct {
             a : Number
@@ -520,7 +520,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
 
     #[test]
     fn program_with_struct_functions_integration_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         struct MyStruct {
             a : Number
@@ -557,7 +557,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
 
     #[test]
     fn program_with_a_conditional_in_a_function_integration_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         let a := 3
 
@@ -585,7 +585,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
 
     #[test]
     fn program_with_a_conditional_in_a_function_2_integration_test() {
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         let a := 2
 
@@ -612,7 +612,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
     #[test]
     fn for_loop_eval() {
         use std::collections::HashMap;
-        let mut map: VariableStore = HashMap::new();
+        let mut map: VariableStore = VariableStore::new();
         let input_string = r#"
         let b := 0
         for i in [1,2,3] {
@@ -639,7 +639,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         #[bench]
         fn simple_program_execute_bench(b: &mut Bencher) {
             use super::super::super::test_constants::SIMPLE_PROGRAM_INPUT_1;
-            let mut map: VariableStore = HashMap::new();
+            let mut map: VariableStore = VariableStore::new();
             let (_, ast) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
                 IResult::Done(rest, v) => (rest, v),
                 IResult::Error(e) => panic!("{}", e),
@@ -656,7 +656,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
             use super::super::super::test_constants::SIMPLE_PROGRAM_INPUT_1;
 
             b.iter(|| {
-                let mut map: VariableStore = HashMap::new();
+                let mut map: VariableStore = VariableStore::new();
                 let (_, ast) = match program(SIMPLE_PROGRAM_INPUT_1.as_bytes()) {
                     IResult::Done(rest, v) => (rest, v),
                     IResult::Error(e) => panic!("{}", e),
@@ -670,7 +670,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         fn while_loop_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
                 use nom::IResult;
-                let mut map: VariableStore = HashMap::new();
+                let mut map: VariableStore = VariableStore::new();
                 let input_string = r##"
                 let x := 0
                 while x < 1000 {
@@ -695,7 +695,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         fn while_loop_with_useless_conditionals_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
                 use nom::IResult;
-                let mut map: VariableStore = HashMap::new();
+                let mut map: VariableStore = VariableStore::new();
                 let input_string = r##"
                 let x := 0
                 while x < 1000 {
@@ -722,7 +722,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         fn for_loop_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
                 use nom::IResult;
-                let mut map: VariableStore = HashMap::new();
+                let mut map: VariableStore = VariableStore::new();
                 let input_string = r##"
                 let c := 0
                 let x := [1..1001]
@@ -747,7 +747,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         fn for_loop_alt_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
                 use nom::IResult;
-                let mut map: VariableStore = HashMap::new();
+                let mut map: VariableStore = VariableStore::new();
                 let input_string = r##"
                 let c := 0
                 for a in [1..1001] {
@@ -771,7 +771,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         fn while_loop_similar_to_for_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
                 use nom::IResult;
-                let mut map: VariableStore = HashMap::new();
+                let mut map: VariableStore = VariableStore::new();
                 let input_string = r##"
                 let c := 0
                 let index := 0
@@ -799,7 +799,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         fn while_loop_similar_to_for_no_array_access_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
                 use nom::IResult;
-                let mut map: VariableStore = HashMap::new();
+                let mut map: VariableStore = VariableStore::new();
                 let input_string = r##"
                 let c := 0
                 let index := 0
@@ -826,7 +826,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         fn while_loop_similar_to_for_no_array_access_with_id_conditional_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
                 use nom::IResult;
-                let mut map: VariableStore = HashMap::new();
+                let mut map: VariableStore = VariableStore::new();
                 let input_string = r##"
                 let c := 0
                 let index := 0
@@ -854,7 +854,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         fn similar_to_for_no_array_access_without_while_loop_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
                 use nom::IResult;
-                let mut map: VariableStore = HashMap::new();
+                let mut map: VariableStore = VariableStore::new();
                 let input_string = r##"
                 let c := 0
                 let index := 0
@@ -880,7 +880,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         fn array_range_then_access_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
                 use nom::IResult;
-                let mut map: VariableStore = HashMap::new();
+                let mut map: VariableStore = VariableStore::new();
                 let input_string = r##"
                 let a := [1..1001]
                 a[0]
@@ -902,7 +902,7 @@ fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_wit
         fn array_range_parse_and_execute_program_bench(b: &mut Bencher) {
             fn loop_1000_times_program() {
                 use nom::IResult;
-                let mut map: VariableStore = HashMap::new();
+                let mut map: VariableStore = VariableStore::new();
                 let input_string = r##"
                 let a := [1..1001]
                 5

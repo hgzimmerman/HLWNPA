@@ -64,7 +64,7 @@ pub fn repl(mut map: &mut HashMap<String, Rc<Datatype>>) {
 
 /// Creates the map, adds standard functions to it and runs the repl with it.
 pub fn create_repl() {
-    let mut map: VariableStore = HashMap::new();
+    let mut map: VariableStore = VariableStore::new();
     std_functions::add_std_functions(&mut map);
 
     repl(&mut map)

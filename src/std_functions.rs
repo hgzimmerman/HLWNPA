@@ -66,9 +66,9 @@ fn add_println_function(map: &mut HashMap<String, Rc<Datatype>>) {
 
 #[test]
 fn expect_print_function_to_be_added_to_global_map() {
-    let mut map: VariableStore = HashMap::new();
+    let mut map: VariableStore = VariableStore::new();
     add_print_function(&mut map);
-    let mut expected_map: HashMap<String, Rc<Datatype>> = HashMap::new();
+    let mut expected_map: VariableStore = VariableStore::new();
     let print_fn: Datatype = Datatype::Function {
         parameters: (Box::new(Ast::ExpressionList(vec![
             Ast::SExpr(SExpression::TypeAssignment {

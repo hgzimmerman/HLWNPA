@@ -3,7 +3,7 @@ use nom::IResult;
 use parser::program;
 use lang_result::{LangResult, LangError};
 use ast::Ast;
-use datatype::Datatype;
+use datatype::{Datatype, VariableStore};
 use std::collections::HashMap;
 
 use std::io;
@@ -22,7 +22,7 @@ fn read<'a>(read_string: &'a str) -> IResult<&'a [u8], Ast> {
 // Evaluates the AST
 fn evaluate(
     possibly_parsed_ast: IResult<&[u8], Ast>,
-    map: &mut HashMap<String, Rc<Datatype>>,
+    map: &mut VariableStore,
 ) -> LangResult {
 
     match possibly_parsed_ast {
@@ -64,7 +64,7 @@ pub fn repl(mut map: &mut HashMap<String, Rc<Datatype>>) {
 
 /// Creates the map, adds standard functions to it and runs the repl with it.
 pub fn create_repl() {
-    let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
+    let mut map: VariableStore = HashMap::new();
     std_functions::add_std_functions(&mut map);
 
     repl(&mut map)

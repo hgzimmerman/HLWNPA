@@ -1,7 +1,8 @@
 
-use datatype::{Datatype, TypeInfo};
+use datatype::{Datatype, TypeInfo, RcDatatype};
 use std::rc::Rc;
-pub type LangResult = Result<Rc<Datatype>, LangError>;
+
+pub type LangResult = Result<RcDatatype, LangError>;
 
 #[derive(PartialEq, Debug)]
 pub enum LangError {

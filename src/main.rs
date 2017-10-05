@@ -32,7 +32,7 @@ mod preprocessor;
 mod operator;
 mod s_expression;
 
-use datatype::Datatype;
+use datatype::VariableStore;
 use ast::*;
 use repl::{repl, create_repl};
 use lang_result::{LangResult, LangError};
@@ -87,7 +87,7 @@ fn main() {
 
                     match program(preprocessed_program.as_bytes()) {
                         IResult::Done(_, ast) => {
-                            let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
+                            let mut map: VariableStore = HashMap::new();
                             std_functions::add_std_functions(&mut map);
                             let ast = ast.hoist_functions_and_structs();
 

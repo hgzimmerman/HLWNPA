@@ -14,13 +14,16 @@ use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 
+pub type RcDatatype = Rc<Datatype>;
+pub type VariableStore = HashMap<String, RcDatatype>;
+
 #[derive(PartialEq, Debug, Clone)]
 pub enum Datatype {
     Number(i32),
     Float(f64),
     String(String),
     Array {
-        value: Vec<Rc<Datatype>>,// TODO consider making this a Vec<Rc<Datatype>> so that accessing the values can just copy the RC pointer instead of the datatype itself?
+        value: Vec<RcDatatype>,
         type_: TypeInfo, // the type of data allowed in the array.
     },
     Bool(bool),

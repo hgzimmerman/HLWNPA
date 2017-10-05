@@ -1,5 +1,5 @@
 
-use datatype::{Datatype, TypeInfo};
+use datatype::{Datatype, TypeInfo, VariableStore};
 use std::collections::HashMap;
 use ast::Ast;
 use s_expression::SExpression;
@@ -14,7 +14,7 @@ pub fn add_std_functions(map: &mut HashMap<String, Rc<Datatype>>) {
 }
 
 
-fn add_print_function(map: &mut HashMap<String, Rc<Datatype>>) {
+fn add_print_function(map: &mut VariableStore) {
     let ast: Ast = Ast::SExpr(SExpression::CreateFunction {
         identifier: Box::new(Ast::ValueIdentifier("print".to_string())),
         function_datatype: Box::new(Ast::Literal(Datatype::Function {
@@ -66,7 +66,7 @@ fn add_println_function(map: &mut HashMap<String, Rc<Datatype>>) {
 
 #[test]
 fn expect_print_function_to_be_added_to_global_map() {
-    let mut map: HashMap<String, Rc<Datatype>> = HashMap::new();
+    let mut map: VariableStore = HashMap::new();
     add_print_function(&mut map);
     let mut expected_map: HashMap<String, Rc<Datatype>> = HashMap::new();
     let print_fn: Datatype = Datatype::Function {

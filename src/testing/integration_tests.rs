@@ -7,34 +7,6 @@ mod test {
     use test::Bencher;
     use std::rc::Rc;
 
-    //#[test]
-    //fn function_parse_and_execute_separately_integration_test() {
-    //    use nom::IResult;
-    //    let mut map: VariableStore = VariableStore::new();
-    //
-    //    let input_string = "fn add8ToValue ( a : Number ) -> Number { ( a + 8 ) }";
-    //    let (_, ast_with_function) = match function(input_string.as_bytes()) {
-    //        IResult::Done(rest, v) => (rest, v),
-    //        IResult::Error(e) => panic!("{}", e),
-    //        _ => panic!(),
-    //    };
-    //
-    //    let _ = ast_with_function.evaluate(&mut map); // insert the function into the hashmap
-    //
-    //    let executor_ast: Ast = Ast::Expression {
-    //        operator: BinaryOperator::ExecuteFn,
-    //        expr1: Box::new(Ast::ValueIdentifier("add8ToValue".to_string())),
-    //        expr2: Box::new(Ast::ExpressionList {
-    //            expressions: vec![Ast::Literal(Datatype::Number(7))],
-    //        }),
-    //    };
-    //
-    //    assert_eq!(
-    //        Datatype::Number(15),
-    //        executor_*ast.evaluate(&mut map).unwrap()
-    //    ); // find the test function and pass the value 7 into it
-    //}
-
 
     #[test]
     fn program_parse_and_execute_integration_test_1() {

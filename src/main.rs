@@ -13,11 +13,9 @@ extern crate uuid;
 use clap::{Arg, App};
 use nom::IResult;
 
-use std::collections::HashMap;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::OpenOptions;
-use std::rc::Rc;
 
 mod datatype;
 mod lang_result;

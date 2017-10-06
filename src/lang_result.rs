@@ -1,6 +1,5 @@
 
 use datatype::{Datatype, TypeInfo, RcDatatype};
-use std::rc::Rc;
 
 pub type LangResult = Result<RcDatatype, LangError>;
 

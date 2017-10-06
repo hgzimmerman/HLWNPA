@@ -9,7 +9,6 @@ use parser::identifier::identifier;
 use datatype::Datatype;
 use uuid::Uuid;
 use uuid::UuidVersion;
-use std::rc::Rc;
 
 named!(pub for_loop<Ast>,
     do_parse!(
@@ -118,6 +117,10 @@ fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
     }
 }
 
+#[cfg(test)]
+mod test {
+    use std::rc::Rc;
+    use super::*;
 
     #[test]
     fn for_loop_parse() {
@@ -145,6 +148,6 @@ fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
         );
         // Can't test this because of the random uuids used for the value identifiers.
 
-//        assert_eq!(expected_ast, ast);
+        //        assert_eq!(expected_ast, ast);
     }
-
+}

@@ -7,7 +7,6 @@ use parser::body::body;
 use parser::type_signature::type_signature;
 use datatype::{Datatype,};
 use parser::assignment::type_assignment;
-use std::rc::Rc;
 
 
 /// Either a Type or an identifier that can be resolved to a Struct's Type
@@ -53,6 +52,7 @@ named!(pub function<Ast>,
 mod test {
     use super::*;
     use datatype::TypeInfo;
+    use std::rc::Rc;
 
     #[test]
     fn parse_whole_function_number_input_returns_number_test() {

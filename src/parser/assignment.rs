@@ -6,15 +6,28 @@ use parser::identifier::identifier;
 use parser::type_signature::type_signature;
 use parser::expressions::sexpr;
 
-// TODO leave the let binding, possibly as a way to declare a const vs mutable structure
-named!(pub assignment<Ast>,
+named!(let_declaration<Ast>,
     do_parse!(
         ws!(tag!("let")) >>
         id: ws!(identifier) >>
         ws!(tag!(":="))>>
         value: sexpr >>
-        (Ast::SExpr(SExpression::Assignment{identifier: Box::new(id), ast: Box::new(value) }))
+        (Ast::SExpr(SExpression::VariableDeclaration{identifier: Box::new(id), ast: Box::new(value) }))
     )
+);
+
+named!(const_declaration<Ast>,
+    do_parse!(
+        ws!(tag!("const")) >>
+        id: ws!(identifier) >>
+        ws!(tag!(":="))>>
+        value: sexpr >>
+        (Ast::SExpr(SExpression::ConstDeclaration{identifier: Box::new(id), ast: Box::new(value) }))
+    )
+);
+
+named!(pub declaration<Ast>,
+    alt!(let_declaration | const_declaration)
 );
 
 
@@ -47,13 +60,13 @@ mod test {
     #[test]
     fn parse_assignment_of_literal_test() {
         let input_string = "let b := 8";
-        let (_, value) = match assignment(input_string.as_bytes()) {
+        let (_, value) = match declaration(input_string.as_bytes()) {
             IResult::Done(r, v) => (r, v),
             IResult::Error(e) => panic!("{:?}", e),
             _ => panic!(),
         };
         assert_eq!(
-            Ast::SExpr(SExpression::Assignment {
+            Ast::SExpr(SExpression::VariableDeclaration {
                 identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
                 ast: Box::new(Ast::Literal(Datatype::Number(8))),
             }),

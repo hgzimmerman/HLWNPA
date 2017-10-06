@@ -17,7 +17,7 @@ mod literal;
 mod utilities;
 
 mod assignment;
-use self::assignment::assignment;
+use self::assignment::*;
 
 mod type_signature;
 
@@ -40,7 +40,7 @@ named!(any_ast<Ast>,
     alt_complete!(
         sexpr | // works as a stand in for tokens groups captured no_keyword_token_group
         include |
-        assignment |
+        declaration |
         control_flow |
         struct_definition |
         create_struct_instance |
@@ -81,7 +81,7 @@ mod test {
             _ => panic!(),
         };
 
-        let expected_assignment: Ast = Ast::SExpr(SExpression::Assignment {
+        let expected_assignment: Ast = Ast::SExpr(SExpression::VariableDeclaration {
             identifier: Box::new(Ast::ValueIdentifier("x".to_string())),
             ast: Box::new(Ast::SExpr(SExpression::Add(
                 Box::new(Ast::Literal(Datatype::Number(3))),
@@ -92,7 +92,7 @@ mod test {
         let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
             function_datatype: Box::new(Ast::Literal(Datatype::Function {
-                parameters: Box::new(Ast::ExpressionList(
+                parameters: Box::new(Ast::ExpressionList (
                     vec![Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
                         type_info: Box::new(Ast::Type(TypeInfo::Number))

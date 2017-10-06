@@ -27,13 +27,15 @@ pub enum SExpression {
     Increment(Box<Ast>),
     Decrement(Box<Ast>),
     // Language Features
+    VariableDeclaration { identifier: Box<Ast>, ast: Box<Ast>},
+    ConstDeclaration { identifier: Box<Ast>, ast: Box<Ast>},
     Assignment { identifier: Box<Ast>, ast: Box<Ast> },
     TypeAssignment {
         identifier: Box<Ast>,
         type_info: Box<Ast>,
     },
     FieldAssignment { identifier: Box<Ast>, ast: Box<Ast> },
-    CreateFunction {
+    CreateFunction { // TODO: Rename this to DeclareFunction.
         identifier: Box<Ast>,
         function_datatype: Box<Ast>,
     },

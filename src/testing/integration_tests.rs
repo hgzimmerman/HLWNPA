@@ -360,7 +360,7 @@ mod test {
     }
 
     #[test]
-fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_with_internal_assignment(){
+    fn program_parse_struct_with_multiple_fields_and_return_struct_from_function_with_internal_assignment(){
         let mut map: VariableStore = VariableStore::new();
         let input_string = r##"
         struct MyStruct {

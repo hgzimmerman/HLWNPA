@@ -35,6 +35,9 @@ pub enum Ast {
 
 
 impl Ast {
+
+
+
     /// Moves functions and structs to the top of the Ast's top level ExpressionList.
     /// This is done because regardless of where a function is declared, a datatype representing it
     /// will be encoded in the program map before it is used.
@@ -244,6 +247,14 @@ impl Ast {
                             return Ok(Rc::new(Datatype::Bool(false)));
                         }
                     }
+                    SExpression::VariableDeclaration {
+                       identifier: ref lhs,
+                        ast: ref rhs,
+                    } |
+                    SExpression::ConstDeclaration {
+                       identifier: ref lhs,
+                        ast: ref rhs,
+                    } |
                     SExpression::Assignment {
                         identifier: ref lhs,
                         ast: ref rhs,

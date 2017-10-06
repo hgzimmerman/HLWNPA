@@ -92,7 +92,6 @@ fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
                 Ast::SExpr(SExpression::Loop {
                     conditional: Box::new(Ast::SExpr(SExpression::LessThan (
                         Box::new(Ast::ValueIdentifier(index_uuid.clone())),
-                        //TODO  This checks for the array length on every loop iteration, this is "safe", but I could also store it in a variable, as long as the array cant be grown or shrunk.
                         Box::new(Ast::ValueIdentifier(length_uuid))
                     ) )),
                     body: Box::new(Ast::ExpressionList(vec![

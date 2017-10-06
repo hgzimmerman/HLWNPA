@@ -28,6 +28,8 @@ pub enum Operator {
 
     LogicalAnd,
     LogicalOr,
+
+    Assignment
 }
 
 impl Into<u32> for Operator {
@@ -41,6 +43,7 @@ impl Into<u32> for Operator {
             GreaterThan | LessThan | GreaterThanOrEqual | LessThanOrEqual => 4,
             Equals | NotEquals => 5,
             LogicalAnd | LogicalOr => 6,
+            Assignment => 7
         }
     }
 }

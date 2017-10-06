@@ -20,7 +20,7 @@ impl Ast {
             }
             Ast::SExpr(ref s_expression) => {
                 match *s_expression {
-                    SExpression::Assignment{ref identifier, ref ast} => { // a = 5
+                    SExpression::Assignment{ref identifier, ref ast} => { // a := 5
                         let resolved_id: String = match **identifier {
                             Ast::ValueIdentifier(ref id) => id.clone(),
                             _ => return Ok(()) // Error, AST malformed, couldn't resolve the id

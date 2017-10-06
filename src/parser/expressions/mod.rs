@@ -164,6 +164,10 @@ fn create_sexpr(operator: Operator, lhs: Ast, rhs: Option<Ast>) -> Ast {
             Box::new(lhs),
             Box::new(rhs.expect("rhs should be present")),
         )),
+        Operator::Assignment => Ast::SExpr(SExpression::Assignment {
+            identifier: Box::new(lhs),
+            ast: Box::new(rhs.expect("rhs should be present")),
+        })
     }
 }
 
@@ -271,6 +275,9 @@ fn retrieve_operator_and_operands(
                 }
                 SExpression::Decrement(ref lhs) => {
                     (Ok((Some(Operator::Decrement), *lhs.clone(), None)))
+                }
+                SExpression::Assignment {ref identifier, ref ast } => {
+                    Ok((Some(Operator::Assignment), *identifier.clone(), Some(*ast.clone())))
                 }
                 _ => (Err("Unsupported SExpression".to_string())),
             }

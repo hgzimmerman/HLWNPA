@@ -111,6 +111,13 @@ named!(decrement<Operator>,
     )
 );
 
+named!(assignment<Operator>,
+    value!(
+        Operator::Assignment,
+        tag!(":=")
+    )
+);
+
 
 named!( pub arithmetic_binary_operator<Operator>,
     ws!(alt!(
@@ -131,7 +138,9 @@ named!( pub arithmetic_binary_operator<Operator>,
         not_equals |
 
         logical_and |
-        logical_or
+        logical_or |
+
+        assignment
     ))
 );
 

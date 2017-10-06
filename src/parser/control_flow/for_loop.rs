@@ -119,8 +119,9 @@ fn create_for_loop(identifier: Ast, array: Ast, for_body: Ast) -> Ast {
 
 #[cfg(test)]
 mod test {
-    use std::rc::Rc;
+//    use std::rc::Rc;
     use super::*;
+//    use datatype::TypeInfo;
 
     #[test]
     fn for_loop_parse() {
@@ -129,23 +130,22 @@ mod test {
             3
         }
          "#;
-        let (_, ast) = match for_loop(input_string.as_bytes()) {
+        let (_, /*ast*/_) = match for_loop(input_string.as_bytes()) {
             IResult::Done(rest, v) => (rest, v),
             IResult::Error(e) => panic!("{}", e),
             _ => panic!(),
         };
 
-        use datatype::TypeInfo;
 
 
-        let expected_ast = create_for_loop(
-            Ast::ValueIdentifier("i".to_string()),
-            Ast::Literal(Datatype::Array {
-                value: vec![Rc::new(Datatype::Number(0)), Rc::new(Datatype::Number(2))],
-                type_: TypeInfo::Number
-            }),
-            Ast::ExpressionList(vec![Ast::Literal(Datatype::Number(3))])
-        );
+//        let expected_ast = create_for_loop(
+//            Ast::ValueIdentifier("i".to_string()),
+//            Ast::Literal(Datatype::Array {
+//                value: vec![Rc::new(Datatype::Number(0)), Rc::new(Datatype::Number(2))],
+//                type_: TypeInfo::Number
+//            }),
+//            Ast::ExpressionList(vec![Ast::Literal(Datatype::Number(3))])
+//        );
         // Can't test this because of the random uuids used for the value identifiers.
 
         //        assert_eq!(expected_ast, ast);

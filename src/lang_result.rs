@@ -45,5 +45,6 @@ pub enum LangError {
     CouldNotReadFile { filename: String, reason: String },
     CouldNotParseFile { filename: String, reason: String },
     TriedToGetLengthOfNonArray,
-    RangeValueIsntNumber
+    RangeValueIsntNumber,
+    MutabilityRulesViolated
 }

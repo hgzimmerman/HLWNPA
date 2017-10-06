@@ -12,6 +12,7 @@ use std::io::Write;
 use std_functions;
 use std::rc::Rc;
 use preprocessor::preprocess;
+use mutability::MutabilityMap;
 
 
 /// Reads and parses
@@ -23,10 +24,19 @@ fn read<'a>(read_string: &'a str) -> IResult<&'a [u8], Ast> {
 fn evaluate(
     possibly_parsed_ast: IResult<&[u8], Ast>,
     map: &mut VariableStore,
+    mutability_map: &mut MutabilityMap
 ) -> LangResult {
 
+
     match possibly_parsed_ast {
-        IResult::Done(_, ast) => ast.evaluate(map),
+        IResult::Done(_, ast) => {
+            if let Err(error) = ast.check_mutability_semantics(mutability_map) {
+                println!("{:?}", error);
+                Err(LangError::MutabilityRulesViolated)
+            } else {
+                ast.evaluate(map)
+            }
+        },
         IResult::Error(e) => {
             print!("Invalid syntax: {}\nuser>", e);
             Err(LangError::InvalidSyntax)
@@ -50,7 +60,7 @@ fn print(possibly_evaluated_program: LangResult) {
 }
 
 /// It is expected that the incoming map already has the std_functions added.
-pub fn repl(mut map: &mut HashMap<String, Rc<Datatype>>) {
+pub fn repl(mut map: &mut VariableStore, mut mutability_map: &mut MutabilityMap) {
     use std::io;
     use std::io::prelude::*;
     let stdin = io::stdin();
@@ -58,22 +68,23 @@ pub fn repl(mut map: &mut HashMap<String, Rc<Datatype>>) {
     print!("user>");
     let _ = io::stdout().flush();
     for line in stdin.lock().lines() {
-        prep(&mut line.unwrap().as_str(), &mut map)
+        prep(&mut line.unwrap().as_str(), &mut map, &mut mutability_map)
     }
 }
 
 /// Creates the map, adds standard functions to it and runs the repl with it.
 pub fn create_repl() {
     let mut map: VariableStore = VariableStore::new();
+    let mut mutability_map: MutabilityMap = MutabilityMap::new();
     std_functions::add_std_functions(&mut map);
 
-    repl(&mut map)
+    repl(&mut map, &mut mutability_map)
 }
 
 
-fn prep(a: &mut &str, map: &mut HashMap<String, Rc<Datatype>>) {
+fn prep(a: &mut &str, map: &mut VariableStore, mutability_map: &mut MutabilityMap) {
     let preprocessed = preprocess(a);
     let parsed = read(preprocessed.as_str());
-    let evaled = evaluate(parsed, map);
+    let evaled = evaluate(parsed, map, mutability_map);
     print(evaled)
 }

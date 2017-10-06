@@ -35,6 +35,7 @@ use datatype::VariableStore;
 use ast::*;
 use repl::{repl, create_repl};
 use lang_result::{LangResult, LangError};
+use mutability::MutabilityMap;
 
 use parser::program;
 //use std_functions;
@@ -87,13 +88,14 @@ fn main() {
                     match program(preprocessed_program.as_bytes()) {
                         IResult::Done(_, ast) => {
                             let mut map: VariableStore = VariableStore::new();
+                            let mut mutability_map: MutabilityMap = MutabilityMap::new();
                             std_functions::add_std_functions(&mut map);
                             let ast = ast.hoist_functions_and_structs();
 
                             // Drop the user into a repl
                             if repl_after_parse {
                                 match ast.evaluate(&mut map) {
-                                    Ok(_) => repl(&mut map), // Start the REPL if the program evaluates correctly
+                                    Ok(_) => repl(&mut map, &mut mutability_map), // Start the REPL if the program evaluates correctly
                                     Err(e) => {
                                         println!(
                                             "Couldn't load program into REPL, due to error: {:?}",

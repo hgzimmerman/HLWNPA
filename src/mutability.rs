@@ -106,7 +106,7 @@ impl Ast {
                     }
 
                     _ => {
-                        Ok(()) // if the structure doesn't add anything to the variable store, we don't care about it.
+                        Ok(()) // if the expression doesn't add anything to the variable store, we don't care about it.
                     }
                 }
             }

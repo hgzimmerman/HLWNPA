@@ -100,8 +100,8 @@ Returns: `Number(11)`
 * ~~S-Expression parsing with precedence is very slow. This is because the parser would try to match a LHS and an operator for every supported operator, before it found that only a single number or variable had to be parsed.~~ Rewrote the S-Expression parser. Now only about 2x overhead over no precedence logic for simple programs versus the 100x or more for the prior parser.
 * ~~`&&` and `||` operators are not implemented yet. They should have the least precedence.~~
 * ~~Introduce Floats.~~
-* Introduce mutability rules. `const` vs. `let`.
-* Prevent reassignment of Struct and Function names. Currently, you are allowed to set the identifier for a struct's type to be a number, this has wonky concequences for the type system.
+* ~~Introduce mutability rules. `const` vs. `let`.~~ Mutability now exists as a system that is enforced after the AST has been parsed, but before it is evaluated. This makes it take a constant amount of time to enforce and doesn't break the program at runtime.
+* ~~Prevent reassignment of Struct and Function names. Currently, you are allowed to set the identifier for a struct's type to be a number, this has wonky concequences for the type system.~~
 * Investigate Nom's custom error messages. 
 * Figure out how to display a line number for a parser error and highlight the part of syntax that failed.
 * Flesh out the runtime error messages, give them more data related to the error, and implement Display for them so they are printed out nicely when an error ocurrs.

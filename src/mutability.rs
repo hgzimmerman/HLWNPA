@@ -5,15 +5,15 @@ use std::collections::HashMap;
 
 pub type MutabilityMap = HashMap<String, Mutability>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Mutability {
     Mutable,
     Immutable
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MutabilityError {
-    CanNotAssignToConst,
+    CanNotAssignToConstVariable,
     CanNotRedeclareConst,
     VariableDoesNotExist,
     IsNotAVariable,
@@ -24,10 +24,12 @@ pub enum MutabilityError {
 
 
 impl Ast {
-    // TODO, create custom error type for mutability rules
     pub fn check_mutability_semantics(&self, map: &mut HashMap<String, Mutability>) -> Result<(), MutabilityError> {
         match *self {
             Ast::ExpressionList( ref expressions) => {
+                // TODO I would like to be able to do this, but this means that the REPL, which gets list of 1 for every line entered, will copy the map, so none of the rules are ever enforced.
+                // TODO Until expression lists with one element are hoisted (replaced) to just become the single element, this will not work perfectly (different functions cannot use the same variable names with different mutability states)
+//                let mut cloned_map = map.clone(); // Clone the map, so you can use different mutability rules in sibling scopes.
                 for expression in expressions {
                     let _ = expression.check_mutability_semantics(map)?;
                 }
@@ -43,7 +45,7 @@ impl Ast {
                         if let Some(mutablity) = map.get(&resolved_id) {
                             match *mutablity {
                                 Mutability::Mutable => Ok(()),
-                                Mutability::Immutable => Err(MutabilityError::CanNotAssignToConst) // tried to assign a value to immutable value
+                                Mutability::Immutable => Err(MutabilityError::CanNotAssignToConstVariable) // tried to assign a value to immutable value
                             }
                         } else {
                             Err(MutabilityError::VariableDoesNotExist) // variable doesn't exist yet

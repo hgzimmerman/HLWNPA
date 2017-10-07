@@ -29,9 +29,9 @@ impl Ast {
             Ast::ExpressionList( ref expressions) => {
                 // TODO I would like to be able to do this, but this means that the REPL, which gets list of 1 for every line entered, will copy the map, so none of the rules are ever enforced.
                 // TODO Until expression lists with one element are hoisted (replaced) to just become the single element, this will not work perfectly (different functions cannot use the same variable names with different mutability states)
-//                let mut cloned_map = map.clone(); // Clone the map, so you can use different mutability rules in sibling scopes.
+                let mut cloned_map = map.clone(); // Clone the map, so you can use different mutability rules in sibling scopes.
                 for expression in expressions {
-                    let _ = expression.check_mutability_semantics(map)?;
+                    let _ = expression.check_mutability_semantics(&mut cloned_map)?;
                 }
                 return Ok(())
             }

@@ -15,8 +15,25 @@ use preprocessor::preprocess;
 use mutability::MutabilityMap;
 
 
+fn replace_top_level_list_with_its_constituent_element( ast: &Ast ) -> &Ast {
+    if let Ast::ExpressionList(ref expressions) = *ast {
+        if expressions.len() == 1 {
+            expressions.get(0).unwrap()
+        } else {
+            ast
+        }
+    } else {
+        ast
+    }
+
+}
+
+
 /// Reads and parses
 fn read<'a>(read_string: &'a str) -> IResult<&'a [u8], Ast> {
+    if read_string == "" {
+        return IResult::Done(b"", Ast::Literal(Datatype::None))
+    }
     return program(read_string.as_bytes());
 }
 
@@ -30,6 +47,7 @@ fn evaluate(
 
     match possibly_parsed_ast {
         IResult::Done(_, ast) => {
+            let ast = replace_top_level_list_with_its_constituent_element(&ast);
             if let Err(error) = ast.check_mutability_semantics(mutability_map) {
                 println!("{:?}", error);
                 Err(LangError::MutabilityRulesViolated)
@@ -71,6 +89,8 @@ pub fn repl(mut map: &mut VariableStore, mut mutability_map: &mut MutabilityMap)
         prep(&mut line.unwrap().as_str(), &mut map, &mut mutability_map)
     }
 }
+
+
 
 /// Creates the map, adds standard functions to it and runs the repl with it.
 pub fn create_repl() {

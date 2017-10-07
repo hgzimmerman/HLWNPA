@@ -6,6 +6,9 @@ use std::collections::HashMap;
 /// Shorthand for a HashMap that maps Strings to Mutability enums
 pub type MutabilityMap = HashMap<String, Mutability>;
 
+// The Void indicates that check was successful without any errors, the MutabilityError will descibe the error that was encountered while checking mutability.
+pub type MutabilityResult = Result<(), MutabilityError>;
+
 /// Mutability values variables can have.
 #[derive(Debug, Clone)]
 pub enum Mutability {
@@ -88,7 +91,7 @@ impl Ast {
                                 }
                             }
                         }
-                        map.insert(resolved_id, Mutability::Immutable); // prevent reassignment of the fn
+                        map.insert(resolved_id, Mutability::Mutable); // prevent reassignment of the fn
                         Ok(())
                     }
                     SExpression::CreateFunction { ref identifier, ref function_datatype } => {

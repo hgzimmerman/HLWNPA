@@ -15,6 +15,12 @@ use preprocessor::preprocess;
 use mutability::MutabilityMap;
 
 
+/// Because the program parser will put all top level expressions in a list,
+/// the mutability checker will be given a new scope for every command entered in at
+/// the command line due to the way it will copy the mutability map for every new scope.
+///
+/// This moves the singular element out of the list and allows the mutability checker to work in
+/// the REPL.
 fn replace_top_level_list_with_its_constituent_element( ast: &Ast ) -> &Ast {
     if let Ast::ExpressionList(ref expressions) = *ast {
         if expressions.len() == 1 {
@@ -66,7 +72,7 @@ fn evaluate(
     }
 }
 
-// Prints the result of the AST
+/// Prints the result of the AST
 fn print(possibly_evaluated_program: LangResult) {
 
     match possibly_evaluated_program {
@@ -102,6 +108,7 @@ pub fn create_repl() {
 }
 
 
+/// Preprocess, Parse, Evaluate, Print.
 fn prep(a: &mut &str, map: &mut VariableStore, mutability_map: &mut MutabilityMap) {
     let preprocessed = preprocess(a);
     let parsed = read(preprocessed.as_str());

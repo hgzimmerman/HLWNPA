@@ -328,7 +328,7 @@ impl Ast {
                             }
                             _ => {
                                 return Err(
-                                    LangError::ArrayAccessOnNonArry(TypeInfo::from(datatype.clone())),
+                                    LangError::ArrayAccessOnNonArray(TypeInfo::from(datatype.clone())),
                                 )
                             }
                         }

@@ -56,8 +56,8 @@ impl Ast {
                             Ast::ValueIdentifier(ref id) => id.clone(),
                             _ => return Err(MutabilityError::IsNotAVariable) // Error, AST malformed, couldn't resolve the id
                         };
-                        if let Some(mutablity) = map.get(&resolved_id) {
-                            match *mutablity {
+                        if let Some(mutability) = map.get(&resolved_id) {
+                            match *mutability {
                                 Mutability::Mutable => Ok(()),
                                 Mutability::Immutable => Err(MutabilityError::CanNotAssignToConstVariable) // tried to assign a value to immutable value
                             }

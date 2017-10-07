@@ -26,7 +26,7 @@ pub enum LangError {
     VariableDoesntExist(String),
     TriedToEvaluateTypeInfo(TypeInfo),
     ConditionalNotBoolean(TypeInfo),
-    ArrayAccessOnNonArry(TypeInfo),
+    ArrayAccessOnNonArray(TypeInfo),
     InvalidIndexType(Datatype),
     NegativeIndex(i32),
     OutOfBoundsArrayAccess,

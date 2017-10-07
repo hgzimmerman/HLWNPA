@@ -20,7 +20,7 @@ I then proceeded to graft things onto the AST and syntax parser once I had a min
 
 # Actual Features
 * REPL.
-* Primative types: Number (signed 32 bit), Float (64 bit), String, Booleans, and Arrays (only containing primatives at the moment). As well as Structs.
+* Primitive types: Number (signed 32 bit), Float (64 bit), String, Booleans, and Arrays (only containing primatives at the moment). As well as Structs.
 * Assignment: `let value := 4 * 6`.
 * While loops: `while value < 100 { value + 1 }`.
 * Arrays: `let a := [0,1,2,3]`.
@@ -101,10 +101,10 @@ Returns: `Number(11)`
 * ~~`&&` and `||` operators are not implemented yet. They should have the least precedence.~~
 * ~~Introduce Floats.~~
 * ~~Introduce mutability rules. `const` vs. `let`.~~ Mutability now exists as a system that is enforced after the AST has been parsed, but before it is evaluated. This makes it take a constant amount of time to enforce and doesn't break the program at runtime.
-* ~~Prevent reassignment of Struct and Function names. Currently, you are allowed to set the identifier for a struct's type to be a number, this has wonky concequences for the type system.~~
+* ~~Prevent reassignment of Struct and Function names. Currently, you are allowed to set the identifier for a struct's type to be a number, this has wonky consequences for the type system.~~
 * Investigate Nom's custom error messages. 
 * Figure out how to display a line number for a parser error and highlight the part of syntax that failed.
-* Flesh out the runtime error messages, give them more data related to the error, and implement Display for them so they are printed out nicely when an error ocurrs.
+* Flesh out the runtime error messages, give them more data related to the error, and implement Display for them so they are printed out nicely when an error occurs.
 * ~~When executing a file, hoist the functions and struct declarations, search for a main function, evaluate it if found, otherwise, evaluate AST nodes that exist outside of functions. If the file only contains functions and structs and no main function, throw an error.~~ Hoisting and main() execution implemented.
 * ~~Allow the REPL to read a file at startup and access its functions, structs, and variables.~~ REPL after reading a file implemented.
 * ~~Implement an `Include <filename>` keyword that will parse another file and load the other file's AST into the original files's AST.~~ `include <filename>` will now move the AST of the specified file into the calling file's AST.

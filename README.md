@@ -22,6 +22,8 @@ I then proceeded to graft things onto the AST and syntax parser once I had a min
 * REPL.
 * Primative types: Number (signed 32 bit), Float (64 bit), String, Booleans, and Arrays (only containing primatives at the moment). As well as Structs.
 * Assignment: `let value := 4 * 6`.
+* Constants: `const VALUE := 5`.
+* Reassignment: `value := 1`.
 * While loops: `while value < 100 { value + 1 }`.
 * Arrays: `let a := [0,1,2,3]`.
 * Array ranges: `[0..3]` produces an array `[0,1,2]`.
@@ -100,7 +102,7 @@ Returns: `Number(11)`
 * ~~S-Expression parsing with precedence is very slow. This is because the parser would try to match a LHS and an operator for every supported operator, before it found that only a single number or variable had to be parsed.~~ Rewrote the S-Expression parser. Now only about 2x overhead over no precedence logic for simple programs versus the 100x or more for the prior parser.
 * ~~`&&` and `||` operators are not implemented yet. They should have the least precedence.~~
 * ~~Introduce Floats.~~
-* ~~Introduce mutability rules. `const` vs. `let`.~~ Mutability now exists as a system that is enforced after the AST has been parsed, but before it is evaluated. This makes it take a constant amount of time to enforce and doesn't break the program at runtime.
+* ~~Introduce mutability rules. `const` vs. `let`.~~ Mutability now exists as a system that is enforced after the AST has been parsed, but before it is evaluated. This makes it take the time to enforce mutability rules proportional to the number of assignment related S-Expressions in the AST and doesn't crash the program at runtime.
 * ~~Prevent reassignment of Struct and Function names. Currently, you are allowed to set the identifier for a struct's type to be a number, this has wonky concequences for the type system.~~
 * Investigate Nom's custom error messages. 
 * Figure out how to display a line number for a parser error and highlight the part of syntax that failed.

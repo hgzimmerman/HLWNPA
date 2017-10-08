@@ -32,6 +32,9 @@ pub enum Operator {
     Assignment
 }
 
+/// The u32 values here indicate the precedence for the operator.
+/// Accessing an array, struct or executing a function have the highest priority, and will be evaluated before any other operations are performed.
+/// Assignment has the lowest precedence, this makes sense because you only want to assign a fully evaluated value to a variable, so the assignment should always come last.
 impl Into<u32> for Operator {
     fn into(self) -> u32 {
         use self::Operator::*;

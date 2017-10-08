@@ -3,6 +3,7 @@ use ast::type_info::TypeInfo;
 use std::collections::HashMap;
 use ast::s_expression::SExpression;
 
+#[derive(Debug, Clone)]
 pub enum TypeError {
     TypeMismatch,
     UnsupportedOperation,

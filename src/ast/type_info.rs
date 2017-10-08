@@ -56,7 +56,7 @@ impl From<Datatype> for TypeInfo {
     }
 }
 
-// TODO verify that this is implemented correctly.
+
 impl PartialOrd for TypeInfo {
     fn partial_cmp(&self, rhs: &TypeInfo) -> Option<Ordering> {
         match *self {
@@ -104,7 +104,7 @@ impl PartialOrd for TypeInfo {
                 }
             }
             TypeInfo::Function(ref type_info) => {
-                None // TODO, is there a better way to do this?
+                None // TODO, is there a better way to do this? I don't think that functions should be compared as that could require an Ast traversal, which would require loading the AST into the fn typeinfo.
             }
             TypeInfo::Struct { map: ref lhs_map } => {
                 if let TypeInfo::Struct { map: ref rhs_map } = *rhs {
@@ -256,11 +256,42 @@ impl Rem for TypeInfo {
         match self {
             TypeInfo::Number => {
                 match other {
-                    TypeInfo::Number=> return Ok(TypeInfo::Number),
+                    TypeInfo::Number => return Ok(TypeInfo::Number),
                     _ => Err(TypeError::UnsupportedOperation),
                 }
             }
             _ => Err(TypeError::UnsupportedOperation),
         }
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn comparison_type_info() {
+        assert!(TypeInfo::Bool == TypeInfo::Bool);
+        assert!(TypeInfo::Number == TypeInfo::Number);
+        assert!(TypeInfo::Float == TypeInfo::Float);
+        assert!(TypeInfo::String == TypeInfo::String);
+        assert!(TypeInfo::Array(Box::new(TypeInfo::Number)) == TypeInfo::Array(Box::new(TypeInfo::Number)) );
+        assert!(TypeInfo::Array(Box::new(TypeInfo::Number)) != TypeInfo::Array(Box::new(TypeInfo::String)) );
+
+    }
+
+    #[test]
+    fn comparison_type_info_with_operations() {
+        assert!(TypeInfo::Number == (TypeInfo::Number + TypeInfo::Number).unwrap());
+        assert!(TypeInfo::Float == (TypeInfo::Float + TypeInfo::Number).unwrap());
+        assert!(TypeInfo::String == (TypeInfo::String + TypeInfo::Number).unwrap());
+    }
+
+    #[test]
+    fn convert_from_datatype_and_perform_operation_and_compare() {
+        // TODO flesh these tests out more.
+        assert!(TypeInfo::Number == (TypeInfo::from(Datatype::Number(10)) + TypeInfo::from(Datatype::Number(21))).unwrap());
+    }
+
+
 }

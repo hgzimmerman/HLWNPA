@@ -1,5 +1,5 @@
 use ast::Ast;
-use lang_result::LangError;
+use ast::lang_result::LangError;
 use nom::IResult;
 use parser::program;
 use std::io::prelude::*;

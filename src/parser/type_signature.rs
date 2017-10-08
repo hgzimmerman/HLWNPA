@@ -1,7 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::Ast;
-use datatype::TypeInfo;
+use ast::{Ast, TypeInfo};
 
 /// _ts indicates that the parser combinator is a getting a type signature
 named!(pub type_signature<Ast>,

@@ -55,7 +55,7 @@ named!(pub struct_value_assignment<Ast>,
 #[cfg(test)]
 mod test {
     use super::*;
-    use datatype::{Datatype, TypeInfo};
+    use ast::{Datatype, TypeInfo};
 
     #[test]
     fn parse_assignment_of_literal_test() {

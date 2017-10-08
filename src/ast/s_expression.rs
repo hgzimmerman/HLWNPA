@@ -1,4 +1,4 @@
-use ast::Ast;
+use ast::abstract_syntax_tree::Ast;
 use std::boxed::Box;
 
 /// Operators that store their operands.

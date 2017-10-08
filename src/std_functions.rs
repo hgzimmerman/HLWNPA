@@ -1,8 +1,6 @@
 
-use datatype::{Datatype, TypeInfo, VariableStore};
 use std::collections::HashMap;
-use ast::Ast;
-use s_expression::SExpression;
+use ast::{Ast, SExpression, Datatype, TypeInfo, VariableStore};
 use parser::program;
 use std::rc::Rc;
 

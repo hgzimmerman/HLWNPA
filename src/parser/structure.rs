@@ -34,8 +34,7 @@ named!(pub create_struct_instance<Ast>,
 #[cfg(test)]
 mod test {
 
-    use datatype::Datatype;
-    use datatype::TypeInfo;
+    use ast::{Datatype, TypeInfo};
     use super::*;
 
     #[test]

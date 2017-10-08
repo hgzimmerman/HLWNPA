@@ -17,8 +17,6 @@ use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::OpenOptions;
 
-mod datatype;
-mod lang_result;
 mod ast;
 mod parser;
 mod repl;
@@ -27,15 +25,12 @@ mod std_functions;
 mod testing;
 mod include;
 mod preprocessor;
-mod operator;
-mod s_expression;
-mod mutability;
 
-use datatype::VariableStore;
+use ast::datatype::VariableStore;
 use ast::*;
 use repl::{repl, create_repl};
-use lang_result::{LangResult, LangError};
-use mutability::MutabilityMap;
+use ast::lang_result::{LangResult, LangError};
+use ast::mutability::MutabilityMap;
 
 use parser::program;
 //use std_functions;

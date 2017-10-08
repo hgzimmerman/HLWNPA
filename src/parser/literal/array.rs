@@ -1,7 +1,6 @@
-use ast::Ast;
+use ast::{Ast, Datatype, TypeInfo};
 #[allow(unused_imports)]
 use nom::*;
-use datatype::{Datatype, TypeInfo};
 use super::literal;
 use s_expression::SExpression;
 use parser::expressions::sexpr;

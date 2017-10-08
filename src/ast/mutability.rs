@@ -1,4 +1,4 @@
-use ast::Ast;
+use ast::abstract_syntax_tree::Ast;
 use lang_result::LangError;
 use s_expression::SExpression;
 use std::collections::HashMap;

@@ -2,8 +2,7 @@ use parser::literal::string_literal;
 
 #[allow(unused_imports)]
 use nom::*;
-use ast::Ast;
-use s_expression::SExpression;
+use ast::{Ast, SExpression};
 
 use std::boxed::Box;
 

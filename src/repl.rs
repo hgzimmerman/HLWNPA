@@ -1,9 +1,8 @@
 
 use nom::IResult;
 use parser::program;
-use lang_result::{LangResult, LangError};
-use ast::Ast;
-use datatype::{Datatype, VariableStore};
+use ast::{Ast, LangResult, LangError};
+use ast::datatype::{Datatype, VariableStore};
 use std::collections::HashMap;
 
 use std::io;
@@ -12,7 +11,7 @@ use std::io::Write;
 use std_functions;
 use std::rc::Rc;
 use preprocessor::preprocess;
-use mutability::MutabilityMap;
+use ast::mutability::MutabilityMap;
 
 
 /// Because the program parser will put all top level expressions in a list,

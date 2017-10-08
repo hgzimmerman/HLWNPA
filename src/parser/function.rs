@@ -51,7 +51,7 @@ named!(pub function<Ast>,
 #[cfg(test)]
 mod test {
     use super::*;
-    use datatype::TypeInfo;
+    use ast::TypeInfo;
     use std::rc::Rc;
 
     #[test]

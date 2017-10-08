@@ -3,7 +3,7 @@ mod test {
     use nom::IResult;
     use parser::program;
     use std::collections::HashMap;
-    use datatype::{Datatype, TypeInfo, VariableStore};
+    use ast::{Datatype, TypeInfo, VariableStore};
     use test::Bencher;
     use std::rc::Rc;
 

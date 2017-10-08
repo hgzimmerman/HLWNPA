@@ -1,5 +1,5 @@
 
-use datatype::{Datatype, TypeInfo, RcDatatype};
+use ast::{Datatype, TypeInfo, RcDatatype};
 
 pub type LangResult = Result<RcDatatype, LangError>;
 

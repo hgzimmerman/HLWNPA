@@ -327,7 +327,7 @@ fn group_sexpr_by_precedence(lhs: Ast, rhss: Vec<(Operator, Option<Ast>)>) -> As
 #[cfg(test)]
 mod test {
     use super::*;
-    use datatype::{Datatype,TypeInfo, VariableStore};
+    use ast::{Datatype,TypeInfo, VariableStore};
     use std::rc::Rc;
 
 

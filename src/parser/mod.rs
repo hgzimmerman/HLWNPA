@@ -4,7 +4,6 @@ use ast::{Ast};
 use nom::*;
 
 
-
 mod operators;
 
 mod expressions;
@@ -65,7 +64,7 @@ mod test {
     use testing::test_constants::SIMPLE_PROGRAM_INPUT_1;
     use nom::IResult;
     use test::Bencher;
-    use datatype::{Datatype, TypeInfo};
+    use ast::{Datatype, TypeInfo};
     use preprocessor::preprocess;
     use std::boxed::Box;
     use s_expression::SExpression;

@@ -56,10 +56,75 @@ impl From<Datatype> for TypeInfo {
     }
 }
 
-//TODO, implement this. THIS IS USED NOW, the type checker will not work with this lazy implementation.
+// TODO verify that this is implemented correctly.
 impl PartialOrd for TypeInfo {
-    fn partial_cmp(&self, _rhs: &TypeInfo) -> Option<Ordering> {
-        Some(Ordering::Equal)
+    fn partial_cmp(&self, rhs: &TypeInfo) -> Option<Ordering> {
+        match *self {
+            TypeInfo::Number => {
+                if let TypeInfo::Number = *rhs {
+                    Some(Ordering::Equal)
+                } else {
+                    None
+                }
+            }
+            TypeInfo::Float => {
+                if let TypeInfo::Float = *rhs {
+                    Some(Ordering::Equal)
+                } else {
+                    None
+                }
+            }
+
+            TypeInfo::String => {
+                if let TypeInfo::String = *rhs {
+                    Some(Ordering::Equal)
+                } else {
+                    None
+                }
+            }
+            TypeInfo::Array(ref lhs_contained_type) => {
+                if let TypeInfo::Array(ref rhs_contained_type) = *rhs {
+                    lhs_contained_type.partial_cmp(rhs_contained_type)
+                } else {
+                    None
+                }
+            }
+            TypeInfo::Bool => {
+                if let TypeInfo::Bool = *rhs {
+                    Some(Ordering::Equal)
+                } else {
+                    None
+                }
+            }
+            TypeInfo::None => {
+                if let TypeInfo::None = *rhs {
+                    Some(Ordering::Equal)
+                } else {
+                    None
+                }
+            }
+            TypeInfo::Function(ref type_info) => {
+                None // TODO, is there a better way to do this?
+            }
+            TypeInfo::Struct { map: ref lhs_map } => {
+                if let TypeInfo::Struct { map: ref rhs_map } = *rhs {
+                    if lhs_map == rhs_map {
+                        Some(Ordering::Equal)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }
+            TypeInfo::StructType { ref identifier } => {
+                if let TypeInfo::StructType { identifier: ref rhs_identifier } = *rhs {
+                    identifier.partial_cmp(rhs_identifier)
+                } else {
+                    None
+                }
+            }
+        }
     }
 }
 

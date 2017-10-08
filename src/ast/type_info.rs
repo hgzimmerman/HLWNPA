@@ -1,6 +1,14 @@
 use ast::datatype::Datatype;
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use ast::type_checking::{TypeResult, TypeError};
+
+
+use std::ops::Sub;
+use std::ops::Add;
+use std::ops::Mul;
+use std::ops::Div;
+use std::ops::Rem;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum TypeInfo {
@@ -15,12 +23,7 @@ pub enum TypeInfo {
     StructType,
 }
 
-//TODO, implement this. It is never used, but should be accurate
-impl PartialOrd for TypeInfo {
-    fn partial_cmp(&self, _rhs: &TypeInfo) -> Option<Ordering> {
-        Some(Ordering::Equal)
-    }
-}
+
 
 
 impl From<Datatype> for TypeInfo {
@@ -45,6 +48,80 @@ impl From<Datatype> for TypeInfo {
                 TypeInfo::Struct { map: type_map }
             }
             Datatype::StructType(_) => TypeInfo::StructType, // Generally isn't useful.
+        }
+    }
+}
+//TODO, implement this. It is never used, but should be accurate
+impl PartialOrd for TypeInfo {
+    fn partial_cmp(&self, _rhs: &TypeInfo) -> Option<Ordering> {
+        Some(Ordering::Equal)
+    }
+}
+
+impl Add for TypeInfo {
+    type Output = TypeResult;
+    fn add(self, other: TypeInfo) -> TypeResult {
+        match self {
+            TypeInfo::Number => {
+                match other {
+                    TypeInfo::Number => return Ok(TypeInfo::Number),
+                    TypeInfo::String => {
+                        return Ok(TypeInfo::String)// add the string to the number.
+                    },
+                    TypeInfo::Float => return Ok(TypeInfo::Float),
+                    _ => return Err(TypeError::UnsupportedOperation),
+                }
+            }
+            TypeInfo::Float => {
+                match other {
+                    TypeInfo::Number=> return Ok(TypeInfo::Float),
+                    TypeInfo::String => {
+                        return Ok(TypeInfo::String); // add the string to the number.
+                    }
+                    TypeInfo::Float => return Ok(TypeInfo::Float),
+                    _ => return Err(TypeError::UnsupportedOperation),
+                }
+            }
+            TypeInfo::String => {
+                match other {
+                    TypeInfo::Number => {
+                        return Ok(TypeInfo::String);
+                    }
+                    TypeInfo::Float => {
+                        return Ok(TypeInfo::String);
+                    }
+                    TypeInfo::String => {
+                        return Ok(TypeInfo::String);
+                    }
+                    _ => return Err(TypeError::UnsupportedOperation),
+                }
+            }
+            _ => return Err(TypeError::UnsupportedOperation),
+        }
+    }
+}
+
+
+
+impl Sub for TypeInfo {
+    type Output = TypeResult;
+    fn sub(self, other: TypeInfo) -> TypeResult {
+        match self {
+            TypeInfo::Number => {
+                match other {
+                    TypeInfo::Number => return Ok(TypeInfo::Number),
+                    TypeInfo::Float => return Ok(TypeInfo::Float),
+                    _ => Err(TypeError::UnsupportedOperation),
+                }
+            }
+            TypeInfo::Float => {
+                match other {
+                    TypeInfo::Number => return Ok(TypeInfo::Float),
+                    TypeInfo::Float => return Ok(TypeInfo::Float),
+                    _ => Err(TypeError::UnsupportedOperation),
+                }
+            }
+            _ => Err(TypeError::UnsupportedOperation),
         }
     }
 }

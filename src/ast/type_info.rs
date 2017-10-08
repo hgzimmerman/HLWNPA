@@ -125,3 +125,72 @@ impl Sub for TypeInfo {
         }
     }
 }
+
+impl Mul for TypeInfo {
+    type Output = TypeResult;
+    fn mul(self, other: TypeInfo) -> TypeResult {
+        match self {
+            TypeInfo::Number => {
+                match other {
+                    TypeInfo::Number => return Ok(TypeInfo::Number),
+                    TypeInfo::Float => return Ok(TypeInfo::Float),
+                    _ => Err(TypeError::UnsupportedOperation),
+                }
+            }
+            TypeInfo::Float => {
+                match other {
+                    TypeInfo::Number => return Ok(TypeInfo::Float),
+                    TypeInfo::Float => return Ok(TypeInfo::Float),
+                    _ => Err(TypeError::UnsupportedOperation),
+                }
+            }
+            _ => Err(TypeError::UnsupportedOperation),
+        }
+    }
+}
+
+impl Div for TypeInfo {
+    type Output = TypeResult;
+    fn div(self, other: TypeInfo) -> TypeResult {
+        match self {
+            TypeInfo::Number => {
+                match other {
+                    TypeInfo::Number => {
+                        return Ok(TypeInfo::Number);
+                    }
+                    TypeInfo::Float => {
+                        return Ok(TypeInfo::Float);
+                    }
+                    _ => Err(TypeError::UnsupportedOperation),
+                }
+            }
+            TypeInfo::Float => {
+                match other {
+                    TypeInfo::Number => {
+                        return Ok(TypeInfo::Float);
+                    }
+                    TypeInfo::Float => {
+                        return Ok(TypeInfo::Float);
+                    }
+                    _ => Err(TypeError::UnsupportedOperation),
+                }
+            }
+            _ => Err(TypeError::UnsupportedOperation),
+        }
+    }
+}
+
+impl Rem for TypeInfo {
+    type Output = TypeResult;
+    fn rem(self, other: TypeInfo) -> TypeResult {
+        match self {
+            TypeInfo::Number => {
+                match other {
+                    TypeInfo::Number=> return Ok(TypeInfo::Number),
+                    _ => Err(TypeError::UnsupportedOperation),
+                }
+            }
+            _ => Err(TypeError::UnsupportedOperation),
+        }
+    }
+}

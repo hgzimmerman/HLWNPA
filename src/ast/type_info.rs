@@ -18,9 +18,9 @@ pub enum TypeInfo {
     Array(Box<TypeInfo>),
     Bool,
     None,
-    Function,
+    Function(Box<TypeInfo>),
     Struct { map: HashMap<String, TypeInfo> },
-    StructType,
+    StructType{identifier: String},
 }
 
 
@@ -38,7 +38,11 @@ impl From<Datatype> for TypeInfo {
             } => TypeInfo::Array(Box::new(type_)),
             Datatype::Bool(_) => TypeInfo::Bool,
             Datatype::None => TypeInfo::None,
-            Datatype::Function { .. } => TypeInfo::Function,
+            Datatype::Function {
+                parameters: _parameters,
+                body: _body,
+                return_type
+            } => TypeInfo::Function(Box::new(return_type)),
             Datatype::Struct { map } => {
                 let mut type_map = HashMap::new();
                 for tuple in map.into_iter() {
@@ -47,11 +51,12 @@ impl From<Datatype> for TypeInfo {
                 }
                 TypeInfo::Struct { map: type_map }
             }
-            Datatype::StructType(_) => TypeInfo::StructType, // Generally isn't useful.
+            Datatype::StructType{ identifier, type_information} => TypeInfo::StructType{ identifier: identifier }, // Generally isn't useful.
         }
     }
 }
-//TODO, implement this. It is never used, but should be accurate
+
+//TODO, implement this. THIS IS USED NOW, the type checker will not work with this lazy implementation.
 impl PartialOrd for TypeInfo {
     fn partial_cmp(&self, _rhs: &TypeInfo) -> Option<Ordering> {
         Some(Ordering::Equal)

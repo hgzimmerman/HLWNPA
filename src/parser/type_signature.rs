@@ -1,42 +1,56 @@
 #[allow(unused_imports)]
 use nom::*;
 use ast::{Ast, TypeInfo};
+use parser::identifier::identifier;
 
 /// _ts indicates that the parser combinator is a getting a type signature
-named!(pub type_signature<Ast>,
-   ws!(alt!(number_ts | string_ts | bool_ts | array_ts ))
+named!(pub type_signature<TypeInfo>,
+   ws!(alt!(number_ts | string_ts | bool_ts | array_ts | custom_ts ))
 );
 
-named!(number_ts<Ast>,
+named!(number_ts<TypeInfo>,
     value!(
-       Ast::Type( TypeInfo::Number),
+       TypeInfo::Number,
        tag!("Number")
     )
 );
-named!(string_ts<Ast>,
+named!(string_ts<TypeInfo>,
     value!(
-        Ast::Type( TypeInfo::String),
+        TypeInfo::String,
         tag!("String")
     )
 );
-named!(bool_ts<Ast>,
+named!(bool_ts<TypeInfo>,
     value!(
-        Ast::Type(TypeInfo::Bool),
+        TypeInfo::Bool,
         tag!("Bool")
     )
 );
 
-named!(array_ts<Ast>,
+named!(array_ts<TypeInfo>,
     do_parse!(
         contained_type: delimited!(
             char!('['),
             type_signature, // TODO find a way to support custom types directly in the type_signature parser and datatype.
             char!(']')
         ) >>
-        (Ast::Type(TypeInfo::Array(Box::new( get_type_from_ast(contained_type)) )))
+        (TypeInfo::Array(Box::new( contained_type ) ))
     )
 );
 
+named!(custom_ts<TypeInfo>,
+    do_parse!(
+        id: identifier >>
+        (TypeInfo::StructType{ identifier: extract_string_from_identifier(id) })
+    )
+);
+
+fn extract_string_from_identifier(identifier: Ast) -> String {
+    match identifier {
+        Ast::ValueIdentifier(value) => value,
+        _ => panic!("Parser for identifier returned something other than a ValueIdentifier.")
+    }
+}
 
 /// From an AST extract the type info.
 /// Can panic.

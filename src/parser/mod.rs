@@ -105,7 +105,7 @@ mod test {
                             )
                         )
                     ])),
-                return_type: Box::new(Ast::Type(TypeInfo::Number)),
+                return_type: TypeInfo::Number,
             })),
         });
         let expected_fn_call: Ast = Ast::SExpr(SExpression::ExecuteFn {

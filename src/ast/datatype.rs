@@ -32,10 +32,10 @@ pub enum Datatype {
     Function {
         parameters: Box<Ast>,
         body: Box<Ast>,
-        return_type: Box<Ast>, // This Ast should be shallow and easily resovable to a TypeInfo (either is directly a TypeInfo or an Identifier that can be resolved to a TypeInfo)
+        return_type: TypeInfo
     },
-    Struct { map: HashMap<String, Datatype> },
-    StructType(TypeInfo),
+    Struct { map: HashMap<String, Datatype> }, // Actualized struct that holds real data.
+    StructType{ identifier: String, type_information: TypeInfo}, // type_information will point to a TypeInfo that is a Struct{map: HashMap<String, TypeInfo> } that encodes the types used in the sturct
 }
 
 
@@ -57,7 +57,7 @@ impl fmt::Display for Datatype {
                 ref return_type,
             } => write!(f, "{:?} -> {:?}", parameters, return_type),
             Datatype::Struct { ref map } => write!(f, "{{{:?}}}", map),
-            Datatype::StructType(ref value) => write!(f, "{:?}", value),
+            Datatype::StructType{ ref identifier, ref type_information}  => write!(f, "{:?}: {:?}", identifier, type_information),
         }
     }
 }

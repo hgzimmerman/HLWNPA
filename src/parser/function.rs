@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use nom::*;
-use ast::Ast;
+use ast::{Ast, TypeInfo};
 use s_expression::SExpression;
 use parser::identifier::identifier;
 use parser::body::body;
@@ -10,10 +10,10 @@ use parser::assignment::type_assignment;
 
 
 /// Either a Type or an identifier that can be resolved to a Struct's Type
-named!(function_return_type<Ast>,
+named!(function_return_type<TypeInfo>,
     do_parse!(
         ws!(tag!("->")) >>
-        return_type: alt!( complete!(type_signature) | complete!(identifier) ) >>
+        return_type: complete!(type_signature) >>
         // Extract the datatype from the Ast::Type provided by the type_signature function
         (return_type)
     )
@@ -40,7 +40,7 @@ named!(pub function<Ast>,
                 Datatype::Function {
                     parameters: Box::new(Ast::ExpressionList( arguments )),
                     body: Box::new(body_expressions),
-                    return_type: Box::new(return_type)
+                    return_type: return_type
                 }
             ) )
         }))
@@ -80,7 +80,7 @@ mod test {
                         )
                     )
                 ])),
-                return_type: Box::new(Ast::Type(TypeInfo::Number)),
+                return_type: TypeInfo::Number,
             })),
         });
         assert_eq!(expected_fn, value)
@@ -102,7 +102,7 @@ mod test {
                 parameters: Box::new(Ast::ExpressionList(vec![
                     Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                        type_info: Box::new(Ast::ValueIdentifier("Identifier".to_string()))
+                        type_info: Box::new(Ast::Type(TypeInfo::StructType{ identifier: "Identifier".to_string()} ))
                     })
                 ])),
                 body: Box::new(Ast::ExpressionList(vec![
@@ -113,7 +113,7 @@ mod test {
                         )
                     )
                 ])),
-                return_type: Box::new(Ast::Type(TypeInfo::Number)),
+                return_type: TypeInfo::Number,
             })),
         });
         assert_eq!(expected_fn, value)
@@ -134,7 +134,7 @@ mod test {
                 parameters: Box::new(Ast::ExpressionList(vec![
                     Ast::SExpr(SExpression::TypeAssignment {
                         identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
-                        type_info: Box::new(Ast::ValueIdentifier("CustomType".to_string()))
+                        type_info: Box::new(Ast::Type(TypeInfo::StructType{ identifier: "CustomType".to_string()} ))
                     })
                 ])),
                 body: Box::new(Ast::ExpressionList(vec![
@@ -143,7 +143,7 @@ mod test {
                         type_: TypeInfo::Number
                     })
                 ])),
-                return_type: Box::new(Ast::Type(TypeInfo::Array(Box::new(TypeInfo::Number)))),
+                return_type: TypeInfo::Array(Box::new(TypeInfo::Number)),
             })),
         });
         assert_eq!(expected_fn, value)

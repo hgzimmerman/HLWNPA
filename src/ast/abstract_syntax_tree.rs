@@ -490,7 +490,7 @@ fn access_struct_field(
             }
         } else {
             return Err(LangError::IdentifierDoesntExist);
-        }
+        }/**/
     } else {
         return Err(LangError::TriedToAccessNonStruct);
     }
@@ -535,7 +535,7 @@ fn declare_struct(
                 }
             }
             let new_struct_type = TypeInfo::Struct { map: struct_map };
-            let retval = Rc::new(Datatype::StructType(new_struct_type));
+            let retval = Rc::new(Datatype::StructType{ identifier: struct_type_identifier.clone(), type_information: new_struct_type});
             map.insert(struct_type_identifier.clone(), retval.clone());
             return Ok(retval);
         } else {
@@ -555,58 +555,74 @@ fn declare_struct(
 /// Create a new struct instance from the new map, and return it.
 fn create_struct(expr1: &Ast, expr2: &Ast, map: &mut VariableStore) -> LangResult {
     // This expects the expr1 to be an Identifier that resolves to be a struct definition, or the struct definition itself.
-    if let Datatype::StructType(TypeInfo::Struct { map: ref struct_type_map }) = *expr1.evaluate(map)? {
-        // It expects that the righthand side should be a series of expressions that assign values to fields (that have already been specified in the StructType)
-        if let Ast::ExpressionList(ref assignment_expressions) = *expr2 {
-            let mut new_struct_map: HashMap<String, Datatype> = HashMap::new();
+    match *expr1.evaluate(map)? {
+        Datatype::StructType { ref identifier, ref type_information } => {
+            match *type_information {
+                TypeInfo::Struct { map: ref struct_type_map } => {
+                    if let Ast::ExpressionList(ref assignment_expressions) = *expr2 {
+                        let mut new_struct_map: HashMap<String, Datatype> = HashMap::new();
 
-            for assignment_expression in assignment_expressions {
-                if let Ast::SExpr(ref sexpr) = *assignment_expression {
-                    if let SExpression::FieldAssignment {
-                        identifier: ref assignment_expr1,
-                        ast: ref assignment_expr2,
-                    } = *sexpr
-                    {
-                        if let Ast::ValueIdentifier(ref field_identifier) = **assignment_expr1 {
-                            // Is the identifier specified in the AST exist in the struct type? check the struct_map
-                            let expected_type = match struct_type_map.get(field_identifier) {
-                                Some(struct_type) => struct_type,
-                                None => return Err(LangError::IdentifierDoesntExist), // todo find better error message
-                            };
-                            let value_to_be_assigned: &Datatype = &*assignment_expr2.evaluate(map)?;
+                        for assignment_expression in assignment_expressions {
+                            if let Ast::SExpr(ref sexpr) = *assignment_expression {
+                                if let SExpression::FieldAssignment {
+                                    identifier: ref assignment_expr1,
+                                    ast: ref assignment_expr2,
+                                } = *sexpr
+                                    {
+                                        if let Ast::ValueIdentifier(ref field_identifier) = **assignment_expr1 {
+                                            // Is the identifier specified in the AST exist in the struct type? check the struct_map
+                                            let expected_type = match struct_type_map.get(field_identifier) {
+                                                Some(struct_type) => struct_type,
+                                                None => return Err(LangError::IdentifierDoesntExist), // todo find better error message
+                                            };
+                                            let value_to_be_assigned: &Datatype = &*assignment_expr2.evaluate(map)?;
 
-                            // check if the value to be assigned matches the expected type
-                            let to_be_assigned_type: TypeInfo =
-                                TypeInfo::from(value_to_be_assigned.clone());
-                            if expected_type == &to_be_assigned_type {
-                                // now add the value to the new struct's map
-                                new_struct_map.insert(
-                                    field_identifier.clone(),
-                                    value_to_be_assigned.clone(),
-                                );
+                                            // check if the value to be assigned matches the expected type
+                                            let to_be_assigned_type: TypeInfo =
+                                                TypeInfo::from(value_to_be_assigned.clone());
+                                            if expected_type == &to_be_assigned_type {
+                                                // now add the value to the new struct's map
+                                                new_struct_map.insert(
+                                                    field_identifier.clone(),
+                                                    value_to_be_assigned.clone(),
+                                                );
+                                            } else {
+                                                return Err(LangError::TypeError {
+                                                    expected: expected_type.clone(),
+                                                    found: to_be_assigned_type,
+                                                });
+                                            }
+                                        } else {
+                                            return Err(LangError::ExpectedIdentifier);
+                                        }
+                                    } else {
+                                    return Err(LangError::NonAssignmentInStructInit);
+                                }
                             } else {
-                                return Err(LangError::TypeError {
-                                    expected: expected_type.clone(),
-                                    found: to_be_assigned_type,
-                                });
+                                return Err(LangError::NonAssignmentInStructInit);
                             }
-                        } else {
-                            return Err(LangError::ExpectedIdentifier);
                         }
+                        return Ok(Rc::new(Datatype::Struct { map: new_struct_map })); // Return the new struct.
                     } else {
-                        return Err(LangError::NonAssignmentInStructInit);
+                        return Err(LangError::StructBodyNotSupplied); // not entirely accurate
                     }
-                } else {
-                    return Err(LangError::NonAssignmentInStructInit);
+                }
+                _ => {
+                    return Err(LangError::ExpectedIdentifier);
                 }
             }
-            return Ok(Rc::new(Datatype::Struct { map: new_struct_map })); // Return the new struct.
-        } else {
-            return Err(LangError::StructBodyNotSupplied); // not entirely accurate
+
         }
-    } else {
-        return Err(LangError::ExpectedIdentifier);
+        _ => {
+            return Err(LangError::ExpectedIdentifier);
+        }
     }
+//    if let Datatype::StructType{ identifier: String, type_information: TypeInfo::Struct { map: ref struct_type_map } } = *expr1.evaluate(map)? {
+//        // It expects that the righthand side should be a series of expressions that assign values to fields (that have already been specified in the StructType)
+//
+//    } else {
+//        return Err(LangError::ExpectedIdentifier);
+//    }
 }
 
 /// Given an identifier that resolves to a function (with expected parameters, the function body, and return type) and a set of input expressions that resolve to Datatypes,
@@ -677,8 +693,8 @@ fn execute_function(
                                                     match map.get(id) {
                                                         // get what should be a struct out of the stack
                                                         Some(datatype) => {
-                                                            if let Datatype::StructType(ref struct_type_info) = **datatype {
-                                                                struct_type_info
+                                                            if let Datatype::StructType{ ref identifier, ref type_information } = **datatype {
+                                                                type_information // The types that are related to this struct type.
                                                             } else {
                                                                 return Err(LangError::ExpectedIdentifierToBeStructType {
                                                                     found: id.clone(),
@@ -724,25 +740,44 @@ fn execute_function(
 
                     // Evaluate the body of the function
                     let output: Rc<Datatype> = body.evaluate(&mut cloned_map)?;
-                    let expected_return_type: TypeInfo = match **return_type {
-                        Ast::Type(ref type_) => type_.clone(),
-                        Ast::ValueIdentifier(ref id) => {
-                            match map.get(id) {
+//                    let expected_return_type: TypeInfo = return_type.clone();
+                    let expected_return_type: TypeInfo = match *return_type {
+                        TypeInfo::StructType { ref identifier } => {
+                            match map.get(identifier) {
                                 Some(datatype) => {
                                     let datatype: &Datatype = &**datatype;
-                                    if let &Datatype::StructType(ref struct_type_info) = datatype {
-                                        struct_type_info.clone()
+                                    if let &Datatype::StructType{ ref identifier, ref type_information } = datatype {
+                                        type_information.clone()
                                     } else {
                                         return Err(LangError::ExpectedIdentifierToBeStructType {
-                                            found: id.clone(),
+                                            found: identifier.clone(),
                                         });
                                     }
                                 }
                                 None => return Err(LangError::IdentifierDoesntExist),
                             }
                         }
-                        _ => return Err(LangError::ExpectedDataTypeInfo),
-                    };
+                        _ => return_type.clone()
+                        };
+//                        {
+//                        Ast::Type(ref type_) => type_.clone(),
+//                        Ast::ValueIdentifier(ref id) => {
+//                            match map.get(id) {
+//                                Some(datatype) => {
+//                                    let datatype: &Datatype = &**datatype;
+//                                    if let &Datatype::StructType(ref struct_type_info) = datatype {
+//                                        struct_type_info.clone()
+//                                    } else {
+//                                        return Err(LangError::ExpectedIdentifierToBeStructType {
+//                                            found: id.clone(),
+//                                        });
+//                                    }
+//                                }
+//                                None => return Err(LangError::IdentifierDoesntExist),
+//                            }
+//                        }
+//                        _ => return Err(LangError::ExpectedDataTypeInfo),
+//                    };
 
                     if TypeInfo::from(output.as_ref().clone()) == expected_return_type {
                         return Ok(output);
@@ -1024,7 +1059,7 @@ mod test {
                     // empty parameters
                     body: (Box::new(Ast::Literal(Datatype::Number(32)))),
                     // just return a number
-                    return_type: Box::new(Ast::Type(TypeInfo::Number)),
+                    return_type: TypeInfo::Number,
                         // expect a number
                 })),
             }),
@@ -1052,7 +1087,7 @@ mod test {
                         }),
                     ])),
                     body: (Box::new(Ast::ValueIdentifier("b".to_string()))), // just return the number passed in.
-                    return_type: Box::new(Ast::Type(TypeInfo::Number)), // expect a number to be returned
+                    return_type: TypeInfo::Number, // expect a number to be returned
                 })),
             }),
             Ast::SExpr(SExpression::ExecuteFn {
@@ -1091,7 +1126,7 @@ mod test {
                         Box::new(Ast::ValueIdentifier("c".to_string())),
                     )))),
                     // just return the number passed in.
-                    return_type: Box::new(Ast::Type(TypeInfo::Number)),
+                    return_type: TypeInfo::Number,
                         // expect a number to be returned
                 })),
             }),
@@ -1163,7 +1198,7 @@ mod test {
         inner_struct_hash_map.insert("Field1".to_string(), TypeInfo::Number);
         expected_map.insert(
             "MyStruct".to_string(),
-            Rc::new(Datatype::StructType(TypeInfo::Struct { map: inner_struct_hash_map })),
+            Rc::new(Datatype::StructType{ identifier: String::from("MyStruct"), type_information: TypeInfo::Struct { map: inner_struct_hash_map }} ),
         );
         assert_eq!(expected_map, map)
     }
@@ -1221,7 +1256,7 @@ mod test {
                     // empty parameters
                     body: (Box::new(Ast::Literal(Datatype::Number(32)))),
                     // just return a number
-                    return_type: Box::new(Ast::Type(TypeInfo::Number)),
+                    return_type: TypeInfo::Number,
                         // expect a number
                 })),
             }),
@@ -1243,7 +1278,7 @@ mod test {
                     // empty parameters
                     body: (Box::new(Ast::Literal(Datatype::Number(32)))),
                     // just return a number
-                    return_type: Box::new(Ast::Type(TypeInfo::Number)),
+                    return_type: TypeInfo::Number,
                         // expect a number
                 })),
             }),

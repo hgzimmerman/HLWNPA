@@ -7,14 +7,15 @@ pub enum TypeError {
     TypeMismatch,
     UnsupportedOperation,
     LhsNotAnIdentifier,
-    IdentifierDoesntExist(String)
+    IdentifierDoesntExist(String),
+    MalformedAST
 }
 
 pub type TypeResult = Result<TypeInfo, TypeError>;
 type TypeStore = HashMap<String, TypeInfo>;
 
 impl Ast {
-    fn check_types( &self, type_store: &mut TypeStore ) -> Result<TypeInfo, TypeError> {
+    fn check_types( &self, mut type_store: &mut TypeStore ) -> Result<TypeInfo, TypeError> {
         match *self {
             Ast::SExpr(ref sexpr) => {
                 match *sexpr {
@@ -57,7 +58,7 @@ impl Ast {
                     SExpression::LogicalOr(_, _) => {
                         Ok(TypeInfo::Bool)
                     }
-                    // TODO, consider moving mutability into this checker?
+                    // TODO, consider moving mutability into this checker? I believe it can be done.
                     SExpression::VariableDeclaration {
                         identifier: ref lhs,
                         ast: ref rhs,
@@ -73,6 +74,10 @@ impl Ast {
                     SExpression::FieldAssignment {
                         identifier: ref lhs,
                         ast: ref rhs,
+                    } |
+                    SExpression::DeclareFunction {
+                        identifier: ref lhs,
+                        function_datatype: ref rhs,
                     } => {
                         let rhs_type = rhs.check_types(type_store)?;
                         if let Ast::ValueIdentifier(ref ident) = ** lhs {
@@ -108,7 +113,62 @@ impl Ast {
                             return Err(TypeError::LhsNotAnIdentifier)
                         }
                     }
+                    SExpression::Loop {
+                        ref conditional,
+                        ref body,
+                    } => {
+                        let _ = conditional.check_types(type_store)?;
+                        body.check_types(type_store)
+                    }
+                    SExpression::AccessArray {
+                        ref identifier,
+                        ref index
+                    } => {
+                        if let Ast::ValueIdentifier(ref ident) = **identifier {
+                            match type_store.get(ident) {
+                                Some(lhs_type) => {
+                                    //TODO NEED AN _ANY_ TYPE instead of typeinfo :: number, currently only matches arrays of Numbers
+                                    if lhs_type == &TypeInfo::Array(Box::new(TypeInfo::Number)) { // TODO ANY type
+                                        return Ok(lhs_type.clone()) // The lhs will give a specific Array type, ie. Array<Number> vs the "rhs" in this case which is just Array<Any>
+                                    } else {
+                                        return Err(TypeError::TypeMismatch)
+                                    }
+                                }
+                                None => {
+                                    return Err(TypeError::IdentifierDoesntExist(ident.clone()))
+                                }
+                            }
+                        } else {
+                            return Err(TypeError::LhsNotAnIdentifier)
+                        }
+                    }
+                    SExpression::GetArrayLength(_) => {
+                        Ok(TypeInfo::Number)
+                    }
+                    SExpression::Range { start: ref _start, end: ref _end} => {
+                        Ok(TypeInfo::Array(Box::new(TypeInfo::Number)))
+                    }
+                    SExpression::ExecuteFn {
+                        ref identifier,
+                        ref parameters
+                    } => {
+                        let parameter_types: Vec<TypeInfo> = match **parameters {
+                            Ast::ExpressionList(ref expressions) => {
+                                let mut evaluated_expressions: Vec<TypeInfo> = vec![];
+                                for e in expressions {
+                                    match e.check_types(&mut type_store) {
+                                        Ok(dt) => evaluated_expressions.push(dt),
+                                        Err(err) => return Err(err),
+                                    }
+                                }
+                                evaluated_expressions
+                            }
+                            _ => return Err(TypeError::MalformedAST)
+                        };
+                        unimplemented!()
 
+
+                    }
                     _ => unimplemented!()
                 }
 

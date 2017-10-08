@@ -300,7 +300,7 @@ fn group_sexpr_by_precedence(lhs: Ast, rhss: Vec<(Operator, Option<Ast>)>) -> As
         let op_value: u32 = op.clone().into();
         // the a lower value indicates it has more precedence.
         if op_value < previous_op_value {
-            let (old_operator, old_lhs, old_rhs) = retrieve_operator_and_operands(&lhs).unwrap(); // TODO possibly bad unwrap
+            let (old_operator, old_lhs, old_rhs) = retrieve_operator_and_operands(&lhs).expect(format!("Couldn't retrieve operator and operands for a given lhs: {:?}", lhs).as_str()); // TODO possibly bad unwrap
             match old_operator {
                 Some(old_operator) => {
                     lhs = create_sexpr(

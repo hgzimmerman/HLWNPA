@@ -36,8 +36,8 @@ named!(pub type_assignment<Ast>,
     do_parse!(
         id: identifier >>
         tag!(":") >>
-        type_info: alt!( complete!(type_signature) | complete!(identifier)) >> // also takes an identifier that will be checked at runtime to verify it is a structure
-        (Ast::SExpr(SExpression::TypeAssignment{identifier: Box::new(id), type_info: Box::new(type_info) }))
+        type_info: complete!(type_signature)  >> // also takes an identifier that will be checked at runtime to verify it is a structure
+        (Ast::SExpr(SExpression::TypeAssignment{identifier: Box::new(id), type_info: Box::new(Ast::Type(type_info)) }))
     )
 );
 

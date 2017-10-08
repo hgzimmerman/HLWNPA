@@ -34,7 +34,7 @@ named!(pub function<Ast>,
         ) >>
         return_type: function_return_type >>
         body_expressions: body >>
-        (Ast::SExpr(SExpression::CreateFunction {
+        (Ast::SExpr(SExpression::DeclareFunction {
             identifier: Box::new(function_name),
             function_datatype: Box::new(Ast::Literal (
                 Datatype::Function {
@@ -63,7 +63,7 @@ mod test {
             _ => panic!(),
         };
 
-        let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
+        let expected_fn: Ast = Ast::SExpr(SExpression::DeclareFunction {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
             function_datatype: Box::new(Ast::Literal(Datatype::Function {
                 parameters: Box::new(Ast::ExpressionList(
@@ -96,7 +96,7 @@ mod test {
             _ => panic!(),
         };
 
-        let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
+        let expected_fn: Ast = Ast::SExpr(SExpression::DeclareFunction {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
             function_datatype: Box::new(Ast::Literal(Datatype::Function {
                 parameters: Box::new(Ast::ExpressionList(vec![
@@ -128,7 +128,7 @@ mod test {
             _ => panic!(),
         };
 
-        let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
+        let expected_fn: Ast = Ast::SExpr(SExpression::DeclareFunction {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
             function_datatype: Box::new(Ast::Literal(Datatype::Function {
                 parameters: Box::new(Ast::ExpressionList(vec![

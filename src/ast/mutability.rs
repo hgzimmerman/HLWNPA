@@ -94,7 +94,7 @@ impl Ast {
                         map.insert(resolved_id, Mutability::Mutable); // prevent reassignment of the fn
                         Ok(())
                     }
-                    SExpression::CreateFunction { ref identifier, ref function_datatype } => {
+                    SExpression::DeclareFunction { ref identifier, ref function_datatype } => {
                         let resolved_id: String = match **identifier {
                             Ast::ValueIdentifier(ref id) => id.clone(),
                             _ => return Err(MutabilityError::IsNotAVariable) // Error, AST malformed, couldn't resolve the id

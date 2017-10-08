@@ -35,7 +35,7 @@ pub enum SExpression {
         type_info: Box<Ast>,
     },
     FieldAssignment { identifier: Box<Ast>, ast: Box<Ast> },
-    CreateFunction { // TODO: Rename this to DeclareFunction.
+    DeclareFunction {
         identifier: Box<Ast>,
         function_datatype: Box<Ast>,
     },

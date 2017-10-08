@@ -88,7 +88,7 @@ mod test {
             ))),
         });
 
-        let expected_fn: Ast = Ast::SExpr(SExpression::CreateFunction {
+        let expected_fn: Ast = Ast::SExpr(SExpression::DeclareFunction {
             identifier: Box::new(Ast::ValueIdentifier("test_function".to_string())),
             function_datatype: Box::new(Ast::Literal(Datatype::Function {
                 parameters: Box::new(Ast::ExpressionList (

@@ -61,7 +61,7 @@ impl Ast {
                                     let ast = ast.clone();
                                     struct_declarations.push(ast);
                                 }
-                                SExpression::CreateFunction { .. } => {
+                                SExpression::DeclareFunction { .. } => {
                                     let ast = ast.clone();
                                     function_declarations.push(ast);
                                 }
@@ -99,7 +99,7 @@ impl Ast {
                 for ast in expressions {
                     match *ast {
                         Ast::SExpr(ref sexpr) => {
-                            if let SExpression::CreateFunction {
+                            if let SExpression::DeclareFunction {
                                 ref identifier,
                                 function_datatype: ref _function_datatype,
                             } = *sexpr
@@ -267,7 +267,7 @@ impl Ast {
                         identifier: ref lhs,
                         ast: ref rhs,
                     } |
-                    SExpression::CreateFunction {
+                    SExpression::DeclareFunction {
                         identifier: ref lhs,
                         function_datatype: ref rhs,
                     } => {
@@ -1214,7 +1214,7 @@ mod test {
                 identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
                 ast: Box::new(Ast::Literal(Datatype::Number(6))),
             }),
-            Ast::SExpr(SExpression::CreateFunction {
+            Ast::SExpr(SExpression::DeclareFunction {
                 identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
                 function_datatype: Box::new(Ast::Literal(Datatype::Function {
                     parameters: Box::new(Ast::ExpressionList(vec![])),
@@ -1236,7 +1236,7 @@ mod test {
         let hoisted_ast: Ast = ast.hoist_functions_and_structs();
 
         let expected_hoisted_ast: Ast = Ast::ExpressionList(vec![
-            Ast::SExpr(SExpression::CreateFunction {
+            Ast::SExpr(SExpression::DeclareFunction {
                 identifier: Box::new(Ast::ValueIdentifier("fn".to_string())),
                 function_datatype: Box::new(Ast::Literal(Datatype::Function {
                     parameters: Box::new(Ast::ExpressionList(vec![])),

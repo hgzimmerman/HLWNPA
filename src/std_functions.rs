@@ -13,7 +13,7 @@ pub fn add_std_functions(map: &mut HashMap<String, Rc<Datatype>>) {
 
 
 fn add_print_function(map: &mut VariableStore) {
-    let ast: Ast = Ast::SExpr(SExpression::CreateFunction {
+    let ast: Ast = Ast::SExpr(SExpression::DeclareFunction {
         identifier: Box::new(Ast::ValueIdentifier("print".to_string())),
         function_datatype: Box::new(Ast::Literal(Datatype::Function {
             parameters: Box::new(Ast::ExpressionList(vec![

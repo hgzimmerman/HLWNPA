@@ -166,6 +166,34 @@ impl Ast {
                             }
                             _ => return Err(TypeError::MalformedAST)
                         };
+
+                        if let Ast::ValueIdentifier(ref id) = **identifier {
+                            if let Some(ref possible_fn_datatype) = type_store.get(id) {
+                                if let TypeInfo::Function { ref parameters, ref return_type } = **possible_fn_datatype {
+                                    let parameter_matches: Vec<TypeResult> = parameter_types
+                                        .iter()
+                                        .zip( parameters.iter() )
+                                        .map( |(input_type, expected_type)| {
+                                            if input_type == expected_type {
+                                                Ok(input_type.clone())
+                                            } else {
+                                                return Err(TypeError::TypeMismatch)
+                                            }
+                                        } ).collect();
+
+                                        for e in parameter_matches {
+                                            if let Err(type_error) = e {
+                                                return Err(type_error)
+                                            }
+                                        }
+
+                                        return Ok(*return_type.clone())
+                                }
+                            }
+                        }
+
+
+
                         // Next, we need to use the identifier to get the function parameter types, and the function return type.
                         unimplemented!("Function")
 
@@ -374,5 +402,45 @@ mod test {
 
         assert_eq!(TypeError::UnsupportedOperation, ast.check_types(&mut map).unwrap_err());
     }
+
+
+    #[test]
+    fn throw_error_on_function_execution() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        fn my_function() -> Number {
+            5
+        }
+        let a := "Hello"
+        a := my_function()
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeError::TypeMismatch, ast.check_types(&mut map).unwrap_err());
+    }
+
+    #[test]
+    fn type_check_function_execution() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        fn my_function() -> Number {
+            5
+        }
+        let a := 7
+        a := my_function()
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeInfo::Number, ast.check_types(&mut map).unwrap());
+    }
+
 
 }

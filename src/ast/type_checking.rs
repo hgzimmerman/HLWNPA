@@ -3,7 +3,7 @@ use ast::type_info::TypeInfo;
 use std::collections::HashMap;
 use ast::s_expression::SExpression;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TypeError {
     TypeMismatch,
     UnsupportedOperation,
@@ -128,8 +128,7 @@ impl Ast {
                         if let Ast::ValueIdentifier(ref ident) = **identifier {
                             match type_store.get(ident) {
                                 Some(lhs_type) => {
-                                    //TODO NEED AN _ANY_ TYPE instead of typeinfo :: number, currently only matches arrays of Numbers
-                                    if lhs_type == &TypeInfo::Array(Box::new(TypeInfo::Number)) { // TODO ANY type
+                                    if lhs_type == &TypeInfo::Array(Box::new(TypeInfo::Any)) {
                                         return Ok(lhs_type.clone()) // The lhs will give a specific Array type, ie. Array<Number> vs the "rhs" in this case which is just Array<Any>
                                     } else {
                                         return Err(TypeError::TypeMismatch)
@@ -155,9 +154,10 @@ impl Ast {
                     } => {
                         let parameter_types: Vec<TypeInfo> = match **parameters {
                             Ast::ExpressionList(ref expressions) => {
+                                let mut cloned_type_store = type_store.clone();
                                 let mut evaluated_expressions: Vec<TypeInfo> = vec![];
                                 for e in expressions {
-                                    match e.check_types(&mut type_store) {
+                                    match e.check_types(&mut cloned_type_store) {
                                         Ok(dt) => evaluated_expressions.push(dt),
                                         Err(err) => return Err(err),
                                     }
@@ -166,16 +166,196 @@ impl Ast {
                             }
                             _ => return Err(TypeError::MalformedAST)
                         };
-                        unimplemented!()
-
+                        // Next, we need to use the identifier to get the function parameter types, and the function return type.
+                        unimplemented!("Function")
 
                     }
-                    _ => unimplemented!()
+                    _ => unimplemented!("SExpr")
                 }
-
             }
-            _ => unimplemented!()
+            Ast::Literal(ref datatype) => {
+                Ok(TypeInfo::from( datatype.clone() ))
+            }
+            Ast::ValueIdentifier(ref identifier) => {
+                // if the typestore has the value
+                if let Some(stored_type) = type_store.get(identifier) {
+                    Ok(stored_type.clone())
+                } else {
+                    return Ok(TypeInfo::Any); // Hasn't been initialized
+                }
+            }
+            Ast::ExpressionList(ref expressions) => {
+                let mut checked_type: TypeInfo = TypeInfo::Any;
+                for e in expressions {
+                    checked_type = e.check_types(type_store)?;
+                }
+                Ok(checked_type)
+            }
+            _ => unimplemented!("AST")
         }
 
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use parser::program;
+    use nom::IResult;
+
+    #[test]
+    fn throw_error_on_type_mismatch_assignment() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        let a := 5
+        a := "Hello"
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeError::TypeMismatch, ast.check_types(&mut map).unwrap_err());
+    }
+
+    #[test]
+    fn throw_error_on_type_mismatch_addition_assignment() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        let a := 5
+        a := "Hello" + 5
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeError::TypeMismatch, ast.check_types(&mut map).unwrap_err());
+    }
+
+    #[test]
+    fn throw_error_on_type_mismatch_self_addition_assignment() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        let a := 5
+        a := "Hello" + a
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeError::TypeMismatch, ast.check_types(&mut map).unwrap_err());
+    }
+
+    #[test]
+    fn number_is_number() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        40
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeInfo::Number, ast.check_types(&mut map).unwrap());
+    }
+
+    #[test]
+    fn string_is_string() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        "Hello"
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeInfo::String, ast.check_types(&mut map).unwrap());
+    }
+
+    #[test]
+    fn assignment_is_of_type_string() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        let a := "Hello"
+        a
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeInfo::String, ast.check_types(&mut map).unwrap());
+    }
+
+    #[test]
+    fn number_plus_float_plus_number_is_a_float() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        5 + 10.0 + 2
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeInfo::Float, ast.check_types(&mut map).unwrap());
+    }
+    #[test]
+    fn array_is_array() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        let a := [5]
+        a := [6]
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeInfo::Array(Box::new(TypeInfo::Number)), ast.check_types(&mut map).unwrap());
+    }
+
+    #[test]
+    fn array_type_mismatch() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        let a := [5]
+        a := ["Hello"]
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeError::TypeMismatch, ast.check_types(&mut map).unwrap_err());
+    }
+
+    #[test]
+    fn throw_error_on_unsupported_division() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        "Hello" / 5
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeError::UnsupportedOperation, ast.check_types(&mut map).unwrap_err());
+    }
+
 }

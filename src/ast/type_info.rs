@@ -18,9 +18,10 @@ pub enum TypeInfo {
     Array(Box<TypeInfo>),
     Bool,
     None,
-    Function(Box<TypeInfo>),
+    Function(Box<TypeInfo>), // TODO, this needs to encode the parameters and the return type, instead of just the return type.
     Struct { map: HashMap<String, TypeInfo> },
     StructType{identifier: String},
+    Any
 }
 
 
@@ -124,6 +125,9 @@ impl PartialOrd for TypeInfo {
                     None
                 }
             }
+            TypeInfo::Any => {
+                Some(Ordering::Equal)
+            }
         }
     }
 }
@@ -139,6 +143,7 @@ impl Add for TypeInfo {
                         return Ok(TypeInfo::String)// add the string to the number.
                     },
                     TypeInfo::Float => return Ok(TypeInfo::Float),
+                    TypeInfo::Any => return Ok(TypeInfo::Number),
                     _ => return Err(TypeError::UnsupportedOperation),
                 }
             }
@@ -149,6 +154,7 @@ impl Add for TypeInfo {
                         return Ok(TypeInfo::String); // add the string to the number.
                     }
                     TypeInfo::Float => return Ok(TypeInfo::Float),
+                    TypeInfo::Any => return Ok(TypeInfo::Float),
                     _ => return Err(TypeError::UnsupportedOperation),
                 }
             }
@@ -163,8 +169,12 @@ impl Add for TypeInfo {
                     TypeInfo::String => {
                         return Ok(TypeInfo::String);
                     }
+                    TypeInfo::Any => return Ok(TypeInfo::String),
                     _ => return Err(TypeError::UnsupportedOperation),
                 }
+            }
+            TypeInfo::Any => {
+                Ok(other) // TODO confirm if this is what I want.
             }
             _ => return Err(TypeError::UnsupportedOperation),
         }
@@ -191,6 +201,9 @@ impl Sub for TypeInfo {
                     _ => Err(TypeError::UnsupportedOperation),
                 }
             }
+            TypeInfo::Any => {
+                Ok(other)
+            }
             _ => Err(TypeError::UnsupportedOperation),
         }
     }
@@ -213,6 +226,9 @@ impl Mul for TypeInfo {
                     TypeInfo::Float => return Ok(TypeInfo::Float),
                     _ => Err(TypeError::UnsupportedOperation),
                 }
+            }
+            TypeInfo::Any => {
+                Ok(other)
             }
             _ => Err(TypeError::UnsupportedOperation),
         }

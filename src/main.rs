@@ -84,35 +84,38 @@ fn main() {
                         IResult::Done(_, ast) => {
                             let mut map: VariableStore = VariableStore::new();
                             let mut mutability_map: MutabilityMap = MutabilityMap::new();
+                            let mut type_store: TypeStore = TypeStore::new();
                             std_functions::add_std_functions(&mut map);
                             let ast = ast.hoist_functions_and_structs();
 
                             // Drop the user into a repl
                             if repl_after_parse {
                                 match ast.evaluate(&mut map) {
-                                    Ok(_) => repl(&mut map, &mut mutability_map), // Start the REPL if the program evaluates correctly
-                                    Err(e) => {
-                                        println!(
-                                            "Couldn't load program into REPL, due to error: {:?}",
-                                            e
-                                        )
-                                    }
+                                    Ok(_) => repl(&mut map, &mut mutability_map, &mut type_store), // Start the REPL if the program evaluates correctly
+                                    Err(e) => println!( "Couldn't load program into REPL, due to error: {:?}", e )
                                 };
                             } else {
                                 let mut program_return_value: LangResult = Err(LangError::InitState);
-                                if ast.main_fn_exists() {
-                                    match ast.evaluate(&mut map) {
-                                        Ok(_) => program_return_value = ast.execute_main(&mut map),
-                                        Err(e) => {
-                                            println!(
-                                                "Couldn't call main because program failed to evaluate, due to error: {:?}",
-                                                e
-                                            )
+                                // Check the type info for the AST.
+                                match ast.check_types(&mut type_store) {
+                                    // If the types check out, execute the program.
+                                    Ok(_) => {
+                                        if ast.main_fn_exists() {
+                                            match ast.evaluate(&mut map) {
+                                                Ok(_) => program_return_value = ast.execute_main(&mut map),
+                                                Err(e) => {
+                                                    println!( "Couldn't call main because program failed to evaluate, due to error: {:?}", e )
+                                                }
+                                            }
+                                        } else {
+                                            // main() isn't found, just execute the statements found in the program.
+                                            program_return_value = ast.evaluate(&mut map);
                                         }
+                                    },
+                                    // Otherwise, print the type error
+                                    Err(type_error) => {
+                                        println!("Type Error Encountered: {:?}", type_error )
                                     }
-                                } else {
-                                    // main() isn't found, just execute the statements found in the program.
-                                    program_return_value = ast.evaluate(&mut map);
                                 }
 
                                 match program_return_value {

@@ -1,5 +1,5 @@
 
-use ast::{Datatype, TypeInfo, RcDatatype};
+use ast::{Datatype, TypeInfo, RcDatatype, TypeError};
 
 pub type LangResult = Result<RcDatatype, LangError>;
 
@@ -46,5 +46,6 @@ pub enum LangError {
     CouldNotParseFile { filename: String, reason: String },
     TriedToGetLengthOfNonArray,
     RangeValueIsntNumber,
-    MutabilityRulesViolated
+    MutabilityRulesViolated,
+    NewTypeError(TypeError)
 }

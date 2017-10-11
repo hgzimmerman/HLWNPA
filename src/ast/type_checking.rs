@@ -13,10 +13,10 @@ pub enum TypeError {
 }
 
 pub type TypeResult = Result<TypeInfo, TypeError>;
-type TypeStore = HashMap<String, TypeInfo>;
+pub type TypeStore = HashMap<String, TypeInfo>;
 
 impl Ast {
-    fn check_types( &self, mut type_store: &mut TypeStore ) -> Result<TypeInfo, TypeError> {
+    pub fn check_types( &self, mut type_store: &mut TypeStore ) -> Result<TypeInfo, TypeError> {
         match *self {
             Ast::SExpr(ref sexpr) => {
                 match *sexpr {

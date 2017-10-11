@@ -12,6 +12,7 @@ use std_functions;
 use std::rc::Rc;
 use preprocessor::preprocess;
 use ast::mutability::MutabilityMap;
+use ast::type_checking::TypeStore;
 
 
 /// Because the program parser will put all top level expressions in a list,
@@ -44,29 +45,20 @@ fn read<'a>(read_string: &'a str) -> IResult<&'a [u8], Ast> {
 
 // Evaluates the AST
 fn evaluate(
-    possibly_parsed_ast: IResult<&[u8], Ast>,
+    ast: Ast,
     map: &mut VariableStore,
-    mutability_map: &mut MutabilityMap
+    mutability_map: &mut MutabilityMap,
+    type_store: &mut TypeStore
 ) -> LangResult {
 
-
-    match possibly_parsed_ast {
-        IResult::Done(_, ast) => {
-            let ast = replace_top_level_list_with_its_constituent_element(&ast);
-            if let Err(error) = ast.check_mutability_semantics(mutability_map) {
-                println!("{:?}", error);
-                Err(LangError::MutabilityRulesViolated)
-            } else {
-                ast.evaluate(map)
-            }
-        },
-        IResult::Error(e) => {
-            print!("Invalid syntax: {}\nuser>", e);
-            Err(LangError::InvalidSyntax)
-        }
-        IResult::Incomplete(i) => {
-            print!("Invalid syntax. Parser returned incomplete: {:?}\nuser>", i);
-            Err(LangError::InvalidSyntaxFailedToParse)
+    let ast = replace_top_level_list_with_its_constituent_element(&ast);
+    if let Err(error) = ast.check_mutability_semantics(mutability_map) {
+        println!("{:?}", error);
+        Err(LangError::MutabilityRulesViolated)
+    } else {
+        match ast.check_types(type_store) {
+            Ok(_) => ast.evaluate(map),
+            Err(type_error) => Err(LangError::NewTypeError(type_error))
         }
     }
 }
@@ -83,7 +75,7 @@ fn print(possibly_evaluated_program: LangResult) {
 }
 
 /// It is expected that the incoming map already has the std_functions added.
-pub fn repl(mut map: &mut VariableStore, mut mutability_map: &mut MutabilityMap) {
+pub fn repl(mut map: &mut VariableStore, mut mutability_map: &mut MutabilityMap, mut type_store: &mut TypeStore) {
     use std::io;
     use std::io::prelude::*;
     let stdin = io::stdin();
@@ -91,7 +83,7 @@ pub fn repl(mut map: &mut VariableStore, mut mutability_map: &mut MutabilityMap)
     print!("user>");
     let _ = io::stdout().flush();
     for line in stdin.lock().lines() {
-        prep(&mut line.unwrap().as_str(), &mut map, &mut mutability_map)
+        prep(&mut line.unwrap().as_str(), &mut map, &mut mutability_map, type_store)
     }
 }
 
@@ -101,16 +93,30 @@ pub fn repl(mut map: &mut VariableStore, mut mutability_map: &mut MutabilityMap)
 pub fn create_repl() {
     let mut map: VariableStore = VariableStore::new();
     let mut mutability_map: MutabilityMap = MutabilityMap::new();
+    let mut type_store: TypeStore = TypeStore::new();
     std_functions::add_std_functions(&mut map);
 
-    repl(&mut map, &mut mutability_map)
+    repl(&mut map, &mut mutability_map, &mut type_store)
 }
 
 
 /// Preprocess, Parse, Evaluate, Print.
-fn prep(a: &mut &str, map: &mut VariableStore, mutability_map: &mut MutabilityMap) {
+fn prep(a: &mut &str, map: &mut VariableStore, mutability_map: &mut MutabilityMap, type_store: &mut TypeStore ) {
     let preprocessed = preprocess(a);
     let parsed = read(preprocessed.as_str());
-    let evaled = evaluate(parsed, map, mutability_map);
-    print(evaled)
+
+    match parsed {
+        IResult::Done(_, ast) => {
+            let evaled = evaluate(ast, map, mutability_map, type_store);
+            print(evaled)
+        },
+        IResult::Error(e) => {
+            print!("Invalid syntax: {}\nuser>", e);
+        }
+        IResult::Incomplete(i) => {
+            print!("Invalid syntax. Parser returned incomplete: {:?}\nuser>", i);
+        }
+    }
+
+
 }

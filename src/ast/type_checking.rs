@@ -5,8 +5,8 @@ use ast::s_expression::SExpression;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TypeError {
-    TypeMismatch,
-    UnsupportedOperation,
+    TypeMismatch(TypeInfo, TypeInfo),
+    UnsupportedOperation(TypeInfo, TypeInfo),
     LhsNotAnIdentifier,
     IdentifierDoesntExist(String),
     MalformedAST
@@ -101,7 +101,7 @@ impl Ast {
                                     if lhs_type == &rhs_type {
                                         return Ok(rhs_type)
                                     } else {
-                                        return Err(TypeError::TypeMismatch)
+                                        return Err(TypeError::TypeMismatch(lhs_type.clone(), rhs_type))
                                     }
                                 }
                                 None => {
@@ -131,7 +131,7 @@ impl Ast {
                                     if lhs_type == &TypeInfo::Array(Box::new(TypeInfo::Any)) {
                                         return Ok(lhs_type.clone()) // The lhs will give a specific Array type, ie. Array<Number> vs the "rhs" in this case which is just Array<Any>
                                     } else {
-                                        return Err(TypeError::TypeMismatch)
+                                        return Err(TypeError::TypeMismatch(lhs_type.clone(), TypeInfo::Array(Box::new(TypeInfo::Any))))
                                     }
                                 }
                                 None => {
@@ -177,7 +177,7 @@ impl Ast {
                                             if input_type == expected_type {
                                                 Ok(input_type.clone())
                                             } else {
-                                                return Err(TypeError::TypeMismatch)
+                                                return Err(TypeError::TypeMismatch(input_type.clone(), expected_type.clone()))
                                             }
                                         } ).collect();
 

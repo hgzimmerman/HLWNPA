@@ -166,7 +166,7 @@ impl Add for TypeInfo {
                     },
                     TypeInfo::Float => return Ok(TypeInfo::Float),
                     TypeInfo::Any => return Ok(TypeInfo::Number),
-                    _ => return Err(TypeError::UnsupportedOperation),
+                    _ => return Err(TypeError::UnsupportedOperation(self, other)),
                 }
             }
             TypeInfo::Float => {
@@ -177,7 +177,7 @@ impl Add for TypeInfo {
                     }
                     TypeInfo::Float => return Ok(TypeInfo::Float),
                     TypeInfo::Any => return Ok(TypeInfo::Float),
-                    _ => return Err(TypeError::UnsupportedOperation),
+                    _ => return Err(TypeError::UnsupportedOperation(self, other)),
                 }
             }
             TypeInfo::String => {
@@ -192,13 +192,13 @@ impl Add for TypeInfo {
                         return Ok(TypeInfo::String);
                     }
                     TypeInfo::Any => return Ok(TypeInfo::String),
-                    _ => return Err(TypeError::UnsupportedOperation),
+                    _ => return Err(TypeError::UnsupportedOperation(self, other)),
                 }
             }
             TypeInfo::Any => {
                 Ok(other) // TODO confirm if this is what I want.
             }
-            _ => return Err(TypeError::UnsupportedOperation),
+            _ => return Err(TypeError::UnsupportedOperation(self, other)),
         }
     }
 }
@@ -213,20 +213,20 @@ impl Sub for TypeInfo {
                 match other {
                     TypeInfo::Number => return Ok(TypeInfo::Number),
                     TypeInfo::Float => return Ok(TypeInfo::Float),
-                    _ => Err(TypeError::UnsupportedOperation),
+                    _ => Err(TypeError::UnsupportedOperation(self, other)),
                 }
             }
             TypeInfo::Float => {
                 match other {
                     TypeInfo::Number => return Ok(TypeInfo::Float),
                     TypeInfo::Float => return Ok(TypeInfo::Float),
-                    _ => Err(TypeError::UnsupportedOperation),
+                    _ => Err(TypeError::UnsupportedOperation(self, other)),
                 }
             }
             TypeInfo::Any => {
                 Ok(other)
             }
-            _ => Err(TypeError::UnsupportedOperation),
+            _ => Err(TypeError::UnsupportedOperation(self, other)),
         }
     }
 }
@@ -239,20 +239,20 @@ impl Mul for TypeInfo {
                 match other {
                     TypeInfo::Number => return Ok(TypeInfo::Number),
                     TypeInfo::Float => return Ok(TypeInfo::Float),
-                    _ => Err(TypeError::UnsupportedOperation),
+                    _ => Err(TypeError::UnsupportedOperation(self, other)),
                 }
             }
             TypeInfo::Float => {
                 match other {
                     TypeInfo::Number => return Ok(TypeInfo::Float),
                     TypeInfo::Float => return Ok(TypeInfo::Float),
-                    _ => Err(TypeError::UnsupportedOperation),
+                    _ => Err(TypeError::UnsupportedOperation(self, other)),
                 }
             }
             TypeInfo::Any => {
                 Ok(other)
             }
-            _ => Err(TypeError::UnsupportedOperation),
+            _ => Err(TypeError::UnsupportedOperation(self, other)),
         }
     }
 }
@@ -269,7 +269,7 @@ impl Div for TypeInfo {
                     TypeInfo::Float => {
                         return Ok(TypeInfo::Float);
                     }
-                    _ => Err(TypeError::UnsupportedOperation),
+                    _ => Err(TypeError::UnsupportedOperation(self, other)),
                 }
             }
             TypeInfo::Float => {
@@ -280,10 +280,10 @@ impl Div for TypeInfo {
                     TypeInfo::Float => {
                         return Ok(TypeInfo::Float);
                     }
-                    _ => Err(TypeError::UnsupportedOperation),
+                    _ => Err(TypeError::UnsupportedOperation(self, other)),
                 }
             }
-            _ => Err(TypeError::UnsupportedOperation),
+            _ => Err(TypeError::UnsupportedOperation(self, other)),
         }
     }
 }
@@ -295,10 +295,10 @@ impl Rem for TypeInfo {
             TypeInfo::Number => {
                 match other {
                     TypeInfo::Number => return Ok(TypeInfo::Number),
-                    _ => Err(TypeError::UnsupportedOperation),
+                    _ => Err(TypeError::UnsupportedOperation(self, other)),
                 }
             }
-            _ => Err(TypeError::UnsupportedOperation),
+            _ => Err(TypeError::UnsupportedOperation(self, other)),
         }
     }
 }

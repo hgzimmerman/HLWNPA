@@ -2,7 +2,8 @@ use ast::datatype::Datatype;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use ast::type_checking::{TypeResult, TypeError};
-
+use ast::Ast;
+use ast::s_expression::SExpression;
 
 use std::ops::Sub;
 use std::ops::Add;
@@ -18,7 +19,7 @@ pub enum TypeInfo {
     Array(Box<TypeInfo>),
     Bool,
     None,
-    Function(Box<TypeInfo>), // TODO, this needs to encode the parameters and the return type, instead of just the return type.
+    Function{parameters: Vec<TypeInfo>, return_type: Box<TypeInfo>}, // TODO, this needs to encode the parameters and the return type, instead of just the return type.
     Struct { map: HashMap<String, TypeInfo> },
     StructType{identifier: String},
     Any
@@ -40,10 +41,31 @@ impl From<Datatype> for TypeInfo {
             Datatype::Bool(_) => TypeInfo::Bool,
             Datatype::None => TypeInfo::None,
             Datatype::Function {
-                parameters: _parameters,
+                parameters,
                 body: _body,
                 return_type
-            } => TypeInfo::Function(Box::new(return_type)),
+            } => {
+                if let Ast::ExpressionList(list) = *parameters {
+                    TypeInfo::Function{
+                        parameters: list
+                           .iter()
+                           .map(|x| {
+                               if let Ast::SExpr(ref s_expression) = *x {
+                                   if let SExpression::TypeAssignment{ref identifier, ref type_info} = *s_expression {
+                                       match **type_info {
+                                           Ast::Type(ref t_i) => {
+                                               TypeInfo::from(t_i.clone())
+                                           }
+                                           _ => panic!("Malformed AST")
+                                       }
+                                   } else { panic!("Malformed AST")}
+                               } else { panic!("Malformed AST")}
+                           })
+                           .collect(),
+                        return_type: Box::new(return_type)
+                    }
+                } else { panic!("Malformed AST")}
+            },
             Datatype::Struct { map } => {
                 let mut type_map = HashMap::new();
                 for tuple in map.into_iter() {
@@ -104,7 +126,7 @@ impl PartialOrd for TypeInfo {
                     None
                 }
             }
-            TypeInfo::Function(ref type_info) => {
+            TypeInfo::Function{ref parameters, ref return_type} => {
                 None // TODO, is there a better way to do this? I don't think that functions should be compared as that could require an Ast traversal, which would require loading the AST into the fn typeinfo.
             }
             TypeInfo::Struct { map: ref lhs_map } => {
@@ -307,6 +329,37 @@ mod test {
     fn convert_from_datatype_and_perform_operation_and_compare() {
         // TODO flesh these tests out more.
         assert!(TypeInfo::Number == (TypeInfo::from(Datatype::Number(10)) + TypeInfo::from(Datatype::Number(21))).unwrap());
+    }
+
+    #[test]
+    fn convert_fn_to_type() {
+        let function = Datatype::Function{
+            parameters: Box::new(Ast::ExpressionList(vec![])),
+            body: Box::new(Ast::ExpressionList(vec![])),
+            return_type: TypeInfo::Number
+        };
+        assert_eq!(TypeInfo::Function {parameters: vec![], return_type: Box::new(TypeInfo::Number)}, TypeInfo::from(function))
+    }
+
+    #[test]
+    fn convert_parameter_fn_to_type() {
+        use ast;
+        let function = Datatype::Function{
+            parameters: Box::new(Ast::ExpressionList(vec![
+                Ast::SExpr(SExpression::TypeAssignment {
+                    identifier: Box::new(Ast::ValueIdentifier("a".to_string())),
+                    type_info: Box::new(Ast::Type(TypeInfo::Number))
+                }),
+                Ast::SExpr(SExpression::TypeAssignment {
+                    identifier: Box::new(Ast::ValueIdentifier("b".to_string())),
+                    type_info: Box::new(Ast::Type(TypeInfo::String))
+                }),
+
+            ])),
+            body: Box::new(Ast::ExpressionList(vec![])),
+            return_type: TypeInfo::Number
+        };
+        assert_eq!(TypeInfo::Function {parameters: vec![ TypeInfo::Number, TypeInfo::String ], return_type: Box::new(TypeInfo::Number)}, TypeInfo::from(function))
     }
 
 

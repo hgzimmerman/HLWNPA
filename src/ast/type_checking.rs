@@ -220,6 +220,23 @@ mod test {
     }
 
     #[test]
+    /// Reassigning the variable will allow its type to change.
+    fn different_type_reassignment() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+        let a := 5
+        let a := "Hello"
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeInfo::String, ast.check_types(&mut map).unwrap());
+    }
+
+    #[test]
     fn throw_error_on_type_mismatch_addition_assignment() {
         let mut map: TypeStore = TypeStore::new();
         let input_string = r##"

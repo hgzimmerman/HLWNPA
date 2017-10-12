@@ -9,55 +9,108 @@ pub enum TypeError {
     UnsupportedOperation(TypeInfo, TypeInfo),
     LhsNotAnIdentifier,
     IdentifierDoesntExist(String),
-    MalformedAST
+    MalformedAST,
+    // Mutability
+    CanNotAssignToConstVariable,
+    CanNotRedeclareConst,
+    VariableDoesNotExist, // Remove?
+    IsNotAVariable, // Remove?
+    CanNotRedeclareFunction,
+    CanNotRedeclareStruct
+}
+
+use ast::datatype::Datatype;
+#[derive(Debug, Clone, PartialEq)]
+pub enum Mutability {
+    Mutable(TypeInfo),
+    Immutable(TypeInfo)
+}
+
+impl From<Datatype> for Mutability {
+    fn from(datatype: Datatype) -> Mutability {
+        Mutability::Mutable(TypeInfo::from(datatype))
+    }
+}
+
+impl Mutability {
+    fn get_type(self) -> TypeInfo {
+        match self {
+            Mutability::Mutable(ti) => ti,
+            Mutability::Immutable(ti) => ti
+        }
+    }
+
+    fn from_type_result(type_result: TypeResult) -> MutabilityResult {
+        match type_result {
+            Ok(ti) => Ok(Mutability::Mutable(ti)),
+            Err(e) => Err(e)
+        }
+    }
 }
 
 pub type TypeResult = Result<TypeInfo, TypeError>;
-pub type TypeStore = HashMap<String, TypeInfo>;
+pub type MutabilityResult = Result<Mutability, TypeError>;
+pub type TypeStore = HashMap<String, Mutability>;
+
 
 impl Ast {
-    pub fn check_types( &self, mut type_store: &mut TypeStore ) -> Result<TypeInfo, TypeError> {
+    pub fn check_types( &self, mut type_store: &mut TypeStore ) -> MutabilityResult {
         match *self {
             Ast::SExpr(ref sexpr) => {
                 match *sexpr {
                     SExpression::Add(ref lhs, ref rhs) => {
-                        TypeInfo::from(lhs.check_types(type_store)?) + TypeInfo::from(rhs.check_types(type_store)?)
+                        Mutability::from_type_result(
+                            lhs.check_types(type_store)?.get_type()
+                                + rhs.check_types(type_store)?.get_type()
+                        )
                     }
                     SExpression::Subtract(ref lhs, ref rhs) => {
-                        TypeInfo::from(lhs.check_types(type_store)?) - TypeInfo::from(rhs.check_types(type_store)?)
+                        Mutability::from_type_result(
+                            lhs.check_types(type_store)?.get_type()
+                                - rhs.check_types(type_store)?.get_type()
+                        )
                     }
                     SExpression::Multiply(ref lhs, ref rhs) => {
-                        TypeInfo::from(lhs.check_types(type_store)?) * TypeInfo::from(rhs.check_types(type_store)?)
+                        Mutability::from_type_result(
+                            lhs.check_types(type_store)?.get_type()
+                                * rhs.check_types(type_store)?.get_type()
+                        )
                     }
                     SExpression::Divide(ref lhs, ref rhs) => {
-                        lhs.check_types(type_store)? / TypeInfo::from(rhs.check_types(type_store)?)
+                        Mutability::from_type_result(
+                            lhs.check_types(type_store)?.get_type()
+                                / rhs.check_types(type_store)?.get_type()
+                        )
                     }
                     SExpression::Modulo(ref lhs, ref rhs) => {
-                        lhs.check_types(type_store)? % rhs.check_types(type_store)?
+                        Mutability::from_type_result(
+                            lhs.check_types(type_store)?.get_type()
+                                % rhs.check_types(type_store)?.get_type()
+                        )
                     }
                     SExpression::Equals(_, _) => {
-                        Ok(TypeInfo::Bool)
+                        Ok(Mutability::Mutable(TypeInfo::Bool))
                     }
                     SExpression::NotEquals(_, _) => {
-                        Ok(TypeInfo::Bool)
+                        Ok(Mutability::Mutable(TypeInfo::Bool))
                     }
                     SExpression::GreaterThan(_, _) => {
-                        Ok(TypeInfo::Bool)
+                        Ok(Mutability::Mutable(TypeInfo::Bool))
                     }
                     SExpression::LessThan(_, _) => {
-                        Ok(TypeInfo::Bool)
+                        Ok(Mutability::Mutable(TypeInfo::Bool))
                     }
                     SExpression::GreaterThanOrEqual(_, _) => {
-                        Ok(TypeInfo::Bool)
+                        Ok(Mutability::Mutable(TypeInfo::Bool))
                     }
                     SExpression::LessThanOrEqual(_, _ ) => {
-                        Ok(TypeInfo::Bool)
+                        Ok(Mutability::Mutable(TypeInfo::Bool))
                     }
                     SExpression::LogicalAnd(_, _) => {
-                        Ok(TypeInfo::Bool)
+                        Ok(Mutability::Mutable(TypeInfo::Bool))
                     }
                     SExpression::LogicalOr(_, _) => {
-                        Ok(TypeInfo::Bool)
+                        Ok(Mutability::Mutable(TypeInfo::Bool))
                     }
                     // TODO, consider moving mutability into this checker? I believe it can be done.
                     SExpression::VariableDeclaration {
@@ -93,23 +146,37 @@ impl Ast {
                         ref identifier,
                         ref ast
                     } => {
-                        let rhs_type = ast.check_types(type_store)?;
+                        let rhs_mutability: Mutability = ast.check_types(type_store)?;
                         if let Ast::ValueIdentifier(ref ident) = **identifier {
+
+                            // hold errors that may be generated when checking types
+                            let mut error: Option<TypeError> = None;
+
                             match type_store.get(ident) {
-                                Some(lhs_type) => {
-                                    //TODO not implemented in full yet
-                                    if lhs_type == &rhs_type {
-                                        return Ok(rhs_type)
-                                    } else {
-                                        return Err(TypeError::TypeMismatch(lhs_type.clone(), rhs_type))
+                                Some(lhs_mutability) => {
+                                    match *lhs_mutability {
+                                        Mutability::Mutable(_) => {
+                                            if lhs_mutability.clone().get_type() != rhs_mutability.clone().get_type() {
+                                                error = Some(TypeError::TypeMismatch(lhs_mutability.clone().get_type(), rhs_mutability.clone().get_type()))
+                                            }
+                                        }
+                                        Mutability::Immutable(_) => {
+                                            error = Some(TypeError::CanNotAssignToConstVariable)
+                                        }
                                     }
                                 }
                                 None => {
-                                    return Err(TypeError::IdentifierDoesntExist(ident.clone()))
+                                    error = Some(TypeError::IdentifierDoesntExist(ident.clone()))
                                 }
                             }
-                            type_store.insert(ident.clone(), rhs_type.clone());
-                            Ok(rhs_type)
+
+                            if let Some(e) = error {
+                                return Err(e)
+                            } else {
+                                type_store.insert(ident.clone(), rhs_mutability.clone());
+                                Ok(rhs_mutability)
+                            }
+
                         } else {
                             return Err(TypeError::LhsNotAnIdentifier)
                         }
@@ -118,7 +185,7 @@ impl Ast {
                         ref conditional,
                         ref body,
                     } => {
-                        let _ = conditional.check_types(type_store)?;
+                        let _ = conditional.check_types(type_store)?; // Possibly return an error on checking the conditional's type.
                         body.check_types(type_store)
                     }
                     SExpression::AccessArray {
@@ -128,10 +195,10 @@ impl Ast {
                         if let Ast::ValueIdentifier(ref ident) = **identifier {
                             match type_store.get(ident) {
                                 Some(lhs_type) => {
-                                    if lhs_type == &TypeInfo::Array(Box::new(TypeInfo::Any)) {
+                                    if lhs_type.clone().get_type() == TypeInfo::Array(Box::new(TypeInfo::Any)) {
                                         return Ok(lhs_type.clone()) // The lhs will give a specific Array type, ie. Array<Number> vs the "rhs" in this case which is just Array<Any>
                                     } else {
-                                        return Err(TypeError::TypeMismatch(lhs_type.clone(), TypeInfo::Array(Box::new(TypeInfo::Any))))
+                                        return Err(TypeError::TypeMismatch(lhs_type.clone().get_type(), TypeInfo::Array(Box::new(TypeInfo::Any)) ))
                                     }
                                 }
                                 None => {
@@ -143,10 +210,10 @@ impl Ast {
                         }
                     }
                     SExpression::GetArrayLength(_) => {
-                        Ok(TypeInfo::Number)
+                        Ok(Mutability::Mutable(TypeInfo::Number))
                     }
                     SExpression::Range { start: ref _start, end: ref _end} => {
-                        Ok(TypeInfo::Array(Box::new(TypeInfo::Number)))
+                        Ok(Mutability::Mutable(TypeInfo::Array(Box::new(TypeInfo::Number))))
                     }
                     SExpression::ExecuteFn {
                         ref identifier,
@@ -158,7 +225,7 @@ impl Ast {
                                 let mut evaluated_expressions: Vec<TypeInfo> = vec![];
                                 for e in expressions {
                                     match e.check_types(&mut cloned_type_store) {
-                                        Ok(dt) => evaluated_expressions.push(dt),
+                                        Ok(dt) => evaluated_expressions.push(dt.get_type()),
                                         Err(err) => return Err(err),
                                     }
                                 }
@@ -169,7 +236,7 @@ impl Ast {
 
                         if let Ast::ValueIdentifier(ref id) = **identifier {
                             if let Some(ref possible_fn_datatype) = type_store.get(id) {
-                                if let TypeInfo::Function { ref parameters, ref return_type } = **possible_fn_datatype {
+                                if let TypeInfo::Function { ref parameters, ref return_type } = (*possible_fn_datatype).clone().get_type() {
                                     let parameter_matches: Vec<TypeResult> = parameter_types
                                         .iter()
                                         .zip( parameters.iter() )
@@ -187,7 +254,7 @@ impl Ast {
                                             }
                                         }
 
-                                        return Ok(*return_type.clone())
+                                        return Ok(Mutability::Mutable(*return_type.clone()))
                                 }
                             }
                         }
@@ -202,18 +269,18 @@ impl Ast {
                 }
             }
             Ast::Literal(ref datatype) => {
-                Ok(TypeInfo::from( datatype.clone() ))
+                Ok(Mutability::Mutable(TypeInfo::from( datatype.clone() )))
             }
             Ast::ValueIdentifier(ref identifier) => {
                 // if the typestore has the value
-                if let Some(stored_type) = type_store.get(identifier) {
-                    Ok(stored_type.clone())
+                if let Some(stored_mutability_and_type) = type_store.get(identifier) {
+                    Ok(stored_mutability_and_type.clone())
                 } else {
-                    return Ok(TypeInfo::Any); // Hasn't been initialized
+                    return Ok(Mutability::Mutable(TypeInfo::Any)); // Hasn't been initialized
                 }
             }
             Ast::ExpressionList(ref expressions) => {
-                let mut checked_type: TypeInfo = TypeInfo::Any;
+                let mut checked_type: Mutability = Mutability::Mutable(TypeInfo::Any);
                 for e in expressions {
                     checked_type = e.check_types(type_store)?;
                 }
@@ -244,7 +311,8 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeError::TypeMismatch, ast.check_types(&mut map).unwrap_err());
+
+        assert_eq!(TypeError::TypeMismatch(TypeInfo::Number, TypeInfo::String), ast.check_types(&mut map).unwrap_err() as TypeError);
     }
 
     #[test]
@@ -261,7 +329,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeInfo::String, ast.check_types(&mut map).unwrap());
+        assert_eq!(TypeInfo::String, ast.check_types(&mut map).unwrap().get_type());
     }
 
     #[test]
@@ -277,7 +345,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeError::TypeMismatch, ast.check_types(&mut map).unwrap_err());
+        assert_eq!(TypeError::TypeMismatch(TypeInfo::Number, TypeInfo::String), ast.check_types(&mut map).unwrap_err());
     }
 
     #[test]
@@ -293,7 +361,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeError::TypeMismatch, ast.check_types(&mut map).unwrap_err());
+        assert_eq!(TypeError::TypeMismatch(TypeInfo::Number, TypeInfo::String), ast.check_types(&mut map).unwrap_err());
     }
 
     #[test]
@@ -308,7 +376,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeInfo::Number, ast.check_types(&mut map).unwrap());
+        assert_eq!(TypeInfo::Number, ast.check_types(&mut map).unwrap().get_type());
     }
 
     #[test]
@@ -323,7 +391,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeInfo::String, ast.check_types(&mut map).unwrap());
+        assert_eq!(TypeInfo::String, ast.check_types(&mut map).unwrap().get_type());
     }
 
     #[test]
@@ -339,7 +407,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeInfo::String, ast.check_types(&mut map).unwrap());
+        assert_eq!(TypeInfo::String, ast.check_types(&mut map).unwrap().get_type());
     }
 
     #[test]
@@ -354,8 +422,9 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeInfo::Float, ast.check_types(&mut map).unwrap());
+        assert_eq!(TypeInfo::Float, ast.check_types(&mut map).unwrap().get_type());
     }
+
     #[test]
     fn array_is_array() {
         let mut map: TypeStore = TypeStore::new();
@@ -369,7 +438,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeInfo::Array(Box::new(TypeInfo::Number)), ast.check_types(&mut map).unwrap());
+        assert_eq!(TypeInfo::Array(Box::new(TypeInfo::Number)), ast.check_types(&mut map).unwrap().get_type());
     }
 
     #[test]
@@ -385,7 +454,8 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeError::TypeMismatch, ast.check_types(&mut map).unwrap_err());
+        assert_eq!(TypeError::TypeMismatch(TypeInfo::Array(Box::new(TypeInfo::Number)), TypeInfo::Array(Box::new(TypeInfo::String))),
+                   ast.check_types(&mut map).unwrap_err());
     }
 
     #[test]
@@ -400,7 +470,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeError::UnsupportedOperation, ast.check_types(&mut map).unwrap_err());
+        assert_eq!(TypeError::UnsupportedOperation(TypeInfo::String, TypeInfo::Number), ast.check_types(&mut map).unwrap_err());
     }
 
 
@@ -420,7 +490,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeError::TypeMismatch, ast.check_types(&mut map).unwrap_err());
+        assert_eq!(TypeError::TypeMismatch(TypeInfo::String, TypeInfo::Number), ast.check_types(&mut map).unwrap_err());
     }
 
     #[test]
@@ -439,7 +509,7 @@ mod test {
             _ => panic!(),
         };
 
-        assert_eq!(TypeInfo::Number, ast.check_types(&mut map).unwrap());
+        assert_eq!(TypeInfo::Number, ast.check_types(&mut map).unwrap().get_type());
     }
 
 

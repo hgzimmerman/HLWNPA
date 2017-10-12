@@ -46,7 +46,7 @@ impl From<Datatype> for TypeInfo {
                 return_type
             } => {
                 if let Ast::ExpressionList(list) = *parameters {
-                    TypeInfo::Function{
+                    TypeInfo::Function {
                         parameters: list
                            .iter()
                            .map(|x| {
@@ -127,7 +127,7 @@ impl PartialOrd for TypeInfo {
                 }
             }
             TypeInfo::Function{ref parameters, ref return_type} => {
-                None // TODO, is there a better way to do this? I don't think that functions should be compared as that could require an Ast traversal, which would require loading the AST into the fn typeinfo.
+                None // TODO, is there a better way to do this? I don't think that functions should be compared in their entirety as that could require an Ast traversal, which would require loading the AST into the fn typeinfo.
             }
             TypeInfo::Struct { map: ref lhs_map } => {
                 if let TypeInfo::Struct { map: ref rhs_map } = *rhs {

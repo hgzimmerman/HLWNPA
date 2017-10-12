@@ -149,7 +149,7 @@ impl Ast {
                         let rhs_mutability: Mutability = ast.check_types(type_store)?;
                         if let Ast::ValueIdentifier(ref ident) = **identifier {
 
-                            // hold errors that may be generated when checking types
+                            // hold errors that may be generated when checking types // TODO move this up one scope
                             let mut error: Option<TypeError> = None;
 
                             match type_store.get(ident) {

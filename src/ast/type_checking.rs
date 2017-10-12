@@ -16,7 +16,7 @@ pub enum TypeError {
     VariableDoesNotExist, // Remove?
     IsNotAVariable, // Remove?
     CanNotRedeclareFunction,
-    CanNotRedeclareStruct
+    CanNotRedeclareStructType
 }
 
 use ast::datatype::Datatype;
@@ -114,13 +114,132 @@ impl Ast {
                     }
                     // TODO, consider moving mutability into this checker? I believe it can be done.
                     SExpression::VariableDeclaration {
-                        identifier: ref lhs,
-                        ast: ref rhs,
-                    } |
+                        ref identifier,
+                        ref ast,
+                    } => {
+                        let rhs_mutability: Mutability = ast.check_types(type_store)?;
+                        if let Ast::ValueIdentifier(ref ident) = **identifier {
+                            // hold errors that may be generated when checking types
+                            let mut error: Option<TypeError> = None;
+
+                            match type_store.get(ident) {
+                                // If the variable is found, its mutability needs to be checked
+                                Some(lhs_mutability) => {
+                                    match *lhs_mutability {
+                                        Mutability::Mutable(ref lhs_type) => {
+                                            // Re declaring a variable allows it to change types
+                                        }
+                                        Mutability::Immutable(_) => {
+                                            error = Some(TypeError::CanNotRedeclareConst)
+                                        }
+                                    }
+                                }
+                                // If the variable doesn't exist yet fall through to not return an error
+                                None => {}
+                            }
+
+                            if let Some(e) = error {
+                                return Err(e)
+                            } else {
+                                type_store.insert(ident.clone(), Mutability::Mutable(rhs_mutability.clone().get_type()));
+                                Ok(rhs_mutability)
+                            }
+
+
+                        } else {
+                            Err(TypeError::LhsNotAnIdentifier)
+                        }
+                    }
+
                     SExpression::ConstDeclaration {
-                        identifier: ref lhs,
-                        ast: ref rhs,
-                    } |
+                        ref identifier,
+                        ref ast,
+                    } => {
+                        let rhs_mutability: Mutability = ast.check_types(type_store)?;
+                        if let Ast::ValueIdentifier(ref ident) = **identifier {
+                            // hold errors that may be generated when checking types
+                            let mut error: Option<TypeError> = None;
+
+                            match type_store.get(ident) {
+                                // If the variable is found, its mutability needs to be checked
+                                Some(lhs_mutability) => {
+                                    error = Some(TypeError::CanNotRedeclareConst)
+                                }
+                                // If the variable doesn't exist yet fall through to not return an error
+                                None => {}
+                            }
+
+                            if let Some(e) = error {
+                                return Err(e)
+                            } else {
+                                type_store.insert(ident.clone(), Mutability::Immutable(rhs_mutability.clone().get_type()));
+                                Ok(rhs_mutability)
+                            }
+
+                        } else {
+                            Err(TypeError::LhsNotAnIdentifier)
+                        }
+                    }
+
+                    SExpression::DeclareFunction {
+                        ref identifier,
+                        ref function_datatype,
+                    } => {
+                        let rhs_mutability: Mutability = function_datatype.check_types(type_store)?;
+                        // TODO, should I check if the righthand side is a function datatype???
+                        if let Ast::ValueIdentifier(ref ident) = **identifier {
+                            // hold errors that may be generated when checking types
+                            let mut error: Option<TypeError> = None;
+
+                            match type_store.get(ident) {
+                                // If the variable is found, its mutability needs to be checked
+                                Some(lhs_mutability) => {
+                                    error = Some(TypeError::CanNotRedeclareFunction)
+                                }
+                                // If the variable doesn't exist yet fall through to not return an error
+                                None => {}
+                            }
+
+                            if let Some(e) = error {
+                                return Err(e)
+                            } else {
+                                type_store.insert(ident.clone(), Mutability::Immutable(rhs_mutability.clone().get_type()));
+                                Ok(rhs_mutability)
+                            }
+                        } else {
+                            Err(TypeError::LhsNotAnIdentifier)
+                        }
+                    }
+                    SExpression::StructDeclaration {
+                        ref identifier,
+                        ref struct_type_info,
+                    } => {
+                        let rhs_mutability: Mutability = struct_type_info.check_types(type_store)?;
+                        // TODO, should I check if the righthand side is a struct type info?
+                        if let Ast::ValueIdentifier(ref ident) = **identifier {
+                            // hold errors that may be generated when checking types
+                            let mut error: Option<TypeError> = None;
+
+                            match type_store.get(ident) {
+                                // If the variable is found, its mutability needs to be checked
+                                Some(lhs_mutability) => {
+                                    error = Some(TypeError::CanNotRedeclareStructType)
+                                }
+                                // If the variable doesn't exist yet fall through to not return an error
+                                None => {}
+                            }
+
+                            if let Some(e) = error {
+                                return Err(e)
+                            } else {
+                                type_store.insert(ident.clone(), Mutability::Immutable(rhs_mutability.clone().get_type()));
+                                Ok(rhs_mutability)
+                            }
+                        } else {
+                            Err(TypeError::LhsNotAnIdentifier)
+                        }
+                    }
+
                     SExpression::TypeAssignment {
                         identifier: ref lhs,
                         type_info: ref rhs,
@@ -128,10 +247,6 @@ impl Ast {
                     SExpression::FieldAssignment {
                         identifier: ref lhs,
                         ast: ref rhs,
-                    } |
-                    SExpression::DeclareFunction {
-                        identifier: ref lhs,
-                        function_datatype: ref rhs,
                     } => {
                         let rhs_type = rhs.check_types(type_store)?;
                         if let Ast::ValueIdentifier(ref ident) = ** lhs {
@@ -149,7 +264,7 @@ impl Ast {
                         let rhs_mutability: Mutability = ast.check_types(type_store)?;
                         if let Ast::ValueIdentifier(ref ident) = **identifier {
 
-                            // hold errors that may be generated when checking types // TODO move this up one scope
+                            // hold errors that may be generated when checking types
                             let mut error: Option<TypeError> = None;
 
                             match type_store.get(ident) {
@@ -173,10 +288,9 @@ impl Ast {
                             if let Some(e) = error {
                                 return Err(e)
                             } else {
-                                type_store.insert(ident.clone(), rhs_mutability.clone());
+                                type_store.insert(ident.clone(), Mutability::Mutable(rhs_mutability.clone().get_type()));
                                 Ok(rhs_mutability)
                             }
-
                         } else {
                             return Err(TypeError::LhsNotAnIdentifier)
                         }
@@ -255,17 +369,50 @@ impl Ast {
                                         }
 
                                         return Ok(Mutability::Mutable(*return_type.clone()))
+                                } {
+                                    Err(TypeError::MalformedAST)
                                 }
+                            } else {
+                                Err(TypeError::IdentifierDoesntExist(id.clone()))
                             }
+                        } else {
+                            Err(TypeError::IsNotAVariable)
                         }
-
-
-
-                        // Next, we need to use the identifier to get the function parameter types, and the function return type.
-                        unimplemented!("Function")
-
                     }
-                    _ => unimplemented!("SExpr")
+
+                    SExpression::CreateStruct {
+                        ref identifier,
+                        ref struct_datatype
+                    } => {
+                        unimplemented!()
+                    }
+                    SExpression::AccessStructField {
+                        ref identifier,
+                        ref field_identifier
+                    } => {
+                        unimplemented!()
+                    }
+
+
+                    SExpression::Print(_) => {
+                        return Ok(Mutability::Mutable(TypeInfo::String))
+                    }
+                    SExpression::Include(_) => {
+                        Ok(Mutability::Mutable(TypeInfo::Any)) // TODO Verify what the include operator returns, consider a No-return type
+                    }
+                    SExpression::Invert(ref parameter) => {
+                        parameter.check_types(type_store)
+                    }
+                    SExpression::Negate(ref parameter) => {
+                        parameter.check_types(type_store)
+                    }
+                    SExpression::Increment(ref parameter) => {
+                        parameter.check_types(type_store)
+                    }
+                    SExpression::Decrement(ref parameter) => {
+                        parameter.check_types(type_store)
+                    }
+
                 }
             }
             Ast::Literal(ref datatype) => {

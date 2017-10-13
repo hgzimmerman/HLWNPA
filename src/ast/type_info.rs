@@ -74,7 +74,7 @@ impl From<Datatype> for TypeInfo {
                 }
                 TypeInfo::Struct { map: type_map }
             }
-            Datatype::StructType{ identifier, type_information} => TypeInfo::StructType{ identifier: identifier }, // Generally isn't useful.
+            Datatype::StructType{ identifier, type_information} => TypeInfo::StructType{ identifier: identifier },
         }
     }
 }

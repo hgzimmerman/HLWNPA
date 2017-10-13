@@ -385,6 +385,14 @@ impl Ast {
                         ref identifier,
                         ref struct_datatype
                     } => {
+                        if let Ast::ValueIdentifier(ref id) = ** identifier {
+                            if let Some(existing_struct_type) = type_store.get(id){
+                                if let TypeInfo::Struct{ ref map } = existing_struct_type.clone().get_type() {
+
+                                }
+                            }
+                        }
+
                         unimplemented!()
                     }
                     SExpression::AccessStructField {
@@ -393,7 +401,6 @@ impl Ast {
                     } => {
                         unimplemented!()
                     }
-
 
                     SExpression::Print(_) => {
                         return Ok(Mutability::Mutable(TypeInfo::String))

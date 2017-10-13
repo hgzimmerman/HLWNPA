@@ -659,5 +659,52 @@ mod test {
         assert_eq!(TypeInfo::Number, ast.check_types(&mut map).unwrap().get_type());
     }
 
+    #[test]
+    fn mutability_const_redeclaration_throws_error() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+            const a := 5
+            let a := 4
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeError::CanNotRedeclareConst, ast.check_types(&mut map).unwrap_err());
+    }
+
+    #[test]
+    fn mutability_const_reassignment_throws_error() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+            const a := 5
+            a := 4
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeError::CanNotAssignToConstVariable, ast.check_types(&mut map).unwrap_err());
+    }
+
+    #[test]
+    fn mutability_function_reassignment_throws_error() {
+        let mut map: TypeStore = TypeStore::new();
+        let input_string = r##"
+            fn a() -> Number { 7 }
+            a := 4
+        "##;
+        let (_, ast) = match program(input_string.as_bytes()) {
+            IResult::Done(rest, v) => (rest, v),
+            IResult::Error(e) => panic!("{}", e),
+            _ => panic!(),
+        };
+
+        assert_eq!(TypeError::CanNotAssignToConstVariable, ast.check_types(&mut map).unwrap_err());
+    }
 
 }

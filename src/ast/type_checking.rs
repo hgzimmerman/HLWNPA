@@ -54,6 +54,7 @@ pub type TypeStore = HashMap<String, Mutability>;
 
 
 impl Ast {
+    /// Checks for both Type errors as well as mutability conflicts.
     pub fn check_types( &self, mut type_store: &mut TypeStore ) -> MutabilityResult {
         match *self {
             Ast::SExpr(ref sexpr) => {
